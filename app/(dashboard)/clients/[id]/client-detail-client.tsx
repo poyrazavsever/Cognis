@@ -5,8 +5,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Card, CardContent, Badge, Button, Input, Textarea, Label } from "poyraz-ui/atoms";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, DialogDescription } from "poyraz-ui/molecules";
-import { Phone, Mail, ExternalLink, Calendar, Plus, MessageSquare, Briefcase, FileText, UserPlus, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Phone, Mail, ExternalLink, Calendar, Plus, MessageSquare, UserPlus, Loader2, Copy } from "lucide-react";
 import { toast } from "poyraz-ui/molecules";
 import { addClientActivity } from "./actions";
 
@@ -66,30 +65,28 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
 
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [createUserOpen, setCreateUserOpen] = useState(false);
+  const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
 
   async function handleCreateUser(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
     
     setIsCreatingUser(true);
     try {
       const res = await fetch("/api/create-client-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, client_id: client.id })
+        body: JSON.stringify({ email, client_id: client.id })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
         throw new Error(data.error || "Kullanıcı oluşturulamadı.");
       }
-      toast.success("Müşteri portal hesabı başarıyla oluşturuldu.");
-      setCreateUserOpen(false);
-      // Optional: Refresh page to reflect the new client_auth_id
-      window.location.reload();
-    } catch (err: any) {
-      toast.error(err.message);
+      setInvitationUrl(data.invitation.invitationUrl);
+      toast.success("Güvenli portal daveti oluşturuldu.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Davet oluşturulamadı.");
     } finally {
       setIsCreatingUser(false);
     }
@@ -123,9 +120,9 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
               <DialogContent>
                 <form onSubmit={handleCreateUser}>
                   <DialogHeader>
-                    <DialogTitle>Müşteri Portalı Hesabı Oluştur</DialogTitle>
+                    <DialogTitle>Müşteri Portalına Davet Et</DialogTitle>
                     <DialogDescription>
-                      Müşteriniz bu e-posta ve şifre ile sisteme giriş yaparak projelerini takip edebilir.
+                      Müşterin bağlantıyı açıp kendi şifresini belirler. Davet 72 saat geçerlidir ve yalnızca bir kez kullanılabilir.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -133,16 +130,33 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                       <Label htmlFor="email">E-posta Adresi</Label>
                       <Input id="email" name="email" type="email" required defaultValue={client.email || ""} />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Geçici Şifre</Label>
-                      <Input id="password" name="password" type="text" required minLength={6} placeholder="Min 6 karakter" />
-                    </div>
+                    {invitationUrl ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="invitation-url">Davet bağlantısı</Label>
+                        <div className="flex gap-2">
+                          <Input id="invitation-url" value={invitationUrl} readOnly />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            aria-label="Davet bağlantısını kopyala"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(invitationUrl);
+                              toast.success("Davet bağlantısı kopyalandı.");
+                            }}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Bağlantı yalnızca bu ekranda düz metin olarak gösterilir.</p>
+                      </div>
+                    ) : null}
                   </div>
                   <DialogFooter>
                     <Button type="button" variant="ghost" onClick={() => setCreateUserOpen(false)}>İptal</Button>
-                    <Button type="submit" disabled={isCreatingUser}>
+                    <Button type="submit" disabled={isCreatingUser || Boolean(invitationUrl)}>
                       {isCreatingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Hesabı Oluştur
+                      Davet Oluştur
                     </Button>
                   </DialogFooter>
                 </form>

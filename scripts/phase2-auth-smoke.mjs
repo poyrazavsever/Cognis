@@ -16,6 +16,7 @@ const requiredTables = [
 
 const requiredIndexes = [
   "app_profiles_auth_user_id_unique",
+  "app_profiles_client_id_unique",
   "portal_invitations_token_hash_unique",
   "session_user_id_idx",
   "account_user_id_idx",
@@ -50,9 +51,11 @@ async function main() {
     const profileColumns = sqlite.prepare("pragma table_info(app_profiles)").all();
     const roleColumn = profileColumns.find((column) => column.name === "role");
     const disabledColumn = profileColumns.find((column) => column.name === "disabled");
+    const clientIdColumn = profileColumns.find((column) => column.name === "client_id");
 
     assert.equal(roleColumn?.notnull, 1, "app_profiles.role must be required");
     assert.equal(disabledColumn?.notnull, 1, "app_profiles.disabled must be required");
+    assert.ok(clientIdColumn, "app_profiles.client_id must bind invited client accounts");
 
     console.log("Phase 2 auth smoke passed");
   } finally {

@@ -7,6 +7,7 @@ import { getServerConfig } from "@/server/config";
 import { getSqliteConnection } from "@/server/db/client";
 import * as schema from "@/server/db/schema";
 import {
+  authorizeSessionCreation,
   completeFirstFreelancerSetup,
   recordAuthAuditEvent,
   reserveFirstFreelancerSetup,
@@ -46,12 +47,12 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    useSecureCookies: config.nodeEnv === "production",
+    useSecureCookies: config.secureCookies,
     cookiePrefix: "neta",
     defaultCookieAttributes: {
       httpOnly: true,
       sameSite: "lax",
-      secure: config.nodeEnv === "production",
+      secure: config.secureCookies,
       path: "/",
     },
   },
@@ -69,6 +70,7 @@ export const auth = betterAuth({
     },
     session: {
       create: {
+        before: async (session) => authorizeSessionCreation(session.userId),
         after: async (session) => {
           await recordAuthAuditEvent({
             type: "login_succeeded",

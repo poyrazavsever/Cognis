@@ -20,13 +20,20 @@ export type SessionContext = {
     email: string;
     displayName: string;
     role: UserRole;
+    clientId: string | null;
     disabled: boolean;
   };
 };
 
 export const getSessionContext = cache(async (): Promise<SessionContext | null> => {
+  return getSessionContextFromHeaders(await headers());
+});
+
+export async function getSessionContextFromHeaders(
+  requestHeaders: Headers,
+): Promise<SessionContext | null> {
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
     query: {
       disableCookieCache: true,
     },
@@ -38,7 +45,12 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
 
   const profile = getProfileByAuthUserId(session.user.id);
 
-  if (!profile || profile.disabled || profile.authUserId !== session.user.id) {
+  if (
+    !profile ||
+    profile.disabled ||
+    profile.authUserId !== session.user.id ||
+    (profile.role === "client" && !profile.clientId)
+  ) {
     return null;
   }
 
@@ -47,7 +59,7 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     user: session.user,
     profile,
   };
-});
+}
 
 export async function requireSession(): Promise<SessionContext> {
   const context = await getSessionContext();
@@ -72,7 +84,7 @@ export async function requireFreelancer(): Promise<SessionContext> {
 export async function requireClientUser(): Promise<SessionContext> {
   const context = await requireSession();
 
-  if (context.profile.role !== "client") {
+  if (context.profile.role !== "client" || !context.profile.clientId) {
     redirect("/");
   }
 
@@ -88,6 +100,7 @@ export function getProfileByAuthUserId(authUserId: string): SessionContext["prof
       email: appProfiles.email,
       displayName: appProfiles.displayName,
       role: appProfiles.role,
+      clientId: appProfiles.clientId,
       disabled: appProfiles.disabled,
     })
     .from(appProfiles)

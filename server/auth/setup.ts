@@ -122,6 +122,13 @@ export async function reserveFirstFreelancerSetup(email: string): Promise<boolea
       .all();
 
     if (freelancerCount > 0) {
+      tx.insert(authAuditEvents)
+        .values({
+          type: "registration_rejected",
+          email: normalizedEmail,
+          metadata: { reason: "setup_completed" },
+        })
+        .run();
       return false;
     }
 
@@ -135,6 +142,13 @@ export async function reserveFirstFreelancerSetup(email: string): Promise<boolea
     const now = new Date();
 
     if (setupState?.status === "completed") {
+      tx.insert(authAuditEvents)
+        .values({
+          type: "registration_rejected",
+          email: normalizedEmail,
+          metadata: { reason: "setup_completed" },
+        })
+        .run();
       return false;
     }
 
@@ -178,21 +192,52 @@ export async function reserveFirstFreelancerSetup(email: string): Promise<boolea
   });
 }
 
+export function failFirstFreelancerSetup(email: string, reason: string): void {
+  const normalizedEmail = normalizeAuthEmail(email);
+  const { db } = getSqliteConnection();
+
+  db.transaction((tx) => {
+    const [setupState] = tx
+      .select()
+      .from(appSetupState)
+      .where(eq(appSetupState.key, FIRST_FREELANCER_SETUP_KEY))
+      .limit(1)
+      .all();
+
+    if (setupState?.status === "pending" && setupState.lockedBy === normalizedEmail) {
+      tx.delete(appSetupState)
+        .where(eq(appSetupState.key, FIRST_FREELANCER_SETUP_KEY))
+        .run();
+    }
+
+    tx.insert(authAuditEvents)
+      .values({
+        type: "setup_failed",
+        email: normalizedEmail,
+        metadata: { reason },
+      })
+      .run();
+  });
+}
+
 export async function completeFirstFreelancerSetup(user: {
   id: string;
   email: string;
   name?: string | null;
 }): Promise<void> {
   const normalizedEmail = normalizeAuthEmail(user.email);
-  const now = new Date();
   const { db } = getSqliteConnection();
 
   db.transaction((tx) => {
-    completeFirstFreelancerSetupInTransaction(tx, {
-      id: user.id,
-      email: normalizedEmail,
-      name: user.name ?? null,
-    });
+    completeFirstFreelancerSetupInTransaction(
+      tx,
+      {
+        id: user.id,
+        email: normalizedEmail,
+        name: user.name ?? null,
+      },
+      false,
+    );
   });
 }
 
@@ -205,9 +250,29 @@ function completeFirstFreelancerSetupInTransaction(
     email: string;
     name?: string | null;
   },
+  repaired = true,
 ): void {
   const normalizedEmail = normalizeAuthEmail(user.email);
   const now = new Date();
+  const [existingProfile] = tx
+    .select({ id: appProfiles.id })
+    .from(appProfiles)
+    .where(eq(appProfiles.authUserId, user.id))
+    .limit(1)
+    .all();
+
+  if (existingProfile) {
+    tx.update(appSetupState)
+      .set({
+        status: "completed",
+        lockedBy: normalizedEmail,
+        completedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(appSetupState.key, FIRST_FREELANCER_SETUP_KEY))
+      .run();
+    return;
+  }
 
   tx.insert(appProfiles)
     .values({
@@ -215,6 +280,7 @@ function completeFirstFreelancerSetupInTransaction(
       email: normalizedEmail,
       displayName: user.name || getDefaultDisplayName(normalizedEmail),
       role: "freelancer",
+      clientId: null,
       disabled: false,
       createdAt: now,
       updatedAt: now,
@@ -247,7 +313,7 @@ function completeFirstFreelancerSetupInTransaction(
       type: "setup_completed",
       authUserId: user.id,
       email: normalizedEmail,
-      metadata: { role: "freelancer", repaired: true },
+      metadata: { role: "freelancer", repaired },
     })
     .run();
 }
@@ -268,4 +334,63 @@ export async function recordAuthAuditEvent(input: {
       metadata: input.metadata ?? null,
     })
     .run();
+}
+
+export function authorizeSessionCreation(authUserId: string): boolean {
+  const { db } = getSqliteConnection();
+  let [profile] = db
+    .select({
+      email: appProfiles.email,
+      role: appProfiles.role,
+      clientId: appProfiles.clientId,
+      disabled: appProfiles.disabled,
+    })
+    .from(appProfiles)
+    .where(eq(appProfiles.authUserId, authUserId))
+    .limit(1)
+    .all();
+
+  if (!profile) {
+    const [authUser] = db
+      .select({ email: authUsers.email })
+      .from(authUsers)
+      .where(eq(authUsers.id, authUserId))
+      .limit(1)
+      .all();
+
+    if (authUser && repairFirstFreelancerSetupForEmail(authUser.email)) {
+      [profile] = db
+        .select({
+          email: appProfiles.email,
+          role: appProfiles.role,
+          clientId: appProfiles.clientId,
+          disabled: appProfiles.disabled,
+        })
+        .from(appProfiles)
+        .where(eq(appProfiles.authUserId, authUserId))
+        .limit(1)
+        .all();
+    }
+  }
+
+  if (profile && !profile.disabled && (profile.role !== "client" || profile.clientId)) {
+    return true;
+  }
+
+  db.insert(authAuditEvents)
+    .values({
+      type: "login_failed",
+      authUserId: profile ? authUserId : null,
+      email: profile?.email ?? null,
+      metadata: {
+        reason: profile?.disabled
+          ? "disabled_profile"
+          : profile?.role === "client" && !profile.clientId
+            ? "unlinked_client_profile"
+            : "missing_profile",
+      },
+    })
+    .run();
+
+  return false;
 }

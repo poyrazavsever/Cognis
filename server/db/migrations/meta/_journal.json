@@ -15,6 +15,13 @@
       "when": 1783709956320,
       "tag": "0001_silky_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784205329112,
+      "tag": "0002_mighty_korg",
+      "breakpoints": true
     }
   ]
 }

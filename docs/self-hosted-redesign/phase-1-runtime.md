@@ -1,8 +1,8 @@
 ---
 title: Phase 1 Runtime, SQLite and Deploy Skeleton
 description: Faz 1 kapsamında eklenen Next.js standalone, SQLite, Drizzle migration, health, Docker ve backup/restore kanıtları.
-status: active
-last_updated: 2026-07-10
+status: complete
+last_updated: 2026-07-16
 ---
 
 # Phase 1 Runtime, SQLite and Deploy Skeleton
@@ -33,6 +33,8 @@ Bu dosya Faz 1 için uygulanan runtime iskeletini ve local doğrulama sonuçlar�
 - Relative path değerleri `process.cwd()` üzerinden absolute hale getirilir.
 - Uygulama `data`, `uploads`, `backups` ve `tmp` dizinlerini kontrollü oluşturur.
 - Secret değerler config validation çıktısına yazılmaz; mevcut config modülü boot sırasında değer dump etmez.
+- Production build sırasında route modüllerinin SQLite başlatması için her worker/process ayrı bir geçici data dizini kullanır; production runtime varsayılanı `/app/data` olarak kalır.
+- `APP_URL`, `NEXT_PUBLIC_SITE_URL`, `BETTER_AUTH_SECRET` ve `TRUSTED_ORIGINS` Compose ortam sözleşmesinde açıktır.
 
 ## SQLite davranışı
 
@@ -67,7 +69,7 @@ Health response DB path, data path, schema path veya secret döndürmez.
 
 ## Doğrulama sonuçları
 
-2026-07-10 local sonuçları:
+2026-07-16 güncel local sonuçları:
 
 | Komut | Sonuç | Not |
 | --- | --- | --- |
@@ -77,8 +79,10 @@ Health response DB path, data path, schema path veya secret döndürmez.
 | `npm.cmd run phase1:smoke` | Başarılı | Temp data dir, migration, persistence, backup ve restore geçti. |
 | `npm.cmd run typecheck` | Başarılı | TypeScript temiz. |
 | `npm.cmd run build` | Başarılı | Next.js production build geçti, standalone output etkin. |
-| `npm.cmd run lint` | Başarısız | Faz 0 baseline ile aynı 34 error, 25 warning; yeni Faz 1 dosyaları lint çıktısında görünmedi. |
-| `docker compose build` | Başarısız | Docker Desktop/Linux engine çalışmıyor: daemon pipe bulunamadı. Docker smoke henüz doğrulanmadı. |
+| `node scripts/phase1-auth-smoke.mjs` | Başarılı | Localhost üzerinde setup, login/logout, invitation ve negatif role/token senaryoları geçti. |
+| `docker compose config` | Başarılı | Production secret ve URL env sözleşmesi çözüldü. |
+| `npm.cmd run lint` | Başarısız | Eski feature baseline'ında 31 error, 18 warning; değişen Faz 1 dosyalarında targeted lint temiz. |
+| `docker compose build` | Çalıştırılamadı | Docker Desktop/Linux engine çalışmıyor: daemon socket bulunamadı. Docker runtime smoke henüz doğrulanmadı. |
 
 ## Backup/restore POC
 
@@ -122,4 +126,3 @@ Compose kararları:
 Docker doğrulaması açık istisna:
 
 - Local Docker daemon çalışmadığı için `docker compose build`, `docker compose up`, native SQLite Linux runtime ve container restart persistence testleri yapılamadı.
-

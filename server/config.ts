@@ -1,6 +1,7 @@
 import "server-only";
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
 
@@ -24,6 +25,7 @@ export type ServerConfig = {
   tmpDir: string;
   appUrl: string;
   trustedOrigins: string[];
+  secureCookies: boolean;
   betterAuthSecret?: string;
 };
 
@@ -35,12 +37,16 @@ export function getServerConfig(): ServerConfig {
   }
 
   const parsed = envSchema.parse(process.env);
+  const isProductionBuild = process.env.NEXT_PHASE === "phase-production-build";
+  const defaultDataDir = isProductionBuild
+    ? path.join(os.tmpdir(), `neta-production-build-${process.pid}`)
+    : parsed.NODE_ENV === "production"
+      ? "/app/data"
+      : path.join(process.cwd(), ".data");
   const dataDir = path.resolve(
     parsed.DATA_DIR && parsed.DATA_DIR.length > 0
       ? parsed.DATA_DIR
-      : parsed.NODE_ENV === "production"
-        ? "/app/data"
-        : path.join(process.cwd(), ".data"),
+      : defaultDataDir,
   );
 
   const databasePath = path.resolve(
@@ -55,6 +61,7 @@ export function getServerConfig(): ServerConfig {
       parsed.NEXT_PUBLIC_SITE_URL ||
       "http://localhost:3000",
   );
+  const secureCookies = validateAppUrlSecurity(appUrl, parsed.NODE_ENV);
   const trustedOrigins = normalizeTrustedOrigins(parsed.TRUSTED_ORIGINS, appUrl);
   const betterAuthSecret = normalizeAuthSecret(parsed.BETTER_AUTH_SECRET, parsed.NODE_ENV);
 
@@ -67,6 +74,7 @@ export function getServerConfig(): ServerConfig {
     tmpDir: path.join(dataDir, "tmp"),
     appUrl,
     trustedOrigins,
+    secureCookies,
     betterAuthSecret,
   };
 
@@ -96,6 +104,21 @@ function normalizeTrustedOrigins(value: string | undefined, appUrl: string): str
   }
 
   return [...origins];
+}
+
+function validateAppUrlSecurity(
+  appUrl: string,
+  nodeEnv: ServerConfig["nodeEnv"],
+): boolean {
+  const url = new URL(appUrl);
+  const isHttps = url.protocol === "https:";
+  const isLoopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+
+  if (nodeEnv === "production" && !isHttps && !isLoopback) {
+    throw new Error("Production APP_URL HTTPS kullanmalidir; HTTP yalnizca localhost icin desteklenir.");
+  }
+
+  return isHttps;
 }
 
 function normalizeAuthSecret(

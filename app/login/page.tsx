@@ -24,6 +24,11 @@ export default async function LoginPage({
         description="Neta çalışma alanına erişmek için hesabına giriş yap."
         form={
           <form className="space-y-6">
+            {!error && message ? (
+              <p className="rounded-md border border-success/30 bg-success/5 p-3 text-sm text-foreground">
+                {String(message)}
+              </p>
+            ) : null}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">

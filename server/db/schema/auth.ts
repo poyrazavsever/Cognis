@@ -1,6 +1,11 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
-import type { AuthAuditEventType, SetupStatus, UserRole } from "@/server/auth/types";
+import type {
+  AuthAuditEventType,
+  PortalInvitationStatus,
+  SetupStatus,
+  UserRole,
+} from "@/server/auth/types";
 
 const nowMs = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
 
@@ -86,6 +91,7 @@ export const appProfiles = sqliteTable(
     email: text("email").notNull(),
     displayName: text("display_name").notNull(),
     role: text("role").$type<UserRole>().notNull(),
+    clientId: text("client_id"),
     disabled: integer("disabled", { mode: "boolean" }).default(false).notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(nowMs).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })
@@ -95,6 +101,7 @@ export const appProfiles = sqliteTable(
   },
   (table) => [
     uniqueIndex("app_profiles_auth_user_id_unique").on(table.authUserId),
+    uniqueIndex("app_profiles_client_id_unique").on(table.clientId),
     index("app_profiles_role_idx").on(table.role),
   ],
 );
@@ -118,7 +125,7 @@ export const portalInvitations = sqliteTable(
     tokenHash: text("token_hash").notNull(),
     clientId: text("client_id").notNull(),
     email: text("email").notNull(),
-    status: text("status", { enum: ["pending", "accepted", "revoked", "expired"] })
+    status: text("status").$type<PortalInvitationStatus>()
       .default("pending")
       .notNull(),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
@@ -148,4 +155,3 @@ export const authAuditEvents = sqliteTable(
     index("auth_audit_events_auth_user_id_idx").on(table.authUserId),
   ],
 );
-

@@ -6,6 +6,7 @@ import { auth } from '@/server/auth/auth'
 import { callAuthAction } from '@/server/auth/action-handler'
 import { getProfileByAuthUserId } from '@/server/auth/session'
 import {
+  failFirstFreelancerSetup,
   getFirstFreelancerSetupState,
   recordAuthAuditEvent,
   repairFirstFreelancerSetupForEmail,
@@ -85,6 +86,7 @@ export async function signup(formData: FormData) {
       rememberMe: true,
     })
   } catch (error) {
+    failFirstFreelancerSetup(credentials.email, 'better_auth_signup_failed')
     const message = error instanceof Error ? error.message : 'Kullan\u0131c\u0131 olu\u015fturulamad\u0131.'
     redirect(`/register?error=true&message=${encodeURIComponent(message)}`)
   }
