@@ -2,7 +2,7 @@
 title: Phase 0 Regression and Phase 1 Spike Criteria
 description: Mevcut hatalardan türetilen regression testleri ve Faz 1 runtime spike kabul kriterleri.
 status: active
-last_updated: 2026-07-10
+last_updated: 2026-07-16
 ---
 
 # Phase 0 Regression and Phase 1 Spike Criteria
@@ -23,10 +23,14 @@ Bu maddeler davranış paritesi değildir; redesign içinde düzeltilmesi zorunl
 | REG-008 | Limitsiz listeler payload büyütüyor | Projects/tasks/clients/calendar list query contract incelenir | Pagination veya visible date range zorunlu |
 | REG-009 | Auto progress transaction dışı kalabilir | Task status değişimi auto progress project'te yapılır | Task update ve project progress aynı transaction sonucu |
 | REG-010 | Cross-owner UUID erişimi | Başka owner'a ait project/task/client UUID ile query/mutation yapılır | 404 veya authorization error; veri dönmez |
+| REG-011 | Production build `/app/data` oluşturmaya çalışıyor | Env verilmeden ve kontrollü build env ile standalone build alınır | Build host root'una yazmaz; runtime data dir yalnızca runtime'da hazırlanır |
+| REG-012 | Pnpm native build scriptleri ignore ediliyor | Fresh `pnpm install` sonrası SQLite smoke çalıştırılır | `better-sqlite3` native binding mevcut; smoke yükleme hatası vermez |
+| REG-013 | Better Auth layout + Supabase feature session ayrışması | Better Auth ile login sonrası core feature read/mutation çalıştırılır | Tek session principal kullanılır; Supabase session gerekmiyor |
+| REG-014 | Eksik link hedefleri | Login forgot-password ve portal settings linkleri izlenir | Her görünür link gerçek route veya bilinçli disabled state'e gider |
 
-## Behavior smoke matrix
+## Kritik davranış baseline matrisi
 
-Faz 0 sırasında ekran kaydı alınması gereken kritik akışlar:
+Faz 0'da mevcut kod davranışı `phase-0-baseline.md` içinde kaydedilmiştir. Hibrit auth nedeniyle eski ekranın canlı çalışması yeni sistem için güvenilir parity kanıtı değildir. Aşağıdaki akışların yeni vertical slice kabulünde ekran kaydı veya tekrarlanabilir browser smoke çıktısı alınacaktır:
 
 | Akış | Kayıt adı önerisi | Kapsam |
 | --- | --- | --- |
@@ -78,4 +82,3 @@ Rollback:
 - Faz 1 spike production'a deploy edilmez.
 - Eski Supabase app untouched kalır.
 - Spike branch silinebilir veya ADR yeniden açılır.
-

@@ -2,7 +2,7 @@
 title: Phase 0 Fixture Strategy
 description: Self-hosted redesign boyunca kullanılacak küçük ve stres veri setlerinin kapsamı.
 status: active
-last_updated: 2026-07-10
+last_updated: 2026-07-16
 ---
 
 # Phase 0 Fixture Strategy
@@ -24,9 +24,12 @@ Amaç: Core smoke ve regression testleri hızlı çalışsın.
 
 Önerilen içerik:
 
-- 1 freelancer user
+- 1 aktif freelancer/owner user
+- UI'da kullanılamayan 1 foreign-owner test principal ve yalnızca negatif authorization fixture'ları
 - 2 clients
 - 1 portal client user
+- 1 accepted ve 1 expired portal invitation
+- 1 instance settings ve 1 instance branding kaydı
 - 3 projects: `planning`, `active`, `completed`
 - 1 project `progress_type=auto`
 - 8 tasks: `todo`, `in_progress`, `done`, private/public portal task karışık
@@ -36,8 +39,10 @@ Amaç: Core smoke ve regression testleri hızlı çalışsın.
 - 2 planning sections: `overview`, `scope`, sıralı `sort_order`
 - 2 revision requests: `pending`, `completed`
 - 1 avatar metadata kaydı
+- 2 branding logo/icon metadata kaydı
 - 1 project cover file metadata kaydı
 - 1 chat session ve 2 message
+- Import koruma testi için 1 proposal, 1 contract, 1 invoice ve 1 subscription source fixture
 
 Bu fixture REG-001, REG-002, REG-003, REG-004, REG-005 ve cross-owner negatif testleri desteklemeli.
 
@@ -47,7 +52,7 @@ Amaç: Dashboard/list query performansını ve pagination zorunluluğunu test et
 
 Önerilen içerik:
 
-- 1 freelancer user
+- 1 freelancer/owner user
 - 100 clients
 - 250 projects
 - 2,500 tasks
@@ -82,4 +87,3 @@ Her rehearsal çıktısı:
 - File checksum manifest.
 - Restore command.
 - Smoke test sonucu.
-

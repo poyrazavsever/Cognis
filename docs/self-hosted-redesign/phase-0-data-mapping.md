@@ -1,13 +1,13 @@
 ---
 title: Phase 0 Data Mapping
-description: Supabase kaynak modelinden SQLite/Next.js hedef modeline ilk mapping ve production audit sorguları.
+description: Supabase kaynak modelinden SQLite/Next.js hedef modeline onaylı mapping ve production audit sorguları.
 status: active
-last_updated: 2026-07-10
+last_updated: 2026-07-16
 ---
 
 # Phase 0 Data Mapping
 
-Bu dosya Faz 0 için source-to-target veri mapping taslağıdır. Production verisine bağlanmadan status dağılımı ve gerçek satır sayısı tamamlanamaz; bu nedenle her production-only madde audit sorgularıyla birlikte bırakılmıştır.
+Bu dosya Faz 0 için onaylı source-to-target veri mapping'idir. Production verisine bağlanmadan status dağılımı ve gerçek satır sayısı tamamlanamaz; bu nedenle her production-only madde audit sorgularıyla birlikte bırakılmıştır. Alan düzeyi nihai Drizzle schema Faz 2'de üretilecek, ancak tablo kaderi ve normalization kuralları bu belgeyle kilitlenmiştir.
 
 ## Kanonik veri standartları
 
@@ -24,8 +24,8 @@ Bu dosya Faz 0 için source-to-target veri mapping taslağıdır. Production ver
 | Supabase kaynak | Mevcut amaç | Hedef model | Karar |
 | --- | --- | --- | --- |
 | `auth.users` | Supabase auth principal, freelancer/client user | Better Auth user/session/account tabloları | Password/session taşınmayacak; reset veya yeniden davet |
-| `profiles` | Ad, avatar, role | `profiles` veya Better Auth user extension | `role: freelancer|client` korunur |
-| `clients` | CRM client ve portal auth link | `clients` | `client_auth_id` nullable relation olarak korunur |
+| `profiles` | Ad, avatar, role | `app_profiles` | `role: freelancer|client` korunur; tek owner setup guard ile sağlanır |
+| `clients` | CRM client ve portal auth link | `clients` | `auth_user_id` nullable; invitation kabulünde transaction ile kurulur |
 | `client_activities` | Client timeline | `client_activities` | Sahiplik `owner_user_id` ile |
 | `projects` | Proje kayıtları, progress, quota, cover image | `projects` | `budget_amount` minor unit; cover image file metadata |
 | `project_planning_sections` | Project planning content | `project_planning_sections` | `category` ve `sort_order` kanonik |
@@ -33,19 +33,30 @@ Bu dosya Faz 0 için source-to-target veri mapping taslağıdır. Production ver
 | `tasks` | Task/kanban | `tasks` | Status kanoniği `todo|in_progress|done|cancelled`; legacy `completed` normalize edilir |
 | `calendar_events` | Takvim | `calendar_events` | Visible range indexleri |
 | `finance_transactions` | Gelir/gider | `finance_transactions` | Amount integer minor unit |
-| `proposals` | Teklifler | `proposals` | Faz 5'te gerçek mutation ihtiyacı doğrulanacak |
-| `contracts` | Sözleşmeler | `contracts` | Faz 5'te gerçek mutation ihtiyacı doğrulanacak |
-| `invoices` | Faturalar | `invoices` | Amount/tax minor unit |
-| `subscriptions` | Recurring expenses | `subscriptions` | Billing cycle enum korunur |
+| `proposals` | Teklifler | `proposals` veya açık archive eşleniği | Veri korunur; UI/CRUD release-blocker değildir |
+| `contracts` | Sözleşmeler | `contracts` veya açık archive eşleniği | Veri korunur; UI/CRUD release-blocker değildir |
+| `invoices` | Faturalar | `invoices` veya açık archive eşleniği | Amount/tax minor unit; UI/CRUD release-blocker değildir |
+| `subscriptions` | Recurring expenses | `subscriptions` veya açık archive eşleniği | Billing cycle enum korunur; UI/CRUD release-blocker değildir |
 | `daily_logs` | Aktif journal ekranı | `journal_entries` | `journals` ile birleştirilecek |
 | `journals` | Legacy AI journal | `journal_entries` archive/import source | Aynı güne denk gelen kayıtlar merge rule ile |
 | `chat_sessions` | AI chat session | `chat_sessions` | Browser DB erişimi kaldırılır |
 | `chat_messages` | AI chat messages | `chat_messages` | Message role enum validate edilir |
 | `document_embeddings` | pgvector RAG | Archive table veya import dışı | İlk release'te operational vector search yok |
-| `app_settings` | Timezone/currency/AI settings | `user_settings` | `api_key` taşınmaz veya sadece masked migration warning |
+| `app_settings` | Timezone/currency/AI settings | `user_preferences` + server-side AI secret config | `api_key` taşınmaz; yalnızca migration warning/count |
 | `storage.objects` bucket `avatars` | Avatar dosyaları | `files` + `/uploads/avatars` | Public read yerine authorized handler veya static controlled path |
 | `storage.objects` bucket `project-assets` | Project cover/assets | `files` + `/uploads/project-assets` | MIME/magic byte/size checks |
 | `neta_internal.internal_auth_creations` | Service-role guarded auth creation handshake | Kaldırılır | Better Auth invite/setup flow ile gerek kalmaz |
+
+Hedefte kaynaktan türemeyen yeni tablolar:
+
+| Hedef model | Amaç | Faz 0 kararı |
+| --- | --- | --- |
+| `instance_settings` | Instance adı, support ve genel davranış | Singleton instance config |
+| `instance_branding` | Logo, renk, mode ve radius ayarları | Poyraz UI semantic token girdisi |
+| `user_preferences` | Tema tercihi, timezone, currency ve UI tercihleri | Kullanıcı bazlı; secret içermez |
+| `files` | Yerel dosya metadata ve güvenli relative path | İçerik `/app/data/uploads` altında |
+| `portal_invitations` | Süreli ve hash'lenmiş client invite token | Better Auth client self-activation |
+| `auth_audit_events` | Setup/login/logout güvenlik olayları | Mevcut SQLite model korunur |
 
 ## Enum/status baseline
 
@@ -95,6 +106,8 @@ Hedefte RLS yok; bu policy'ler service/repository authorization testlerine çevr
 ## Production audit sorguları
 
 Bu sorgular Supabase SQL Editor veya read-only connection ile çalıştırılmalı. Secret değerleri loglanmamalı.
+
+2026-07-16 durumu: workspace'te yalnızca `.env.example` bulunduğu için bu sorgular production üzerinde çalıştırılmamıştır. Kaynak schema envanteri 19 ürün/public tablo, 1 internal tablo ve 2 storage bucket olarak doğrulanmıştır; gerçek satır/dosya sayıları açık kalmıştır.
 
 ```sql
 select 'profiles' as table_name, count(*) from public.profiles
@@ -190,4 +203,3 @@ Money:
 
 - `amount numeric(12,2)` ve `budget_amount numeric(12,2)` hedefte `amount_minor integer` veya `budget_amount_minor integer`.
 - Currency her row'da ISO-like text olarak korunur; kullanıcı default currency migration sırasında sadece fallback.
-

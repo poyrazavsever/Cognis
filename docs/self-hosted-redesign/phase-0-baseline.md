@@ -1,309 +1,401 @@
 ---
-title: Phase 0 Baseline
-description: Supabase ve Poyraz UI ayrımı başlamadan önce mevcut Neta uygulamasının repo, davranış, bağımlılık ve risk baseline'ı.
+title: Phase 0 v3 Baseline
+description: Supabase çıkışı ve Poyraz UI v3 dönüşümü başlamadan önce güncel repo, route, davranış, dependency ve doğrulama baseline'ı.
 status: active
-last_updated: 2026-07-10
+last_updated: 2026-07-16
 ---
 
-# Phase 0 Baseline
+# Phase 0 v3 Baseline
 
-Bu dosya, self-hosted redesign başlamadan önce repo üzerinden doğrulanabilen mevcut durumu sabitler. Production Supabase verisine erişim gerektiren satır sayıları, storage boyutları, gerçek kullanıcı akışı ekran kayıtları ve backup doğrulaması bu dokümanda tamamlanmış sayılmaz; bunlar `phase-0-data-mapping.md` içindeki production audit sorguları ve checklist istisnalarıyla takip edilir.
+Bu belge `neta-self-hosted-v3-master-plan.md` için Faz 0 kanıtıdır. Önceki 2026-07-10 baseline'ı; Better Auth, SQLite runtime, Docker ve yeni shell eklenmeden önceki durumu anlattığı için bu içerikle güncellenmiştir.
 
-## Kanıt komutları
+## 1. İnceleme kapsamı
 
-Bu baseline aşağıdaki local komutlarla oluşturuldu:
+İncelenen alanlar:
 
-```powershell
-git status --short
-rg --files
-rg --files .\app
-rg -n 'supabase|poyraz-ui|createClient|service_role|serviceRole|NEXT_PUBLIC_SUPABASE|from\(' app components lib config hooks --glob '*.ts' --glob '*.tsx'
-rg -n 'poyraz-ui' app components --glob '*.ts' --glob '*.tsx'
-rg -n 'create table if not exists public\.|create table if not exists neta_internal\.|alter table public\..*enable row level security|create policy|create or replace function|create index if not exists|create trigger|insert into storage\.buckets' supabase\migrations supabase\schema.sql
-rg -n 'select\("\*"\)|select\(''\*''\)|order_index|sort_order|completed|done|\.limit\(|\.range\(|useTransition|useOptimistic|startTransition|isPending|pending' app lib components --glob '*.ts' --glob '*.tsx'
+- Next.js route, layout, loading ve action yüzeyi
+- Better Auth ve SQLite runtime
+- Supabase browser/server/service-role kullanımları
+- Supabase kaynak schema, RLS, RPC ve storage kapsamı
+- Poyraz UI ve local UI component sınırı
+- Dependency kullanımı
+- Kritik freelancer ve client portal akışları
+- Typecheck, lint, build ve smoke script sonuçları
+
+İnceleme dalı ve commit:
+
+```text
+branch: codex-self-hosted-redesign-faz2
+HEAD: f5d89e8
 ```
 
-## Repo durumu
+## 2. Sayısal repo baseline'ı
 
-- Next.js App Router kullanılıyor.
-- Ayrı backend uygulaması yok; server davranışı `app` altındaki Server Components, Server Actions ve Route Handlers içinde.
-- Supabase şu anda auth, session refresh, RLS ile authorization, Postgres schema, RPC aggregate, storage ve service-role tabanlı kullanıcı/dosya işlemlerini taşıyor.
-- Poyraz UI uygulama shell, auth, dashboard, portal ve loading ekranlarına yayılmış durumda.
-- Dockerfile, Compose, migration runner, backup/restore script'i ve test harness yok.
-- `package.json` içinde `typecheck` veya test script'i yok; typecheck local TypeScript binary ile çalıştırılmalı.
-- Doküman olarak Faz 0 başlangıcında eklenmiş dosyalar: `docs/18-self-hosted-redesign-plani.md`, `docs/19-self-hosted-redesign-checklist.md`.
+| Ölçüm | Güncel değer |
+| --- | ---: |
+| Uygulama sayfası (`page.tsx`) | 22 |
+| Layout | 3 |
+| Route Handler | 8 |
+| Server Action dosyası | 10 |
+| Export edilen async Server Action | 33 |
+| Loading boundary | 6 |
+| Client Component | 40 |
+| Uygulama/server/script TS/TSX/MJS satırı | yaklaşık 16.014 |
+| Poyraz UI import eden app/component dosyası | 26 |
+| Supabase entegrasyonu içeren app/lib/server dosyası | 40 |
+| Browser Supabase client kullanan ekran | 2 |
+| Production dependency | 47 |
+| Dev dependency | 12 |
+| Supabase kaynak tablo | 20; 19 ürün/public + 1 internal |
+| Supabase storage bucket | 2 |
+| Mevcut SQLite tablo | 10; auth/setup/audit/runtime |
 
-## Route envanteri
+## 3. Güncel çalışma zamanı
 
-Route group'lar:
+Repo artık iki mimariyi aynı anda içeriyor.
 
-- `(dashboard)`: freelancer dashboard, core OS ekranları ve business ekranları.
-- `portal`: client portal.
-- `api`: AI, health ve internal route handler'ları.
-- Top-level auth: `login`, `register`.
+### Yeni self-hosted temel
 
-Sayfa/layout/loading/action dosyaları:
+- Better Auth email/password ve DB session
+- `better-sqlite3`
+- Drizzle schema ve migration
+- İlk freelancer setup lock'u
+- `app_profiles`
+- Portal invitation tablo iskeleti
+- Auth audit events
+- SQLite WAL/foreign key/busy timeout ayarları
+- Health live/ready endpoint'leri
+- Migration, backup ve restore script'leri
+- Next.js standalone Dockerfile
+- Tek persistent volume kullanan Compose tanımı
 
-| Dosya | Rol |
-| --- | --- |
-| `app/layout.tsx` | Root layout, manifest, global toaster |
-| `app/login/page.tsx` | Login ekranı |
-| `app/login/actions.ts` | Login, signup, sign out Server Actions |
-| `app/register/page.tsx` | İlk admin/freelancer setup ekranı |
-| `app/(dashboard)/layout.tsx` | Dashboard auth guard ve shell |
-| `app/(dashboard)/page.tsx` | Dashboard Server Component |
-| `app/(dashboard)/dashboard-client.tsx` | Dashboard client UI |
-| `app/(dashboard)/loading.tsx` | Dashboard loading skeleton |
-| `app/(dashboard)/analytics/page.tsx` | Analytics Server Component |
-| `app/(dashboard)/analytics/analytics-client.tsx` | Analytics client UI |
-| `app/(dashboard)/analytics/loading.tsx` | Analytics loading skeleton |
-| `app/(dashboard)/business/invoices/page.tsx` | Invoices Server Component |
-| `app/(dashboard)/business/invoices/invoices-client.tsx` | Invoices client UI |
-| `app/(dashboard)/business/proposals/page.tsx` | Proposals Server Component |
-| `app/(dashboard)/business/proposals/proposals-client.tsx` | Proposals client UI |
-| `app/(dashboard)/business/subscriptions/page.tsx` | Subscriptions Server Component |
-| `app/(dashboard)/business/subscriptions/subscriptions-client.tsx` | Subscriptions client UI |
-| `app/(dashboard)/calendar/page.tsx` | Calendar Server Component |
-| `app/(dashboard)/calendar/calendar-client.tsx` | Calendar client UI |
-| `app/(dashboard)/calendar/actions.ts` | Calendar mutation Server Actions |
-| `app/(dashboard)/chat/page.tsx` | AI chat client-heavy screen |
-| `app/(dashboard)/clients/page.tsx` | Clients Server Component |
-| `app/(dashboard)/clients/clients-client.tsx` | Clients client UI |
-| `app/(dashboard)/clients/actions.ts` | Client mutation Server Actions |
-| `app/(dashboard)/clients/loading.tsx` | Clients loading skeleton |
-| `app/(dashboard)/clients/[id]/page.tsx` | Client detail Server Component |
-| `app/(dashboard)/clients/[id]/client-detail-client.tsx` | Client detail client UI |
-| `app/(dashboard)/clients/[id]/actions.ts` | Client activity mutation Server Actions |
-| `app/(dashboard)/finance/page.tsx` | Finance Server Component |
-| `app/(dashboard)/finance/finance-client.tsx` | Finance client UI |
-| `app/(dashboard)/finance/actions.ts` | Finance mutation Server Actions |
-| `app/(dashboard)/journal/page.tsx` | Daily log Server Component |
-| `app/(dashboard)/journal/journal-client.tsx` | Daily log client UI |
-| `app/(dashboard)/journal/actions.ts` | Daily log mutation Server Actions |
-| `app/(dashboard)/projects/page.tsx` | Projects Server Component |
-| `app/(dashboard)/projects/projects-client.tsx` | Projects client UI |
-| `app/(dashboard)/projects/actions.ts` | Project/planning/revision mutation Server Actions |
-| `app/(dashboard)/projects/loading.tsx` | Projects loading skeleton |
-| `app/(dashboard)/projects/[id]/page.tsx` | Project detail Server Component |
-| `app/(dashboard)/projects/[id]/project-detail-client.tsx` | Project detail client UI |
-| `app/(dashboard)/projects/[id]/loading.tsx` | Project detail loading skeleton |
-| `app/(dashboard)/settings/page.tsx` | Settings client screen |
-| `app/(dashboard)/settings/actions.ts` | Profile/password mutation Server Actions |
-| `app/(dashboard)/tasks/page.tsx` | Tasks Server Component |
-| `app/(dashboard)/tasks/tasks-client.tsx` | Tasks kanban/client UI |
-| `app/(dashboard)/tasks/actions.ts` | Task mutation Server Actions |
-| `app/(dashboard)/tasks/loading.tsx` | Tasks loading skeleton |
-| `app/portal/layout.tsx` | Client portal auth guard and shell |
-| `app/portal/page.tsx` | Portal home |
-| `app/portal/projects/page.tsx` | Portal projects list |
-| `app/portal/projects/[id]/page.tsx` | Portal project detail Server Component |
-| `app/portal/projects/[id]/portal-project-client.tsx` | Portal project detail client UI |
-| `app/portal/projects/[id]/actions.ts` | Portal revision Server Action |
-| `app/portal/revisions/page.tsx` | Portal revisions list |
-| `app/portal/tasks/page.tsx` | Portal tasks list |
+### Henüz taşınmamış feature runtime
 
-Route Handlers:
+- Müşteriler
+- Client activities
+- Projeler ve planning sections
+- Görevler
+- Takvim
+- Finans
+- Günlük
+- Analytics/dashboard RPC
+- Chat session/message
+- AI settings/context
+- Client portal verileri ve revision mutation
+- Avatar ve project asset storage
 
-| Route | Dosya | Mevcut sorumluluk |
+Bu feature'lar hâlâ Supabase Auth principal'ı, Postgres, RLS ve Storage bekliyor.
+
+## 4. Kritik hibrit-auth baseline'ı
+
+Dashboard ve portal layout'ları Better Auth session kullanıyor:
+
+- `app/(dashboard)/layout.tsx` → `requireFreelancer()`
+- `app/portal/layout.tsx` → `requireClientUser()`
+
+Alt feature sayfaları ve action'lar ise Supabase `auth.getUser()` kullanıyor. Better Auth cookie'si Supabase session üretmediği için güncel dal uçtan uca çalışan tek auth sistemi sunmuyor.
+
+Beklenen mevcut sonuç:
+
+- Better Auth ile giriş yapan freelancer layout guard'ını geçebilir.
+- Aynı kullanıcı Supabase tabanlı page/action içinde oturumsuz görünür.
+- Feature reads/mutations boş sonuç, redirect, `null` veya auth hatası verebilir.
+- Better Auth client profile oluşturacak invitation consume akışı henüz yoktur.
+- Eski `/api/create-client-user` route'u Supabase Auth user üretir ve yeni portal layout'ının beklediği SQLite profile'ı üretmez.
+
+Bu durum redesign sırasında korunacak davranış değil, ortadan kaldırılması gereken geçiş kırığıdır.
+
+## 5. Route ve özellik envanteri
+
+### 5.1. Auth ve platform
+
+| Route | Durum | Not |
 | --- | --- | --- |
-| `POST /api/chat` | `app/api/chat/route.ts` | Chat message persistence, settings read, AI response |
-| `POST /api/create-client-user` | `app/api/create-client-user/route.ts` | Freelancer'ın client auth user oluşturması |
-| `POST /api/finance-analysis` | `app/api/finance-analysis/route.ts` | Finance transactions üzerinden AI analiz |
-| `GET /api/health` | `app/api/health/route.ts` | Basic liveness JSON |
-| `POST /api/project-risk` | `app/api/project-risk/route.ts` | Project/tasks üzerinden AI risk analizi |
+| `/login` | Var | Better Auth Server Action kullanıyor |
+| `/register` | Var | İlk freelancer setup akışı |
+| `/forgot-password` | Yok | Login ekranında link var; gerçek route/akış yok |
+| `/api/auth/[...all]` | Var | Better Auth handler |
+| `/api/health` | Var | Edge basic health |
+| `/api/health/live` | Var | Process liveness |
+| `/api/health/ready` | Var | SQLite/data dir/migration readiness |
 
-## Supabase kullanım envanteri
+### 5.2. Freelancer ekranları
 
-Browser Supabase client kullanan dosyalar:
+| Route | Mevcut yetenek | Veri kaynağı | v3 kararı |
+| --- | --- | --- | --- |
+| `/` | KPI, trend, recent project/client | Supabase RPC + tables | Aggregate repository |
+| `/analytics` | Dönemsel finans/görev analizi | Supabase RPC | SQLite aggregate repository |
+| `/clients` | Liste, filtre, pipeline, CRUD | Supabase | İlk core vertical slice |
+| `/clients/[id]` | Detay ve activity timeline | Supabase | Owner-filtered service |
+| `/projects` | Liste, filtre, CRUD, cover | Supabase + Storage | Local file metadata |
+| `/projects/[id]` | Planning, tasks, finance, revisions | Supabase + Storage | Transaction/service sınırı |
+| `/tasks` | Liste/kanban, CRUD, status | Supabase | Task/project transaction |
+| `/calendar` | Event CRUD | Supabase | Visible-range query |
+| `/finance` | Income/expense CRUD | Supabase | Integer minor unit |
+| `/journal` | Daily log CRUD | Supabase `daily_logs` | `journal_entries` |
+| `/chat` | AI session/message UI | Browser Supabase + API | Server-only chat service |
+| `/settings` | Profil, avatar, AI key, password | Browser/server Supabase | Better Auth + settings service |
 
-- `app/(dashboard)/chat/page.tsx`: session/message CRUD ve `auth.getUser`.
-- `app/(dashboard)/settings/page.tsx`: profile/settings read ve `app_settings` upsert.
-- `lib/supabase/client.ts`: `createBrowserClient` factory.
+### 5.3. Business ekranları
 
-Server Supabase client kullanan başlıca dosyalar:
-
-- Auth/setup: `app/login/actions.ts`, `app/register/page.tsx`, `lib/auth/first-admin-setup.ts`, `lib/supabase/server.ts`, `lib/supabase/middleware.ts`.
-- Dashboard reads: `app/(dashboard)/page.tsx`, `analytics/page.tsx`, `clients/page.tsx`, `clients/[id]/page.tsx`, `projects/page.tsx`, `projects/[id]/page.tsx`, `tasks/page.tsx`, `calendar/page.tsx`, `finance/page.tsx`, `journal/page.tsx`, business pages.
-- Dashboard mutations: `clients/actions.ts`, `clients/[id]/actions.ts`, `projects/actions.ts`, `tasks/actions.ts`, `calendar/actions.ts`, `finance/actions.ts`, `journal/actions.ts`, `settings/actions.ts`.
-- Portal reads/mutations: `app/portal/**/*.tsx`, `app/portal/projects/[id]/actions.ts`.
-- AI/routes: `app/api/chat/route.ts`, `app/api/finance-analysis/route.ts`, `app/api/project-risk/route.ts`, `lib/ai/embeddings.ts`.
-
-Service-role kullanımı:
-
-- `lib/supabase/admin.ts`: `SUPABASE_SERVICE_ROLE_KEY` ile admin client.
-- `lib/auth/internal-users.ts`: `request_internal_auth_creation` RPC ve Supabase Admin `auth.admin.createUser`.
-- `app/api/create-client-user/route.ts`: internal user creation flow.
-- `app/(dashboard)/projects/actions.ts`: `project-assets` upload için service-role client.
-- `app/(dashboard)/projects/page.tsx` ve `app/(dashboard)/projects/[id]/page.tsx`: project-assets public URL/asset erişim path'i.
-- `app/(dashboard)/settings/actions.ts`: avatars upload ve public URL üretimi.
-
-RPC kullanımı:
-
-- `is_first_admin_setup_available`: first admin setup guard.
-- `request_internal_auth_creation`: service-role guard ile internal user creation.
-- `match_documents`: pgvector similarity search.
-- `get_dashboard_metrics`: dashboard aggregate.
-- `get_analytics_metrics`: analytics aggregate.
-
-Storage kullanımı:
-
-- `avatars`: public avatar URL'leri; settings flow.
-- `project-assets`: private project cover/assets; path convention user id folder'ı üzerinden.
-
-## Poyraz UI import envanteri
-
-Poyraz UI kullanılan dosya sayısı: 36 uygulama/component dosyası.
-
-Kullanılan namespace'ler:
-
-- `poyraz-ui/atoms`: `Badge`, `Button`, `Card`, `CardContent`, `Input`, `Label`, `Textarea`, `Typography`.
-- `poyraz-ui/molecules`: `Dialog*`, `DropdownMenu*`, `Select*`, `Tabs*`, `toast`, `Toaster`.
-- `poyraz-ui/organisms`: dashboard ve portal shell navigation bileşenleri.
-
-Yoğun kullanım alanları:
-
-- Layout shell: `components/layout/dashboard-shell.tsx`, `components/layout/portal-shell.tsx`.
-- Auth: `components/auth/*`, `app/login/page.tsx`, `app/register/page.tsx`.
-- Dashboard features: clients, projects, tasks, calendar, finance, journal, analytics, business.
-- Portal: portal home, projects, tasks, revisions.
-- Loading states: birden fazla loading skeleton dosyası Poyraz `Card`/`CardContent` kullanıyor.
-
-Replacement yönü:
-
-- Atoms doğrudan `components/ui` primitive'lerine taşınacak.
-- Molecules içindeki dialog/select/dropdown/tabs gibi davranışlı bileşenler tek internal UI katmanında izole edilecek.
-- Organisms shell'leri Faz 3'te Neta shell olarak yeniden yazılacak.
-- `toast`/`Toaster` tek internal feedback API'sine taşınacak.
-
-## Internal UI durumu
-
-Mevcut `components/ui` dizininde şu bileşenler var:
-
-- Aktif internal primitive adayları: `button.tsx`, `card.tsx`, `checkbox.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, `form.tsx`, `icon.tsx`, `input.tsx`, `label.tsx`, `select.tsx`, `separator.tsx`, `skeleton.tsx`, `textarea.tsx`, `toast.tsx`, `toaster.tsx`.
-- Geçiş yardımcıları: `pending-link.tsx`, `pending-submit-button.tsx`, `offline-indicator.tsx`.
-- Not: `components/ui/pending-submit-button.tsx` hâlâ `poyraz-ui/atoms` `Button` import ediyor; UI katmanı tamamen bağımsız değil.
-
-## Dexie/IndexedDB ve PWA baseline
-
-Dexie:
-
-- `lib/db.ts` içinde IndexedDB prototipi var.
-- `rg` sonucunda aktif app import'u görünmüyor.
-- Tip düzeyi eski task status değeri `completed` içeriyor; yeni task kanoniğiyle uyumsuz.
-- Hedef redesign'da kaldırılacak veya Faz 0 sonrası ayrı bir cleanup commit'inde silinecek.
-
-PWA:
-
-- `next.config.ts` içinde `@ducanh2912/next-pwa` aktif.
-- Production build'de `public` altına service worker asset'leri üretmesi beklenir.
-- `app/layout.tsx` manifest olarak `/manifest.json` tanımlıyor.
-- Offline-first veri sync hedef dışı olduğu için ilk self-hosted release'te PWA kaldırma kararı ADR'de sabitlenmiştir.
-
-## Dependency sınıflandırması
-
-Kalacak:
-
-- `next`, `react`, `react-dom`, `typescript`, `eslint`, `eslint-config-next`
-- `zod`, `react-hook-form`, `@hookform/resolvers`
-- `date-fns`, `clsx`, `tailwind-merge`
-- `lucide-react`
-- AI provider paketleri, yalnızca server tarafına izole edilmek şartıyla
-
-Kaldırılacak:
-
-- `@supabase/ssr`, `@supabase/supabase-js`: runtime Supabase bağımlılığı kaldırılacak.
-- `poyraz-ui`: internal UI ile değiştirilecek.
-- `dexie`, `dexie-react-hooks`: aktif akışta kullanılmıyor.
-- `@ducanh2912/next-pwa`: ilk self-hosted release'te offline/PWA kapsam dışı.
-- `shadcn`: runtime ihtiyacı yoksa kaldırılacak.
-- Duplicate/unused Radix veya umbrella `radix-ui` paketleri, internal UI kararından sonra temizlenecek.
-
-Değerlendirilecek:
-
-- `@base-ui/react`: tek headless primitive katmanı olarak kalabilir veya Radix ile karşılaştırılıp kaldırılabilir.
-- `@radix-ui/*`: internal UI behavior için seçilecek tek headless katmana göre azaltılacak.
-- `framer-motion`: kritik UX değeri yoksa kaldırılacak; varsa reduced-motion standardıyla izole edilecek.
-- `recharts`: analytics UI redesign kapsamına göre kalabilir.
-- `@iconify/react`: lucide-react yeterliyse kaldırılacak.
-- `tailwindcss-animate`: animasyon stratejisine göre değerlendirilecek.
-- `uuid` ve `@types/uuid`: Web Crypto UUID yeterliyse kaldırılacak.
-
-## Davranış baseline matrisi
-
-Bu davranışlar yeni sistemde korunacak veya bilinçli olarak iyileştirilecek:
-
-| Akış | Mevcut davranış | Redesign notu |
+| Route | Güncel durum | İlk release kararı |
 | --- | --- | --- |
-| İlk admin setup | `/register`, `is_first_admin_setup_available`, signup sonrası profile role `freelancer` | Better Auth setup route'u public registration'ı ilk kullanıcıdan sonra kapatacak |
-| Login/logout | Supabase `signInWithPassword`, `signOut`, middleware session refresh | Better Auth DB session ve server-side session helper |
-| Client portal hesabı | Freelancer route handler üzerinden client auth user yaratıyor | Invite token ve client self-activation tercih edilecek |
-| Client CRUD | Server Actions + Supabase RLS | Service/repository owner filter |
-| Project CRUD | Server Actions, cover image storage, planning sections | Local storage metadata + transaction boundary |
-| Task kanban | Client optimistic-ish state, Server Actions, `done` kanoniği | Transaction içinde auto progress ve rollback testleri |
-| Calendar | Server read + Server Actions | Visible range/pagination zorunlu |
-| Finance | Server read + Server Actions, decimal amount | Minor unit integer standardı |
-| Business docs | Page-level read-only/dummy-ish client UIs | Faz 5'te gerçek mutation ve constraints gözden geçirilecek |
-| Journal | `daily_logs` aktif; `journals` legacy | `journal_entries` kanonik hedef |
-| Analytics/dashboard | Supabase RPC aggregate | Drizzle/SQL aggregate repository |
-| AI chat | Browser Supabase client + `/api/chat` route | Browser DB erişimi kaldırılacak |
-| Settings/profile | Browser Supabase client + Server Action mix | Server-only settings service |
-| Portal revisions | UI warning var, server quota enforcement eksik | Server action quota ve ownership negatif test |
+| `/business/proposals` | Read + ekleme dialog taslağı; gerçek mutation yok | Release-blocker değil |
+| `/business/invoices` | Read + ekleme dialog taslağı; gerçek mutation yok | Release-blocker değil |
+| `/business/subscriptions` | Read + ekleme dialog taslağı; gerçek mutation yok | Release-blocker değil |
+| Contracts | Kaynak tablo var; sayfa yok | Release-blocker değil |
 
-## Bilinen problem baseline
+Kaynak veriler import sırasında korunacak; eksik UI/CRUD Faz 7'ye bırakılacak veya navigation dışı tutulacak.
 
-Regression maddesine çevrilecek mevcut problemler:
+### 5.4. Client portal
 
-- Portal project detail `project_planning_sections` için `order_index` ile order ediyor; schema alanı `sort_order`.
-- Project risk route `completed` task status sayıyor; aktif kanonik status `done`.
-- Portal project client UI section tipi olarak `type` okuyor; schema alanı `category`.
-- Revision quota sadece UI tarafında uyarı olarak var; server action `createRevisionRequest` quota uygulamıyor.
-- Portal revision insert policy project/client eşleşmesini tam doğrulamıyor; client kendi `client_id` değeriyle başka projeye request deneyebilir.
-- `app/(dashboard)/chat/page.tsx` ve `app/(dashboard)/settings/page.tsx` browser Supabase client ile auth/veri erişimi yapıyor.
-- Bazı listeler pagination yerine tüm kullanıcı datasını veya geniş tarih aralığını çekiyor.
-- AI API key `app_settings.api_key` içinde düz metin tutuluyor ve settings client'ına geri okunuyor.
-
-## Performans baseline
-
-Local static baseline:
-
-- Dashboard ve analytics aggregate RPC ile payload azaltılmış; ancak bazı detail/list sayfalarında birden fazla Supabase query paralel çalışıyor.
-- Client JS yüzeyi ağır: Poyraz UI, motion, charts, AI chat, kanban ve portal client bileşenleri geniş kullanımda.
-- `app/api/chat/route.ts` kullanıcı context'i için `tasks`, `projects`, `finance_transactions`, `daily_logs` sorgularında explicit `.limit()` kullanıyor.
-- `app/(dashboard)/journal/page.tsx` 180 kayıt limiti kullanıyor.
-- `app/(dashboard)/page.tsx` recent projects/clients için 5 kayıt limiti kullanıyor.
-- Calendar visible range filtresi yerine current implementation daha geniş veri çekme riski taşıyor; Faz 4'te görünür aralık zorunlu olacak.
-
-Ölçülmemiş production baseline:
-
-- Gerçek TTFB, payload boyutu, route client JS boyutu ve click-to-feedback metrikleri production veya seeded local environment ayağa kaldırılmadan tamamlanmış sayılmaz.
-- Bu metrikler Faz 1 spike container'ı ve import rehearsal sonrası tekrar ölçülecek.
-
-## Local doğrulama sonuçları
-
-2026-07-10 local workspace sonuçları:
-
-| Komut | Sonuç | Not |
+| Route | Güncel yetenek | Bilinen sınır |
 | --- | --- | --- |
-| `npm.cmd run lint` | Başarısız | 34 error, 25 warning. Mevcut baseline: `any`, React `setState-in-effect`, unused import, unescaped entities, `<img>` warnings. Faz 0 doküman değişiklikleri app code değiştirmedi. |
-| `.\node_modules\.bin\tsc.cmd --noEmit` | Başarılı | TypeScript typecheck temiz. |
-| `npm.cmd run build` | Başarılı | Next.js 16.2.7 Turbopack production build geçti. Edge runtime static generation warning'i mevcut build uyarısı olarak görüldü. |
+| `/portal` | Proje KPI ve proje kartları | Hybrid auth nedeniyle veri session'ı kırık |
+| `/portal/projects` | Client'a bağlı projeler | Supabase RLS'e bağlı |
+| `/portal/projects/[id]` | Progress, public tasks, planning, revisions | `order_index`/`sort_order` uyumsuzluğu |
+| `/portal/tasks` | Public görevler | Eski `completed` toleransı var |
+| `/portal/revisions` | Revision geçmişi | Genel mesajlaşma yok |
+| `/portal/settings` | Yok | Shell hesap menüsü bu route'a link üretiyor |
 
-Local environment:
+### 5.5. AI ve internal API
 
-- Node: `v24.11.1`
-- npm: `11.6.2`
-- CPU identifier: `Intel64 Family 6 Model 167 Stepping 1, GenuineIntel`
-- Logical processor count: `16`
-- Disk root: `D:\`
-- RAM: WMI/CIM erişimi sandbox içinde reddedildiği için ölçülemedi.
+| Route | Sorumluluk | v3 riski/kararı |
+| --- | --- | --- |
+| `POST /api/chat` | Context oluşturma ve streaming chat | Supabase session/data ve client-supplied key |
+| `POST /api/finance-analysis` | Son 30 gün finance analizi | Supabase ve düz metin API key |
+| `POST /api/project-risk` | Project/task risk analizi | Owner filter RLS'e bırakılmış; `completed` uyumsuzluğu |
+| `POST /api/create-client-user` | Supabase client auth user üretme | Better Auth invitation ile kaldırılacak |
 
-## Faz 0 istisnaları
+## 6. Kritik kullanıcı akışı baseline'ı
 
-Production erişimi gerektiren ve bu local çalışmada tamamlanmayan kalemler:
+| Akış | Kodda mevcut davranış | v3'te korunacak/iyileştirilecek sözleşme |
+| --- | --- | --- |
+| İlk admin setup | Atomic Better Auth setup lock ve freelancer profile | Korunacak; smoke/negative test eklenecek |
+| Login/logout | Better Auth Server Actions | Korunacak; forgot-password eklenecek |
+| Client hesabı | Eski Supabase admin route'u + yeni invitation tablo iskeleti | Süreli hash token ile self-activation |
+| Client CRUD | Supabase Server Actions ve RLS | Repository owner filter |
+| Project CRUD | Supabase actions, planning ve storage | Service + local file transaction sınırı |
+| Task kanban | Client state + Supabase action; `done` kanoniği | Task update ve auto progress aynı transaction |
+| Calendar | Tüm/ geniş event datası | Visible date range zorunlu |
+| Finance | Decimal amount | Integer minor unit |
+| Journal | `daily_logs` aktif, `journals` legacy | Tek `journal_entries` modeli |
+| Dashboard/analytics | Supabase RPC | SQLite aggregate repository |
+| Settings | Browser Supabase + localStorage API key | Server-only settings; secret browser'a dönmez |
+| Portal project | RLS ile client project read | Actor/client/project explicit ilişki kontrolü |
+| Portal revision | UI quota uyarısı, zayıf insert policy | Kota ve ilişki aynı transaction içinde |
+| AI chat | Kullanıcı verisi cloud provider'a gönderiliyor | Açık gizlilik bildirimi ve server-only secret |
 
-- Production Supabase backup alma ve restore doğrulama.
-- Production tablo/status dağılımlarını sayma.
-- Storage bucket dosya sayısı, toplam boyut ve orphan path raporu.
-- Gerçek kullanıcı akışı ekran kayıtları.
-- Gerçek route timing, payload ve bundle ölçümleri.
-- Ürün sahibi onayı gereken ADR ve kritik akış matrisi.
+Bu tablo Faz 0 kritik davranış kaydıdır. Canlı ekran kaydı mevcut hibrit auth nedeniyle güvenilir parity kanıtı sayılmayacaktır; vertical slice kabulünde yeni ekran kayıtları alınacaktır.
+
+## 7. Supabase kaynak envanteri
+
+`supabase/setup.sql` üzerinden doğrulanan kaynak tablolar:
+
+```text
+profiles
+clients
+client_activities
+projects
+project_planning_sections
+project_revisions
+tasks
+calendar_events
+finance_transactions
+daily_logs
+journals
+app_settings
+proposals
+contracts
+invoices
+subscriptions
+chat_sessions
+chat_messages
+document_embeddings
+neta_internal.internal_auth_creations
+```
+
+Storage bucket'ları:
+
+- `avatars`
+- `project-assets`
+
+Kaynak RPC/trigger function yüzeyi:
+
+- `handle_new_user`
+- `set_updated_at`
+- `is_first_admin_setup_available`
+- `request_internal_auth_creation`
+- `neta_current_jwt_role`
+- `update_project_progress_on_task_change`
+- `update_project_progress_on_type_change`
+- `get_dashboard_metrics`
+- `get_analytics_metrics`
+- `match_documents`
+
+### 7.1. Fixture satır baseline'ı
+
+`supabase/seeds/0001_demo_freelancer_os_data.sql` deterministik içerik:
+
+| Tablo | Satır |
+| --- | ---: |
+| clients | 2 |
+| projects | 3 |
+| tasks | 3 |
+| calendar_events | 2 |
+| finance_transactions | 3 |
+| daily_logs | 3 |
+| app_settings | 1 |
+
+`supabase/seed.sql` legacy fixture; 1 profile, 1 settings, 2 project, 3 task, 3 finance ve 3 daily log içerir. Bu seed'de `completed` task status'ü ve `daily_logs.notes` alanı gibi güncel schema ile uyumsuz legacy değerler vardır; hedef seed olarak kullanılmayacaktır.
+
+### 7.2. Production veri sayımı durumu
+
+Workspace'te yalnızca `.env.example` vardır; read-only production Supabase bağlantısı veya export snapshot'ı bulunmamaktadır. Bu nedenle gerçek production satır sayıları, status dağılımları, bucket dosya sayıları/boyutları ve orphan path raporu ölçülmemiştir.
+
+Çalıştırılacak sorgular `phase-0-data-mapping.md` içinde hazırdır. Bu veri gelmeden ana plandaki “Supabase tablo ve storage veri sayıları çıkarıldı” maddesi işaretlenmez.
+
+## 8. Mevcut SQLite envanteri
+
+Mevcut tablolar:
+
+```text
+user
+session
+account
+verification
+app_profiles
+app_setup_state
+portal_invitations
+auth_audit_events
+runtime_checks
+runtime_events
+```
+
+Henüz domain tablosu yoktur. `portal_invitations` yalnızca schema düzeyindedir; davet oluşturma/kabul/revoke service ve route akışı uygulanmamıştır.
+
+## 9. Supabase kod bağımlılığı baseline'ı
+
+- 40 app/lib/server dosyası Supabase entegrasyonu veya helper'ı içeriyor.
+- 2 client ekran browser Supabase client kullanıyor: chat ve settings.
+- 33 feature page/action/route Supabase feature verisine doğrudan bağlı.
+- Service-role client avatar, project asset ve client auth user oluşturmak için kullanılıyor.
+- Dashboard/analytics iki RPC'ye bağlı.
+- Embedding helper `match_documents` pgvector RPC'sine bağlı.
+
+Supabase kaldırma ancak bu kullanımların tamamı service/repository/file katmanına taşındıktan sonra yapılacaktır.
+
+## 10. Poyraz UI v3 baseline'ı
+
+- Package manifest: `poyraz-ui@^2.1.0`
+- Hedef referans: `poyraz-ui@3.0.2`
+- Poyraz UI import eden dosya: 26
+- Import yüzeyi: atoms ve molecules; güncel custom shell Poyraz organism kullanmıyor.
+- `components/ui` altında 19 local primitive/helper dosyası var.
+- Faz 3 local shell/primitive yönü ADR-0006 tarafından supersede edilmiştir.
+- Hedef: generic UI için Poyraz UI v3; Neta domain componentleri Poyraz kompozisyonu.
+
+Poyraz v3 migration sırasında local primitive dosyaları hemen topluca silinmeyecek. Her kullanım taşındıktan ve import boundary doğrulandıktan sonra duplicate dosya/dependency kaldırılacak.
+
+## 11. Dependency baseline'ı
+
+Doğrudan production dependency sayısı 47'dir.
+
+Statik import taramasında aktif kullanımı bulunmayan adaylar:
+
+- `@base-ui/react`
+- `dexie-react-hooks`
+- `shadcn`
+- `uuid`
+
+Çok sınırlı kullanım:
+
+- `@iconify/react`: 1 dosya
+- `framer-motion`: 1 dosya
+- `next-themes`: 1 dosya
+
+Geçiş sonrasında kaldırılacak ana gruplar:
+
+- Supabase SDK'ları
+- PWA ve Dexie
+- Poyraz v3'ün gereksiz kıldığı direct Radix/Base UI/shadcn bağımlılıkları
+- Aktif importu olmayan yardımcı paketler
+
+Kanban için DnD Kit, grafikler için Recharts ve kullanılan AI provider paketleri işlevsel gerekçeyle korunabilir.
+
+## 12. Bilinen regression ve güvenlik baseline'ı
+
+- Portal planning query `order_index` kullanıyor; schema alanı `sort_order`.
+- Portal planning UI `section.type` okuyor; schema alanı `category`.
+- Project risk route `completed` sayıyor; kanonik task status `done`.
+- Revision quota yalnızca UI'da kontrol ediliyor.
+- Revision insert policy project-client eşleşmesini tam doğrulamıyor.
+- Settings AI API key'i DB'de düz metin, browser state ve `localStorage` içinde tutuyor.
+- Chat/settings browser Supabase SDK ile DB/auth erişimi yapıyor.
+- Project risk tek proje sorgusu açık owner predicate taşımıyor; güvenliği RLS'e bırakıyor.
+- Clients/projects/tasks/calendar/finance listelerinde genel pagination yok.
+- `/forgot-password` ve `/portal/settings` link hedefleri mevcut değil.
+- Business create dialog'ları gerçek mutation yapmıyor.
+- Veri sorgularının bir kısmı hatayı boş liste gibi gösteriyor.
+
+Bu maddeler `phase-0-regression-and-spike.md` içindeki regression backlog ile takip edilir.
+
+## 13. Performans baseline'ı
+
+- Dashboard recent project/client sorguları 5 kayıtla sınırlı.
+- Journal sorgusu 180 kayıtla sınırlı.
+- Chat context sorguları 12–20 kayıt arasında limit kullanıyor.
+- Diğer ana liste ekranlarında `.range()` pagination görülmüyor.
+- Dashboard ve analytics aggregate işlemleri Supabase RPC ile server-side yapılmış.
+- En büyük client dosyaları yaklaşık 500–1.260 satır aralığında; feature UI parçalama ihtiyacı var.
+- 40 Client Component ve duplicate UI runtime'ı client bundle riskini artırıyor.
+
+Gerçek TTFB, route payload ve client JS ölçümü mevcut hibrit auth ve eksik local feature schema nedeniyle güvenilir değildir; ilgili vertical slice tamamlandığında yeniden ölçülecektir.
+
+## 14. 2026-07-16 local doğrulama sonuçları
+
+Ortam:
+
+```text
+Node: v24.16.0
+pnpm: 11.5.1
+Platform: macOS arm64
+```
+
+| Komut | Sonuç | Kanıt/not |
+| --- | --- | --- |
+| `npm run typecheck` | Başarılı | TypeScript hata vermedi |
+| `npm run phase3:ui-boundary` | Başarılı | Tarihsel internal UI boundary script'i geçti |
+| `npm run lint` | Başarısız | 32 error, 22 warning; `any`, `set-state-in-effect`, unused import, unescaped entity ve image uyarıları |
+| `npm run phase1:smoke` | Başarısız | `better-sqlite3` native binding yok |
+| `npm run phase2:smoke` | Çalışmadı | Faz 1 zinciri başarısız olduğu için başlanmadı; aynı native runtime'a bağlı |
+| `npm run build` | Başarısız | Compile ve TypeScript geçti; page data aşamasında default `/app/data` oluşturulamadı |
+| Temp `DATA_DIR` ile build | Başarısız | `/app/data` sorunu izole edildi; sonra eksik `better-sqlite3` binding'inde durdu |
+
+Pnpm durumu:
+
+- `pnpm ignored-builds`, `better-sqlite3`, `esbuild`, `sharp` ve `unrs-resolver` build scriptlerinin ignore edildiğini raporluyor.
+- `pnpm-workspace.yaml` içindeki `allowBuilds` değerleri henüz boolean olarak kilitlenmemiş.
+- Native binding düzeltilmeden SQLite smoke ve production build yeşil kabul edilemez.
+- Build sırasında production varsayılanının `/app/data` olması builder aşamasında güvenli build-time path gereksinimi doğuruyor; Faz 1 hardening maddesidir.
+
+## 15. Faz 0 tamamlanma durumu
+
+Tamamlanan:
+
+- Ürün kapsam kararları ADR ile kilitlendi.
+- Güncel route ve özellik envanteri çıkarıldı.
+- Kritik kullanıcı akışları kod davranışı ve hedef sözleşmeyle kaydedildi.
+- Supabase kaynak schema, bucket, RPC ve fixture envanteri çıkarıldı.
+- Source-to-target data mapping onaylandı.
+- Poyraz UI v3 kararı ADR-0006 olarak güncellendi.
+- Local typecheck/lint/build/smoke baseline'ı kaydedildi.
+
+Açık dış veri:
+
+- Production Supabase gerçek satır sayıları
+- Production status dağılımları
+- Storage bucket dosya sayısı ve toplam boyut
+- Storage orphan path raporu
+
+Bu dış veri kalemleri için hazır audit sorguları vardır; read-only export veya erişim sağlandığında Faz 0'ın son açık checklist maddesi kapatılacaktır.

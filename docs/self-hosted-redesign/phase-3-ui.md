@@ -1,5 +1,7 @@
 # Phase 3 UI Implementation Notes
 
+> Tarihsel not: Bu belgede uygulanan internal UI yönü 2026-07-16 tarihli ADR-0006 ile supersede edilmiştir. İleriye dönük hedef Poyraz UI v3'ü tek genel UI sistemi olarak kullanmaktır. Buradaki internal primitive ve shell'ler geçiş/baseline kodu olarak değerlendirilmelidir.
+
 ## Kapsam
 
 Bu fazda Poyraz UI tamamen package seviyesinde kaldırılmadı. Mevcut feature sayfaları hâlâ Poyraz component import ediyor ve Faz 4-6 sırasında veri/UI birlikte taşınacak. Faz 3 uygulaması yeni internal primitive setini, auth shell'i ve dashboard/portal shell'i Poyraz import sınırından ayırır.

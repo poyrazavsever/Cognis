@@ -2,7 +2,7 @@
 title: Phase 0 ADR Set
 description: Self-hosted redesign için Faz 0'da kilitlenen mimari kararlar.
 status: active
-last_updated: 2026-07-10
+last_updated: 2026-07-16
 ---
 
 # Phase 0 ADR Set
@@ -93,20 +93,29 @@ Gerekçe:
 - S3 veya Supabase Storage self-host kurulumunu ağırlaştırır.
 - Tek volume backup modeli basit kalır.
 
-## ADR-0006: Internal Neta UI
+## ADR-0006: Poyraz UI v3 tek UI sistemi
 
 Status: Accepted for redesign baseline.
 
 Karar:
 
-- `poyraz-ui` runtime bağımlılığı kaldırılacak.
-- Neta'nın kendi `components/ui` primitive'leri ve semantic CSS token'ları kullanılacak.
-- Dialog, select, menu, tabs gibi davranışlı bileşenlerde tek bir headless primitive katmanı izole edilebilir.
+- Neta'nın genel UI atom, molecule ve organism katmanı `poyraz-ui@3` üzerinden kurulacak.
+- Paket kullanımı ana dağıtım modeli olacak; source registry yalnızca component source ownership gerektiren istisnalarda kullanılacak.
+- Button, form field, dialog, select, dropdown, tabs, sheet, sidebar, data table ve toast gibi genel primitive/davranışlar ikinci kez yazılmayacak.
+- `ProjectCard`, `ClientPipeline` ve `FinanceSummary` gibi Neta'ya özgü domain bileşenleri Poyraz UI componentlerinin kompozisyonu olarak yazılabilir.
+- Global CSS `poyraz-ui/preset.css` ve semantic token sistemini kullanacak.
+- Faz 3'te eklenmiş internal primitive ve shell'ler geçiş yüzeyidir; Poyraz UI v3 karşılığına taşındıktan sonra duplicate olanlar kaldırılacak.
 
 Gerekçe:
 
-- UI bağımlılığı self-host dağıtım ve uzun vadeli bakım riskini artırıyor.
-- Ürün UX'i freelancer workflow'una göre yeniden tasarlanacak.
+- Poyraz UI proje sahibinin kontrolündedir ve v3; Tailwind CSS v4, semantic theme tokenları, erişilebilir Radix davranışları ve app-level organisms sunar.
+- Tek paket altında primitive tekrarını azaltmak dependency sadeleştirme hedefiyle uyumludur.
+- Merkezi paket versiyonu Neta ile Poyraz UI arasındaki tasarım sözleşmesini görünür ve güncellenebilir tutar.
+
+Supersedes:
+
+- 2026-07-10 tarihli “Internal Neta UI” yönü geçersizdir.
+- `docs/self-hosted-redesign/phase-3-ui.md` tarihsel uygulama notu olarak korunur; ileriye dönük UI kararı değildir.
 
 ## ADR-0007: PWA/offline sync ilk release kapsam dışı
 
@@ -193,3 +202,80 @@ Gerekçe:
 
 - Persistent local volume ve single long-running Node process gereksinimi var.
 
+## ADR-0013: Tek owner/admin, birden fazla client
+
+Status: Accepted for self-hosted v3 first release.
+
+Karar:
+
+- Bir Neta instance'ı ilk sürümde tek aktif freelancer/owner hesabına sahip olacak.
+- Owner birden fazla client portal hesabı oluşturabilecek veya davet edebilecek.
+- İkinci freelancer, takım, organization ve workspace membership modeli ilk sürüm kapsamında olmayacak.
+- Domain tabloları yine de açık `owner_user_id` alanı taşıyacak; sabit bir global owner varsayımı repository filtrelerinin yerine geçmeyecek.
+
+Gerekçe:
+
+- İlk admin setup kilidi ve tek-instance SQLite hedefi mevcut ürün davranışıyla uyumludur.
+- Açık owner alanı import, authorization testi ve ileride kontrollü model genişletmesi için gereklidir.
+
+## ADR-0014: Supabase verisi için import uyumluluğu zorunlu
+
+Status: Accepted for self-hosted v3 first release.
+
+Karar:
+
+- Production veri miktarından bağımsız olarak mevcut Supabase modelinden SQLite'a tek seferlik import desteklenecek.
+- Auth password ve session verisi taşınmayacak; owner hesabı yeniden kurulacak, client kullanıcıları yeniden davet edilecek.
+- Import dry-run, satır sayımı, normalization raporu ve file checksum manifest'i üretecek.
+- Production dual-write yapılmayacak; cutover maintenance penceresinde gerçekleşecek.
+
+Gerekçe:
+
+- Uygulamanın halihazırdaki verisini kaybetmeden Supabase'ten çıkabilmesi ürün güvenilirliğinin parçasıdır.
+- Veri yoksa aynı araç fixture/import smoke amacıyla kullanılabilir.
+
+## ADR-0015: Business modülleri release-blocker değil
+
+Status: Accepted for self-hosted v3 first release.
+
+Karar:
+
+- Teklif, sözleşme, fatura ve abonelik kaynak verileri import kapsamında korunacak.
+- Bu modüllerin tam CRUD ve redesign işleri çekirdek müşteri/proje/görev/finans/portal akışlarını bloke etmeyecek.
+- Eksik business ekranları Faz 7'de tamamlanacak veya feature flag/navigation dışı bırakılacak.
+- Kaynak veri sessizce silinmeyecek; aktif hedef tabloya veya açıkça belgelenmiş archive modeline alınacak.
+
+Gerekçe:
+
+- Mevcut business ekranları kısmen read-only veya UI taslağı durumundadır.
+- Self-hosted çekirdeğin gecikmeden güvenli biçimde tamamlanması daha yüksek önceliktedir.
+
+## ADR-0016: İlk portal iletişimi proje görünürlüğü ve revizyonlarla sınırlı
+
+Status: Accepted for self-hosted v3 first release.
+
+Karar:
+
+- İlk release'te client iletişim yüzeyi proje durumu, public görevler, planlama bölümleri ve revizyon taleplerini kapsayacak.
+- Genel mesajlaşma, task comment thread'leri, notification merkezi ve e-posta entegrasyonu ilk release kapsamı dışında olacak.
+- Revizyon oluşturma project-client ilişkisini ve kotayı aynı server-side transaction içinde doğrulayacak.
+
+Gerekçe:
+
+- Mevcut portalın doğrulanabilir ürün davranışı bu kapsamdır.
+- Genel mesajlaşma ayrı notification, unread state, retention ve abuse kararları gerektirir.
+
+## ADR-0017: Web ve gelecek mobil istemci ortak service katmanını kullanır
+
+Status: Accepted for self-hosted v3 baseline.
+
+Karar:
+
+- Server Components ve Server Actions iş mantığını ortak service/repository katmanından çağıracak.
+- Gelecekteki `/api/v1` Route Handler'ları aynı service katmanına adapter olacak.
+- Web uygulaması kendi Route Handler'larına internal HTTP çağrısı yapmayacak.
+- Service katmanı `Request`, cookie veya Next.js navigation objelerine doğrudan bağımlı olmayacak.
+
+Gerekçe:
+
+- Web SSR performansını korurken React Native için tekrar kullanılabilir backend sınırı sağlar.
