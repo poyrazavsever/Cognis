@@ -5,7 +5,8 @@ import { getFirstFreelancerSetupState } from "@/server/auth/setup";
 import { LockKeyhole, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Input, Label } from "poyraz-ui/atoms";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 import { SubmitButton } from "@/components/auth/submit-button";
 
 export const dynamic = "force-dynamic";

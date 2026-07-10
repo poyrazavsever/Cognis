@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { Button } from "poyraz-ui/atoms";
+import { Button } from "@/components/ui/button";
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 

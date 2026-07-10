@@ -1,41 +1,32 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { auth } from '@/server/auth/auth'
+import { callAuthAction } from '@/server/auth/action-handler'
 import { getProfileByAuthUserId } from '@/server/auth/session'
-import { getFirstFreelancerSetupState, recordAuthAuditEvent } from '@/server/auth/setup'
+import {
+  getFirstFreelancerSetupState,
+  recordAuthAuditEvent,
+  repairFirstFreelancerSetupForEmail,
+} from '@/server/auth/setup'
 import { getDefaultDisplayName, parseAuthCredentials } from '@/server/auth/validation'
 
-const genericLoginError = 'E-posta veya şifre hatalı.'
+const genericLoginError = 'E-posta veya \u015fifre hatal\u0131.'
+type SignInEmailResult = Awaited<ReturnType<typeof auth.api.signInEmail>>
+type SignUpEmailResult = Awaited<ReturnType<typeof auth.api.signUpEmail>>
 
 export async function login(formData: FormData) {
   const credentials = parseAuthCredentials(formData)
   let redirectTarget = '/'
+  let result: SignInEmailResult
 
   try {
-    const result = await auth.api.signInEmail({
-      body: {
-        email: credentials.email,
-        password: credentials.password,
-        rememberMe: true,
-      },
+    result = await callAuthAction<SignInEmailResult>('/sign-in/email', {
+      email: credentials.email,
+      password: credentials.password,
+      rememberMe: true,
     })
-    const profile = getProfileByAuthUserId(result.user.id)
-
-    if (!profile || profile.disabled) {
-      await auth.api.signOut({ headers: await headers() })
-      await recordAuthAuditEvent({
-        type: 'login_failed',
-        authUserId: result.user.id,
-        email: credentials.email,
-        metadata: { reason: 'missing_or_disabled_profile' },
-      })
-      redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
-    }
-
-    redirectTarget = profile.role === 'client' ? '/portal' : '/'
   } catch {
     await recordAuthAuditEvent({
       type: 'login_failed',
@@ -44,6 +35,26 @@ export async function login(formData: FormData) {
     })
     redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
   }
+
+  let profile = getProfileByAuthUserId(result.user.id)
+
+  if (!profile) {
+    repairFirstFreelancerSetupForEmail(result.user.email)
+    profile = getProfileByAuthUserId(result.user.id)
+  }
+
+  if (!profile || profile.disabled) {
+    await callAuthAction<{ success: boolean }>('/sign-out')
+    await recordAuthAuditEvent({
+      type: 'login_failed',
+      authUserId: result.user.id,
+      email: credentials.email,
+      metadata: { reason: 'missing_or_disabled_profile' },
+    })
+    redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
+  }
+
+  redirectTarget = profile.role === 'client' ? '/portal' : '/'
 
   revalidatePath('/', 'layout')
   redirect(redirectTarget)
@@ -59,7 +70,7 @@ export async function signup(formData: FormData) {
   if (!setupState.available) {
     redirect(
       `/login?error=true&message=${encodeURIComponent(
-        'Kayıt kapalı. Bu Neta kurulumunda ilk freelancer hesabı zaten oluşturulmuş.',
+        'Kay\u0131t kapal\u0131. Bu Neta kurulumunda ilk freelancer hesab\u0131 zaten olu\u015fturulmu\u015f.',
       )}`,
     )
   }
@@ -67,16 +78,14 @@ export async function signup(formData: FormData) {
   const credentials = parseAuthCredentials(formData)
 
   try {
-    await auth.api.signUpEmail({
-      body: {
-        name: getDefaultDisplayName(credentials.email),
-        email: credentials.email,
-        password: credentials.password,
-        rememberMe: true,
-      },
+    await callAuthAction<SignUpEmailResult>('/sign-up/email', {
+      name: getDefaultDisplayName(credentials.email),
+      email: credentials.email,
+      password: credentials.password,
+      rememberMe: true,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Kullanıcı oluşturulamadı.'
+    const message = error instanceof Error ? error.message : 'Kullan\u0131c\u0131 olu\u015fturulamad\u0131.'
     redirect(`/register?error=true&message=${encodeURIComponent(message)}`)
   }
 
@@ -85,7 +94,7 @@ export async function signup(formData: FormData) {
 }
 
 export async function signOut() {
-  await auth.api.signOut({ headers: await headers() })
+  await callAuthAction<{ success: boolean }>('/sign-out')
 
   revalidatePath('/', 'layout')
   redirect('/login')

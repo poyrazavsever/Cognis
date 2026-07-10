@@ -13,7 +13,8 @@
     "db:backup": "node scripts/backup.mjs",
     "db:restore": "node scripts/restore.mjs",
     "phase1:smoke": "node scripts/phase1-smoke.mjs",
-    "phase2:smoke": "node scripts/phase2-auth-smoke.mjs"
+    "phase2:smoke": "node scripts/phase2-auth-smoke.mjs",
+    "phase3:ui-boundary": "node scripts/phase3-ui-boundary.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",

@@ -8,12 +8,13 @@ import {
   MessageCircleHeart,
   Sparkles,
   Wallet,
+  type LucideIcon,
 } from "lucide-react";
 
 export type SidebarNavItem = {
   title: string;
   href?: string;
-  icon?: any;
+  icon?: LucideIcon;
   items?: SidebarNavItem[];
 };
 

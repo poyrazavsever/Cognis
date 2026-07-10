@@ -1,60 +1,85 @@
 @import "tailwindcss";
-@import "poyraz-ui/preset.css";
 
 @source "../app/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../components/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../config/**/*.{js,ts,jsx,tsx,mdx}";
 
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --color-background: var(--background);
+  --color-background-dark: var(--background-dark);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-pressed: var(--primary-pressed);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-pressed: var(--destructive-pressed);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-input-bg: var(--input-bg);
+  --color-ring: var(--ring);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+}
+
 @layer base {
   :root {
-    --poyraz-background: #ffffff;
-    --poyraz-foreground: #101828;
-    --poyraz-primary: #dc2626;
-    --poyraz-primary-foreground: #ffffff;
-    --poyraz-primary-hover: #b91c1c;
-    --poyraz-primary-active: #991b1b;
-    --poyraz-primary-muted: #fef2f2;
-    --poyraz-primary-muted-foreground: #b91c1c;
-    --poyraz-secondary: #f8fafc;
-    --poyraz-secondary-foreground: #101828;
-    --poyraz-muted: #f8fafc;
-    --poyraz-muted-foreground: #667085;
-    --poyraz-accent: #f1f5f9;
-    --poyraz-accent-hover: #e2e8f0;
-    --poyraz-accent-foreground: #101828;
-    --poyraz-border: #e4e7ec;
-    --poyraz-border-strong: #d0d5dd;
-    --poyraz-input: #98a2b3;
-    --poyraz-ring: #dc2626;
-    --poyraz-card: #ffffff;
-    --poyraz-card-foreground: #101828;
-
-    /* Legacy aliases kept until all prototype pages move to Poyraz UI. */
-    --background: var(--poyraz-background);
+    --background: #f7f8fb;
     --background-dark: #f8fafc;
-    --foreground: var(--poyraz-foreground);
-    --card: var(--poyraz-card);
-    --card-foreground: var(--poyraz-card-foreground);
+    --foreground: #101828;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --card: #ffffff;
+    --card-foreground: #101828;
     --popover: #ffffff;
-    --popover-foreground: var(--poyraz-foreground);
-    --primary: var(--poyraz-primary);
-    --primary-foreground: var(--poyraz-primary-foreground);
-    --primary-hover: var(--poyraz-primary-hover);
-    --primary-pressed: var(--poyraz-primary-active);
-    --secondary: var(--poyraz-secondary);
-    --secondary-foreground: var(--poyraz-secondary-foreground);
-    --muted: var(--poyraz-muted);
-    --muted-foreground: var(--poyraz-muted-foreground);
-    --accent: var(--poyraz-accent);
-    --accent-foreground: var(--poyraz-accent-foreground);
-    --destructive: #ef4444;
+    --popover-foreground: #101828;
+    --primary: #c81e1e;
+    --primary-foreground: #ffffff;
+    --primary-hover: #a91b1b;
+    --primary-pressed: #861515;
+    --secondary: #eef2f7;
+    --secondary-foreground: #182230;
+    --muted: #eef2f7;
+    --muted-foreground: #667085;
+    --accent: #e6edf5;
+    --accent-hover: #d8e2ee;
+    --accent-foreground: #101828;
+    --destructive: #d92d20;
+    --destructive-hover: #b42318;
+    --destructive-pressed: #912018;
     --destructive-foreground: #ffffff;
-    --border: var(--poyraz-border);
-    --input: var(--poyraz-input);
+    --success: #168a4a;
+    --info: #2563eb;
+    --border: #d9e0ea;
+    --border-strong: #b9c4d2;
+    --input: #b9c4d2;
     --input-bg: #ffffff;
     --overlay: rgba(15, 23, 42, 0.48);
-    --ring: var(--poyraz-ring);
+    --ring: #c81e1e;
     --radius: 0.375rem;
+    --motion-duration-fast: 120ms;
+    --motion-duration-base: 180ms;
   }
 
   * {
@@ -67,6 +92,8 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
+    font-size: 14px;
+    letter-spacing: 0;
   }
 
   input:-webkit-autofill,
@@ -82,7 +109,7 @@
 @layer utilities {
   * {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--poyraz-primary) 45%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent) transparent;
   }
 
   *::-webkit-scrollbar,
@@ -98,7 +125,7 @@
 
   *::-webkit-scrollbar-thumb,
   .tiny-scrollbar::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--poyraz-primary) 36%, transparent);
+    background: color-mix(in srgb, var(--primary) 36%, transparent);
     border: 2px solid transparent;
     border-radius: 999px;
     background-clip: padding-box;
@@ -106,7 +133,18 @@
 
   *::-webkit-scrollbar-thumb:hover,
   .tiny-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--poyraz-primary) 58%, transparent);
+    background: color-mix(in srgb, var(--primary) 58%, transparent);
     background-clip: padding-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 1ms !important;
+    }
   }
 }

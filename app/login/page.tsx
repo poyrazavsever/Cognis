@@ -3,7 +3,8 @@ import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
 import { LockKeyhole, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
-import { Input, Label } from "poyraz-ui/atoms";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 import { SubmitButton } from "@/components/auth/submit-button";
 
 export default async function LoginPage({

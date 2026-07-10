@@ -2,12 +2,13 @@ import {
   FolderKanban,
   Sparkles,
   CheckSquare2,
+  type LucideIcon,
 } from "lucide-react";
 
 export type PortalSidebarNavItem = {
   title: string;
   href?: string;
-  icon?: any;
+  icon?: LucideIcon;
   items?: PortalSidebarNavItem[];
 };
 

@@ -22,7 +22,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(getSqliteConnection().db, {
     provider: "sqlite",
     schema,
-    transaction: true,
+    transaction: false,
   }),
   emailAndPassword: {
     enabled: true,
@@ -92,4 +92,3 @@ export const auth = betterAuth({
 });
 
 export type Auth = typeof auth;
-

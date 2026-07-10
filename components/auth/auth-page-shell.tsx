@@ -11,7 +11,6 @@ import {
   Kanban,
   Wallet,
 } from "lucide-react";
-import { Typography } from "poyraz-ui/atoms";
 
 type AuthPageShellProps = {
   title: string;
@@ -76,20 +75,14 @@ export function AuthPageShell({
 
           <div className="relative z-10 px-10">
             <motion.div {...fadeUp}>
-              <Typography
-                variant="h1"
-                className="max-w-2xl text-5xl leading-[1.02] text-primary-foreground"
-              >
+              <h1 className="max-w-2xl text-5xl font-semibold leading-[1.02] text-primary-foreground">
                 Freelancer işlerini, müşterilerini ve finansını tek yerde yönet.
-              </Typography>
-              <Typography
-                variant="lead"
-                className="mt-6 max-w-xl text-primary-foreground/78"
-              >
+              </h1>
+              <p className="mt-6 max-w-xl text-lg leading-8 text-primary-foreground/78">
                 Neta, günlük operasyonunu, projelerini, side projectlerini ve
                 temel finans durumunu sade raporlarla takip etmen için
                 tasarlanır.
-              </Typography>
+              </p>
             </motion.div>
 
             <motion.div
@@ -122,15 +115,7 @@ export function AuthPageShell({
             >
               GitHub <ArrowUpRight className="h-3.5 w-3.5 inline" />
             </Link>
-            <span> üzerinden ulaşabilirsin, </span>
-            <Link
-              href="https://ui.poyrazavsever.com"
-              className="font-semibold text-primary-foreground underline-offset-4 hover:underline"
-              target="_blank"
-            >
-              Poyraz UI <ArrowUpRight className="h-3.5 w-3.5 inline" />
-            </Link>
-            <span> ile tasarlandı, </span>
+            <span> üzerinden ulaşabilirsin. </span>
             <Link
               href="https://poyrazavsever.com"
               className="inline-flex items-center gap-1 font-semibold text-primary-foreground underline-offset-4 hover:underline"
@@ -162,10 +147,10 @@ export function AuthPageShell({
             </div>
 
             <div className="space-y-2 text-center lg:text-left">
-              <Typography variant="h2" className="text-3xl">
+              <h2 className="text-3xl font-semibold tracking-normal text-foreground">
                 {title}
-              </Typography>
-              <Typography variant="muted">{description}</Typography>
+              </h2>
+              <p className="text-sm leading-6 text-muted-foreground">{description}</p>
             </div>
 
             <div className="mt-8 space-y-6">

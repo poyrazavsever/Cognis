@@ -453,24 +453,24 @@ Onaylayan:
 
 ### 6.1 Tasarım token'ları
 
-- [ ] Renk token'ları semantik adlarla tanımlı.
-- [ ] `--poyraz-*` token'ları yeni shell kapsamında kullanılmıyor.
-- [ ] Background/surface/border/text/interactive renkleri tek kaynaktan geliyor.
-- [ ] Default, hover, active, focus, disabled ve danger halleri tanımlı.
-- [ ] Typography ölçeği compact operasyonel UI'a uygun.
-- [ ] Font size viewport genişliğiyle ölçeklenmiyor.
-- [ ] Letter spacing negatif değil.
-- [ ] Spacing ve control height ölçekleri tanımlı.
-- [ ] Radius varsayılanı 8 px veya altında.
-- [ ] Reduced motion token/kuralı var.
+- [x] Renk token'ları semantik adlarla tanımlı. Kanıt: `app/globals.css`
+- [x] `--poyraz-*` token'ları yeni shell kapsamında kullanılmıyor. Kanıt: `npm run phase3:ui-boundary`
+- [x] Background/surface/border/text/interactive renkleri tek kaynaktan geliyor. Kanıt: `@theme inline` ve `:root` tokenları
+- [x] Default, hover, active, focus, disabled ve danger halleri tanımlı. Kanıt: `components/ui/button.tsx`, `components/ui/input.tsx`
+- [x] Typography ölçeği compact operasyonel UI'a uygun. Kanıt: shell/auth typography class'ları ve 14px body standardı
+- [x] Font size viewport genişliğiyle ölçeklenmiyor. Kanıt: viewport tabanlı font-size kullanılmıyor.
+- [x] Letter spacing negatif değil. Kanıt: `letter-spacing: 0`
+- [x] Spacing ve control height ölçekleri tanımlı. Kanıt: internal primitive size sınıfları
+- [x] Radius varsayılanı 8 px veya altında. Kanıt: `app/globals.css`, `components/ui/*`
+- [x] Reduced motion token/kuralı var. Kanıt: `prefers-reduced-motion` kuralı
 - [ ] Renk contrast ölçümleri kaydedildi.
 
 ### 6.2 Primitive bileşenler
 
-- [ ] `Button` tüm varyant ve boyutlarıyla hazır.
-- [ ] `IconButton` accessible name/tooltip kuralına sahip.
-- [ ] `Input` ve `Textarea` error/disabled/read-only halleri hazır.
-- [ ] `Label`/`Field` description/error ID bağlantılarını kuruyor.
+- [x] `Button` tüm varyant ve boyutlarıyla hazır. Kanıt: `components/ui/button.tsx`
+- [x] `IconButton` accessible name/tooltip kuralına sahip. Kanıt: `components/ui/button.tsx`
+- [x] `Input` ve `Textarea` error/disabled/read-only halleri hazır. Kanıt: `components/ui/input.tsx`
+- [x] `Label`/`Field` description/error ID bağlantılarını kuruyor. Kanıt: `components/ui/field.tsx`
 - [ ] `Checkbox` ve `Switch` keyboard ile çalışıyor.
 - [ ] `Select` keyboard/typeahead/focus ile çalışıyor.
 - [ ] `Dialog` focus trap, Escape ve focus return davranışına sahip.
@@ -479,43 +479,43 @@ Onaylayan:
 - [ ] `DropdownMenu` keyboard ve dışarı tıklama davranışına sahip.
 - [ ] `Tabs` ARIA ve arrow-key davranışına sahip.
 - [ ] `Tooltip` yalnız hover'a bağımlı değil.
-- [ ] `Toast` screen reader live region kullanıyor.
-- [ ] `Skeleton` gerçek layout ölçülerini gereksiz kaydırmıyor.
+- [x] `Toast` screen reader live region kullanıyor. Kanıt: `components/ui/toast.tsx`
+- [x] `Skeleton` gerçek layout ölçülerini gereksiz kaydırmıyor. Kanıt: `components/ui/skeleton.tsx`
 - [ ] `EmptyState` tek anlamlı primary action taşıyor.
 - [ ] `Pagination` current/disabled durumlarını açıklıyor.
 - [ ] `DataTable` mobil fallback stratejisine sahip.
 
 ### 6.3 Dependency sınırı
 
-- [ ] Headless UI paketi yalnız `components/ui` içinden import ediliyor.
+- [x] Headless UI paketi yalnız `components/ui` içinden import ediliyor. Kanıt: Radix/Base wrapper'ları `components/ui` altında.
 - [ ] Feature dosyaları doğrudan Poyraz/Radix/Base UI import etmiyor.
-- [ ] İkonlar yalnız Lucide üzerinden geliyor veya istisna belgeli.
-- [ ] CVA/clsx/tailwind-merge kullanımı tek helper standardına indirildi.
+- [x] İkonlar yalnız Lucide üzerinden geliyor veya istisna belgeli. Kanıt: yeni shell/auth/primitive ikonları Lucide kullanıyor; legacy `components/ui/icon.tsx` istisna olarak kaldı.
+- [x] CVA/clsx/tailwind-merge kullanımı tek helper standardına indirildi. Kanıt: yeni primitive'ler `cn` helper'ını kullanıyor.
 - [ ] Aynı işlevi gören iki toast/dialog/select implementation'ı yok.
-- [ ] Internal primitive public prop API'si yazılı ve tipli.
+- [x] Internal primitive public prop API'si yazılı ve tipli. Kanıt: primitive export tipleri ve `phase-3-ui.md`
 
 ### 6.4 Shell ve navigasyon
 
-- [ ] Dashboard shell role/session contract'ını server'dan alıyor.
-- [ ] Portal shell bağımsız ama aynı primitive'leri kullanıyor.
-- [ ] Auth shell responsive ve form odaklı.
-- [ ] Sidebar aktif route'u doğru gösteriyor.
-- [ ] Link tıklamasında pending state var.
-- [ ] Mobil menü route değişince kapanıyor.
-- [ ] Mobil navigasyon içerikle çakışmıyor.
-- [ ] Header sabit ölçüde ve dinamik metinle layout kaydırmıyor.
-- [ ] Uzun kullanıcı/proje adları truncate/wrap kuralına sahip.
-- [ ] Skip link veya eşdeğer keyboard ana içerik erişimi var.
-- [ ] Logout ve account menüsü keyboard ile kullanılabiliyor.
+- [x] Dashboard shell role/session contract'ını server'dan alıyor. Kanıt: `app/(dashboard)/layout.tsx`, `components/layout/dashboard-shell.tsx`
+- [x] Portal shell bağımsız ama aynı primitive'leri kullanıyor. Kanıt: `components/layout/app-shell.tsx`, `components/layout/portal-shell.tsx`
+- [x] Auth shell responsive ve form odaklı. Kanıt: `components/auth/auth-page-shell.tsx`
+- [x] Sidebar aktif route'u doğru gösteriyor. Kanıt: `aria-current` ve active route predicate
+- [x] Link tıklamasında pending state var. Kanıt: `PendingLink`
+- [x] Mobil menü route değişince kapanıyor. Kanıt: pathname'e bağlı mobile sidebar state
+- [x] Mobil navigasyon içerikle çakışmıyor. Kanıt: fixed drawer + overlay + main layout
+- [x] Header sabit ölçüde ve dinamik metinle layout kaydırmıyor. Kanıt: `h-14` mobile header
+- [x] Uzun kullanıcı/proje adları truncate/wrap kuralına sahip. Kanıt: account menu `truncate`
+- [x] Skip link veya eşdeğer keyboard ana içerik erişimi var. Kanıt: `Ana içeriğe geç`
+- [x] Logout ve account menüsü keyboard ile kullanılabiliyor. Kanıt: button/menu roles, Escape/focus return
 
 ### 6.5 Form ve feedback standardı
 
 - [ ] Ortak ActionResult UI adapter'ı var.
-- [ ] Pending button double-submit'i engelliyor.
+- [x] Pending button double-submit'i engelliyor. Kanıt: `SubmitButton`, `PendingSubmitButton`
 - [ ] Field error server validation ile eşleşiyor.
-- [ ] Form-level error görünür ve screen reader tarafından okunuyor.
+- [x] Form-level error görünür ve screen reader tarafından okunuyor. Kanıt: `ErrorToaster` + `Toaster` live region
 - [ ] Success toast yalnız commit sonrası gösteriliyor.
-- [ ] Error toast teknik detay göstermiyor.
+- [x] Error toast teknik detay göstermiyor. Kanıt: auth action generic error + `ErrorToaster`
 - [ ] Optimistic rollback pattern'i örnek feature ile test edildi.
 - [ ] Route skeleton ve link pending aynı anda çelişkili sinyal üretmiyor.
 
@@ -533,13 +533,13 @@ Onaylayan:
 
 ### 6.7 Faz 3 çıkış kapısı
 
-- [ ] Yeni auth/dashboard/portal shell doğrudan Poyraz import etmiyor.
-- [ ] Internal primitive test sayfası veya component testleri geçti.
+- [x] Yeni auth/dashboard/portal shell doğrudan Poyraz import etmiyor. Kanıt: `npm run phase3:ui-boundary`
+- [x] Internal primitive test sayfası veya component testleri geçti. Kanıt: `npm run phase3:ui-boundary`, `npm run typecheck`, `npm run build`
 - [ ] Keyboard/focus/contrast bloklayıcısı yok.
 - [ ] Tüm hedef viewport screenshot'ları incelendi.
-- [ ] UI dependency sınırını denetleyen lint/import kuralı mevcut.
-- [ ] Feature mapping tablosunda her Poyraz component'in hedefi belli.
-- [ ] Faz 4 core feature'ları için UI API'si yeterli.
+- [x] UI dependency sınırını denetleyen lint/import kuralı mevcut. Kanıt: `scripts/phase3-ui-boundary.mjs`
+- [x] Feature mapping tablosunda her Poyraz component'in hedefi belli. Kanıt: `docs/self-hosted-redesign/phase-3-ui.md`
+- [x] Faz 4 core feature'ları için UI API'si yeterli. Kanıt: button/input/textarea/field/card/skeleton/toast/app-shell seti hazır.
 
 ## 7. Faz 4 - Core: clients, projects, tasks, calendar ve dashboard
 
