@@ -1,31 +1,56 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getFirstAdminSetupState } from '@/lib/auth/first-admin-setup'
-import { createInternalAuthUser } from '@/lib/auth/internal-users'
+import { auth } from '@/server/auth/auth'
+import { getProfileByAuthUserId } from '@/server/auth/session'
+import { getFirstFreelancerSetupState, recordAuthAuditEvent } from '@/server/auth/setup'
+import { getDefaultDisplayName, parseAuthCredentials } from '@/server/auth/validation'
+
+const genericLoginError = 'E-posta veya şifre hatalı.'
 
 export async function login(formData: FormData) {
-  const supabase = await createClient()
+  const credentials = parseAuthCredentials(formData)
+  let redirectTarget = '/'
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+  try {
+    const result = await auth.api.signInEmail({
+      body: {
+        email: credentials.email,
+        password: credentials.password,
+        rememberMe: true,
+      },
+    })
+    const profile = getProfileByAuthUserId(result.user.id)
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+    if (!profile || profile.disabled) {
+      await auth.api.signOut({ headers: await headers() })
+      await recordAuthAuditEvent({
+        type: 'login_failed',
+        authUserId: result.user.id,
+        email: credentials.email,
+        metadata: { reason: 'missing_or_disabled_profile' },
+      })
+      redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
+    }
 
-  if (error) {
-    redirect(`/login?error=true&message=${encodeURIComponent(error.message)}`)
+    redirectTarget = profile.role === 'client' ? '/portal' : '/'
+  } catch {
+    await recordAuthAuditEvent({
+      type: 'login_failed',
+      email: credentials.email,
+      metadata: { reason: 'invalid_credentials' },
+    })
+    redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect(redirectTarget)
 }
 
 export async function signup(formData: FormData) {
-  const setupState = await getFirstAdminSetupState()
+  const setupState = await getFirstFreelancerSetupState()
 
   if (setupState.errorMessage) {
     redirect(`/register?error=true&message=${encodeURIComponent(setupState.errorMessage)}`)
@@ -34,34 +59,25 @@ export async function signup(formData: FormData) {
   if (!setupState.available) {
     redirect(
       `/login?error=true&message=${encodeURIComponent(
-        'Kayıt kapalı. Bu Neta kurulumunda ilk admin hesabı zaten oluşturulmuş.',
+        'Kayıt kapalı. Bu Neta kurulumunda ilk freelancer hesabı zaten oluşturulmuş.',
       )}`,
     )
   }
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+  const credentials = parseAuthCredentials(formData)
 
   try {
-    await createInternalAuthUser({
-      email: data.email,
-      password: data.password,
-      role: 'freelancer',
-      reason: 'first_admin',
+    await auth.api.signUpEmail({
+      body: {
+        name: getDefaultDisplayName(credentials.email),
+        email: credentials.email,
+        password: credentials.password,
+        rememberMe: true,
+      },
     })
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Kullanıcı oluşturulamadı.'
+    const message = error instanceof Error ? error.message : 'Kullanıcı oluşturulamadı.'
     redirect(`/register?error=true&message=${encodeURIComponent(message)}`)
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword(data)
-
-  if (error) {
-    redirect(`/login?error=true&message=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/', 'layout')
@@ -69,9 +85,7 @@ export async function signup(formData: FormData) {
 }
 
 export async function signOut() {
-  const supabase = await createClient()
-
-  await supabase.auth.signOut()
+  await auth.api.signOut({ headers: await headers() })
 
   revalidatePath('/', 'layout')
   redirect('/login')

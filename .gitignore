@@ -4,6 +4,7 @@ out
 dist
 build
 backups/
+.data/
 .env*
 !.env.example
 !.env.full.example

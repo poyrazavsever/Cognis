@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1783708523046,
+      "tag": "0000_wise_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783709956320,
+      "tag": "0001_silky_jetstream",
+      "breakpoints": true
+    }
+  ]
+}

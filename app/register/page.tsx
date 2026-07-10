@@ -1,19 +1,21 @@
 import { signup } from "@/app/login/actions";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
-import { getFirstAdminSetupState } from "@/lib/auth/first-admin-setup";
+import { getFirstFreelancerSetupState } from "@/server/auth/setup";
 import { LockKeyhole, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button, Input, Label } from "poyraz-ui/atoms";
+import { Input, Label } from "poyraz-ui/atoms";
 import { SubmitButton } from "@/components/auth/submit-button";
+
+export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const setupState = await getFirstAdminSetupState();
+  const setupState = await getFirstFreelancerSetupState();
 
   if (setupState.errorMessage) {
     redirect(`/login?error=true&message=${encodeURIComponent(setupState.errorMessage)}`);
