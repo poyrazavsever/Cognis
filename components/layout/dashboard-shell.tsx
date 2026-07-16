@@ -1,9 +1,10 @@
 "use client";
 
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell, type AppShellBranding } from "@/components/layout/app-shell";
 import { sidebarData } from "@/config/sidebar";
 
 type DashboardShellProps = {
+  branding: AppShellBranding;
   children: React.ReactNode;
   user: {
     email: string;
@@ -13,9 +14,9 @@ type DashboardShellProps = {
   };
 };
 
-export function DashboardShell({ children, user }: DashboardShellProps) {
+export function DashboardShell({ branding, children, user }: DashboardShellProps) {
   return (
-    <AppShell homeHref="/" navGroups={sidebarData} settingsHref="/settings" user={user}>
+    <AppShell branding={branding} homeHref="/" navGroups={sidebarData} settingsHref="/settings" user={user}>
       {children}
     </AppShell>
   );

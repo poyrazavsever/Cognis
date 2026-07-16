@@ -1,85 +1,13 @@
 @import "tailwindcss";
+@import "poyraz-ui/preset.css";
 
 @source "../app/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../components/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../config/**/*.{js,ts,jsx,tsx,mdx}";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --color-background: var(--background);
-  --color-background-dark: var(--background-dark);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-pressed: var(--primary-pressed);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-hover: var(--destructive-hover);
-  --color-destructive-pressed: var(--destructive-pressed);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-info: var(--info);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-input: var(--input);
-  --color-input-bg: var(--input-bg);
-  --color-ring: var(--ring);
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 8px;
-}
-
 @layer base {
   :root {
-    --background: #f7f8fb;
-    --background-dark: #f8fafc;
-    --foreground: #101828;
-    --surface: #ffffff;
-    --surface-raised: #ffffff;
-    --card: #ffffff;
-    --card-foreground: #101828;
-    --popover: #ffffff;
-    --popover-foreground: #101828;
-    --primary: #c81e1e;
-    --primary-foreground: #ffffff;
-    --primary-hover: #a91b1b;
-    --primary-pressed: #861515;
-    --secondary: #eef2f7;
-    --secondary-foreground: #182230;
-    --muted: #eef2f7;
-    --muted-foreground: #667085;
-    --accent: #e6edf5;
-    --accent-hover: #d8e2ee;
-    --accent-foreground: #101828;
-    --destructive: #d92d20;
-    --destructive-hover: #b42318;
-    --destructive-pressed: #912018;
-    --destructive-foreground: #ffffff;
-    --success: #168a4a;
-    --info: #2563eb;
-    --border: #d9e0ea;
-    --border-strong: #b9c4d2;
-    --input: #b9c4d2;
-    --input-bg: #ffffff;
-    --overlay: rgba(15, 23, 42, 0.48);
-    --ring: #c81e1e;
-    --radius: 0.375rem;
-    --motion-duration-fast: 120ms;
-    --motion-duration-base: 180ms;
+    --poyraz-font-primary: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   }
 
   * {
@@ -90,48 +18,8 @@
     color-scheme: light;
   }
 
-  :root[data-color-mode="dark"] {
+  :root.dark {
     color-scheme: dark;
-    --background: #0b1018;
-    --background-dark: #0b1018;
-    --foreground: #f2f4f7;
-    --surface: #121926;
-    --surface-raised: #182230;
-    --card: #121926;
-    --card-foreground: #f2f4f7;
-    --popover: #182230;
-    --popover-foreground: #f2f4f7;
-    --secondary: #253044;
-    --secondary-foreground: #f2f4f7;
-    --muted: #253044;
-    --muted-foreground: #98a2b3;
-    --border: #344054;
-    --border-strong: #475467;
-    --input: #475467;
-    --input-bg: #121926;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root[data-color-mode="system"] {
-      color-scheme: dark;
-      --background: #0b1018;
-      --background-dark: #0b1018;
-      --foreground: #f2f4f7;
-      --surface: #121926;
-      --surface-raised: #182230;
-      --card: #121926;
-      --card-foreground: #f2f4f7;
-      --popover: #182230;
-      --popover-foreground: #f2f4f7;
-      --secondary: #253044;
-      --secondary-foreground: #f2f4f7;
-      --muted: #253044;
-      --muted-foreground: #98a2b3;
-      --border: #344054;
-      --border-strong: #475467;
-      --input: #475467;
-      --input-bg: #121926;
-    }
   }
 
   body {
@@ -144,8 +32,8 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
-    -webkit-text-fill-color: var(--foreground) !important;
+    -webkit-box-shadow: 0 0 0 30px var(--poyraz-surface) inset !important;
+    -webkit-text-fill-color: var(--poyraz-foreground) !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 }
@@ -153,7 +41,7 @@
 @layer utilities {
   * {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--poyraz-primary) 45%, transparent) transparent;
   }
 
   *::-webkit-scrollbar,
@@ -169,7 +57,7 @@
 
   *::-webkit-scrollbar-thumb,
   .tiny-scrollbar::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--primary) 36%, transparent);
+    background: color-mix(in srgb, var(--poyraz-primary) 36%, transparent);
     border: 2px solid transparent;
     border-radius: 999px;
     background-clip: padding-box;
@@ -177,7 +65,7 @@
 
   *::-webkit-scrollbar-thumb:hover,
   .tiny-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--primary) 58%, transparent);
+    background: color-mix(in srgb, var(--poyraz-primary) 58%, transparent);
     background-clip: padding-box;
   }
 

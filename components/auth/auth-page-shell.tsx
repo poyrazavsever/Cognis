@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { Typography } from "poyraz-ui/atoms";
 import {
   ArrowUpRight,
   BarChart3,
@@ -13,6 +14,11 @@ import {
 } from "lucide-react";
 
 type AuthPageShellProps = {
+  branding: {
+    applicationName: string;
+    lightLogoUrl: string | null;
+    darkLogoUrl: string | null;
+  };
   title: string;
   description: string;
   imageSrc?: string;
@@ -31,6 +37,7 @@ const highlights = [
 ];
 
 export function AuthPageShell({
+  branding,
   title,
   description,
   form,
@@ -63,8 +70,8 @@ export function AuthPageShell({
           <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,.18)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.18)_1px,transparent_1px)] bg-size-[32px_32px]" />
           <div className="relative z-10 flex items-center gap-4 p-10">
             <Image
-              src="/logo/lightLogoLong.png"
-              alt="Neta"
+              src={branding.darkLogoUrl ?? "/logo/lightLogoLong.png"}
+              alt={branding.applicationName}
               width={240}
               height={64}
               className="h-16 w-auto object-contain"
@@ -75,14 +82,18 @@ export function AuthPageShell({
 
           <div className="relative z-10 px-10">
             <motion.div {...fadeUp}>
-              <h1 className="max-w-2xl text-5xl font-semibold leading-[1.02] text-primary-foreground">
+              <Typography
+                component="h1"
+                variant="display"
+                className="max-w-2xl text-5xl font-semibold leading-[1.02] text-primary-foreground"
+              >
                 Freelancer işlerini, müşterilerini ve finansını tek yerde yönet.
-              </h1>
-              <p className="mt-6 max-w-xl text-lg leading-8 text-primary-foreground/78">
-                Neta, günlük operasyonunu, projelerini, side projectlerini ve
+              </Typography>
+              <Typography component="p" variant="lead" className="mt-6 max-w-xl text-lg leading-8 text-primary-foreground/78">
+                {branding.applicationName}, günlük operasyonunu, projelerini, side projectlerini ve
                 temel finans durumunu sade raporlarla takip etmen için
                 tasarlanır.
-              </p>
+              </Typography>
             </motion.div>
 
             <motion.div
@@ -136,8 +147,8 @@ export function AuthPageShell({
           >
             <div className="mb-8 flex justify-center lg:hidden">
               <Image
-                src="/logo/blackLogoLong.png"
-                alt="Neta logo"
+                src={branding.lightLogoUrl ?? "/logo/blackLogoLong.png"}
+                alt={`${branding.applicationName} logo`}
                 width={180}
                 height={56}
                 className="h-14 w-auto object-contain"
@@ -147,10 +158,10 @@ export function AuthPageShell({
             </div>
 
             <div className="space-y-2 text-center lg:text-left">
-              <h2 className="text-3xl font-semibold tracking-normal text-foreground">
+              <Typography component="h2" variant="h1" className="text-3xl font-semibold tracking-normal text-foreground">
                 {title}
-              </h2>
-              <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+              </Typography>
+              <Typography component="p" variant="muted" className="text-sm leading-6">{description}</Typography>
             </div>
 
             <div className="mt-8 space-y-6">

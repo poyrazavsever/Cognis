@@ -22,7 +22,7 @@ type AnalyticsClientProps = {
   data: AnalyticsData;
 };
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "#eab308", "#3b82f6", "#8b5cf6"];
+const COLORS = ["var(--poyraz-primary)", "var(--poyraz-destructive)", "#eab308", "#3b82f6", "#8b5cf6"];
 
 export function AnalyticsClient({ data }: AnalyticsClientProps) {
   const router = useRouter();
@@ -98,8 +98,8 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                     <Tooltip 
                       formatter={(value) => `₺${Number(value ?? 0)}`}
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
-                        borderColor: 'hsl(var(--border))',
+                        backgroundColor: 'var(--poyraz-background)',
+                        borderColor: 'var(--poyraz-border)',
                         borderRadius: '0.375rem',
                       }}
                     />
@@ -119,9 +119,9 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
             <div className="h-[300px] w-full">
                <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={taskStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dx={-10} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }} dx={-10} />
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
                     content={({ active, payload, label }) => {

@@ -162,21 +162,37 @@ export function buildBrandingTokens(
   accent: string,
   radiusScale: "compact" | "default" | "soft",
 ): Record<`--${string}`, string> {
-  const radius = radiusScale === "compact" ? "0.25rem" : radiusScale === "soft" ? "0.75rem" : "0.375rem";
+  const radii = {
+    compact: ["0.25rem", "0.375rem", "0.5rem", "0.625rem", "0.75rem"],
+    default: ["0.375rem", "0.5rem", "0.75rem", "1rem", "1.25rem"],
+    soft: ["0.5rem", "0.75rem", "1rem", "1.25rem", "1.5rem"],
+  }[radiusScale];
+  const primaryForeground = readableForeground(primary);
+  const accentForeground = readableForeground(accent);
+
   return {
-    "--primary": primary,
-    "--primary-foreground": readableForeground(primary),
-    "--primary-hover": mixHex(primary, "#000000", 0.14),
-    "--primary-pressed": mixHex(primary, "#000000", 0.28),
-    "--accent": accent,
-    "--accent-foreground": readableForeground(accent),
-    "--accent-hover": mixHex(accent, readableForeground(accent), 0.1),
-    "--ring": primary,
-    "--radius": radius,
-    "--radius-sm": radiusScale === "soft" ? "0.5rem" : "0.25rem",
-    "--radius-md": radius,
-    "--radius-lg": radiusScale === "compact" ? "0.375rem" : radiusScale === "soft" ? "1rem" : "0.5rem",
-    "--radius-xl": radiusScale === "compact" ? "0.5rem" : radiusScale === "soft" ? "1.25rem" : "0.75rem",
+    "--poyraz-primary": primary,
+    "--poyraz-primary-foreground": primaryForeground,
+    "--poyraz-primary-200": `color-mix(in srgb, ${primary} 28%, var(--poyraz-surface))`,
+    "--poyraz-primary-600": mixHex(primary, "#000000", 0.08),
+    "--poyraz-primary-700": mixHex(primary, "#000000", 0.14),
+    "--poyraz-primary-800": mixHex(primary, "#000000", 0.28),
+    "--poyraz-primary-900": mixHex(primary, "#000000", 0.4),
+    "--poyraz-primary-hover": mixHex(primary, "#000000", 0.14),
+    "--poyraz-primary-active": mixHex(primary, "#000000", 0.28),
+    "--poyraz-primary-dark": mixHex(primary, "#000000", 0.4),
+    "--poyraz-primary-muted": `color-mix(in srgb, ${primary} 12%, var(--poyraz-surface))`,
+    "--poyraz-primary-muted-foreground": primary,
+    "--poyraz-accent": accent,
+    "--poyraz-accent-foreground": accentForeground,
+    "--poyraz-accent-hover": mixHex(accent, accentForeground, 0.1),
+    "--poyraz-ring": primary,
+    "--poyraz-focus-ring": primary,
+    "--poyraz-radius-xs": radii[0],
+    "--poyraz-radius-sm": radii[1],
+    "--poyraz-radius-md": radii[2],
+    "--poyraz-radius-lg": radii[3],
+    "--poyraz-radius-xl": radii[4],
   };
 }
 

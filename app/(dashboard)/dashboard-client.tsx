@@ -111,18 +111,18 @@ export function DashboardClient({ data }: DashboardClientProps) {
               {incomeTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={incomeTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dy={10}
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dx={-10}
                     />
                     <Tooltip 
@@ -181,26 +181,26 @@ export function DashboardClient({ data }: DashboardClientProps) {
               {moodTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={moodTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
                     <XAxis 
                       dataKey="date" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dy={10}
                     />
                     <YAxis 
                       domain={[0, 5]} 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       width={30}
                       dx={-10}
                     />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
-                        borderColor: 'hsl(var(--border))',
+                        backgroundColor: 'var(--poyraz-background)',
+                        borderColor: 'var(--poyraz-border)',
                         borderRadius: '0.375rem',
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
                       }} 
@@ -208,9 +208,9 @@ export function DashboardClient({ data }: DashboardClientProps) {
                     <Line 
                       type="monotone" 
                       dataKey="mood" 
-                      stroke="hsl(var(--primary))" 
+                      stroke="var(--poyraz-primary)"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                      dot={{ r: 4, fill: "var(--poyraz-primary)", strokeWidth: 2, stroke: "var(--poyraz-background)" }}
                       activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                     <Line 
@@ -218,7 +218,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                       dataKey="energy" 
                       stroke="#eab308" 
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#eab308", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                      dot={{ r: 4, fill: "#eab308", strokeWidth: 2, stroke: "var(--poyraz-background)" }}
                       activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                   </LineChart>

@@ -5,9 +5,10 @@ import { acceptInvitation } from "./actions";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { ErrorToaster } from "@/components/error-toaster";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/field";
+import { Input, Label } from "poyraz-ui/atoms";
+import { Alert, AlertDescription } from "poyraz-ui/molecules";
 import { getPortalInvitationPreview } from "@/server/auth/invitations";
+import { getPublicBranding } from "@/server/branding/runtime";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function InvitationPage({
 }) {
   const { token } = await params;
   const invitation = getPortalInvitationPreview(token);
+  const branding = getPublicBranding();
 
   if (!invitation) {
     notFound();
@@ -40,6 +42,11 @@ export default async function InvitationPage({
     <>
       {query.error && query.message ? <ErrorToaster message={query.message} /> : null}
       <AuthPageShell
+        branding={{
+          applicationName: branding.applicationName,
+          lightLogoUrl: branding.lightLogoUrl,
+          darkLogoUrl: branding.darkLogoUrl,
+        }}
         title="Müşteri portalına katıl"
         description="Davet edilen hesabın için adını ve şifreni belirle."
         form={
@@ -75,7 +82,9 @@ export default async function InvitationPage({
               </SubmitButton>
             </form>
           ) : (
-            <p className="text-sm text-muted-foreground">{unavailableMessage}</p>
+            <Alert variant="warning" appearance="soft">
+              <AlertDescription>{unavailableMessage}</AlertDescription>
+            </Alert>
           )
         }
         secondaryAction={null}

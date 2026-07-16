@@ -3,9 +3,10 @@ import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
 import { LockKeyhole, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/field";
+import { Input, Label } from "poyraz-ui/atoms";
+import { Alert, AlertDescription } from "poyraz-ui/molecules";
 import { SubmitButton } from "@/components/auth/submit-button";
+import { getPublicBranding } from "@/server/branding/runtime";
 
 export default async function LoginPage({
   searchParams,
@@ -15,19 +16,25 @@ export default async function LoginPage({
   const resolvedParams = await searchParams;
   const error = resolvedParams?.error;
   const message = resolvedParams?.message;
+  const branding = getPublicBranding();
 
   return (
     <>
       {error && message && <ErrorToaster message={String(message)} />}
       <AuthPageShell
+        branding={{
+          applicationName: branding.applicationName,
+          lightLogoUrl: branding.lightLogoUrl,
+          darkLogoUrl: branding.darkLogoUrl,
+        }}
         title="Giriş yap"
         description="Neta çalışma alanına erişmek için hesabına giriş yap."
         form={
           <form className="space-y-6">
             {!error && message ? (
-              <p className="rounded-md border border-success/30 bg-success/5 p-3 text-sm text-foreground">
-                {String(message)}
-              </p>
+              <Alert variant="success" appearance="soft">
+                <AlertDescription>{String(message)}</AlertDescription>
+              </Alert>
             ) : null}
             <div className="space-y-4">
               <div className="space-y-2">

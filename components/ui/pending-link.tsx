@@ -4,7 +4,6 @@ import { Loader2 } from "lucide-react";
 import Link, { type LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  useEffect,
   useState,
   type AnchorHTMLAttributes,
   type MouseEvent,
@@ -33,11 +32,8 @@ export function PendingLink({
   ...props
 }: PendingLinkProps) {
   const pathname = usePathname();
-  const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    setPending(false);
-  }, [pathname]);
+  const [pendingFromPath, setPendingFromPath] = useState<string | null>(null);
+  const pending = pendingFromPath === pathname;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     onClick?.(event);
@@ -58,7 +54,7 @@ export function PendingLink({
     const nextPath = hrefValue.split("?")[0].split("#")[0];
 
     if (nextPath && nextPath !== pathname) {
-      setPending(true);
+      setPendingFromPath(pathname);
     }
   }
 

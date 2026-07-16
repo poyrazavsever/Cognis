@@ -4,10 +4,17 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const colorModeScript = `(() => {
+  const root = document.documentElement;
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const apply = () => root.classList.toggle("dark", root.dataset.colorMode === "dark" || (root.dataset.colorMode === "system" && media.matches));
+  apply();
+  if (root.dataset.colorMode === "system") media.addEventListener("change", apply);
+})();`;
 
 export function generateMetadata(): Metadata {
   const branding = getPublicBranding();
@@ -42,10 +49,13 @@ export default function RootLayout({
       style={branding.cssVariables as CSSProperties}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: colorModeScript }} />
+      </head>
       <body>
         {children}
         <OfflineIndicator />
-        <Toaster />
+        <Toaster closeButton richColors position="top-right" />
       </body>
     </html>
   );

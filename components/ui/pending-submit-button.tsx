@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "poyraz-ui/atoms";
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -34,6 +34,7 @@ export function PendingSubmitButton({
       type={type}
       disabled={disabled || pending}
       aria-busy={pending}
+      loading={pending && !pendingIcon}
       className={cn(className)}
     >
       {icon}

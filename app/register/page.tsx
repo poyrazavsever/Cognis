@@ -5,9 +5,9 @@ import { getFirstFreelancerSetupState } from "@/server/auth/setup";
 import { LockKeyhole, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/field";
+import { Input, Label } from "poyraz-ui/atoms";
 import { SubmitButton } from "@/components/auth/submit-button";
+import { getPublicBranding } from "@/server/branding/runtime";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +33,17 @@ export default async function RegisterPage({
   const resolvedParams = await searchParams;
   const error = resolvedParams?.error;
   const message = resolvedParams?.message;
+  const branding = getPublicBranding();
 
   return (
     <>
       {error && message && <ErrorToaster message={String(message)} />}
       <AuthPageShell
+        branding={{
+          applicationName: branding.applicationName,
+          lightLogoUrl: branding.lightLogoUrl,
+          darkLogoUrl: branding.darkLogoUrl,
+        }}
         title="İlk admin hesabını oluştur"
         description="Bu Neta çalışma alanının ilk yönetici hesabını oluştur."
         form={

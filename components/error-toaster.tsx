@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { showToast } from '@/components/ui/toast'
+import { useEffect } from "react";
+import { toast } from "poyraz-ui/molecules";
 
 export function ErrorToaster({ message }: { message: string }) {
   useEffect(() => {
     if (message) {
-      showToast({ message, tone: 'error' })
+      toast.error(message);
     }
   }, [message])
 
-  return null
+  return null;
 }

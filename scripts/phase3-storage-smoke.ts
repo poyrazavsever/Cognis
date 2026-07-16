@@ -85,8 +85,8 @@ try {
   assert.equal(branding.primaryColor, "#336699");
   assert.equal(branding.darkLogoUrl, branding.lightLogoUrl, "Missing dark logo must fall back to light logo");
   assert.equal(fileService.readPublicBranding(logo.id).metadata.id, logo.id);
-  assert.ok(contrastRatio(branding.primaryColor, branding.cssVariables["--primary-foreground"]) >= 4.5);
-  assert.ok(contrastRatio(branding.accentColor, branding.cssVariables["--accent-foreground"]) >= 4.5);
+  assert.ok(contrastRatio(branding.primaryColor, branding.cssVariables["--poyraz-primary-foreground"]) >= 4.5);
+  assert.ok(contrastRatio(branding.accentColor, branding.cssVariables["--poyraz-accent-foreground"]) >= 4.5);
   assertDomainError(() => brandingService.update(clientOne, { applicationName: "Attack" }), "FORBIDDEN");
   assertDomainError(() => brandingService.update(ownerTwo, { applicationName: "Attack" }), "FORBIDDEN");
   assertDomainError(() => brandingService.update(ownerOne, { primaryColor: "red" }), "VALIDATION_ERROR");

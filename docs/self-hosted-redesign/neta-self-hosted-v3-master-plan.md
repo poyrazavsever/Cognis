@@ -350,7 +350,7 @@ type BrandingSettings = {
 
 Tema checklist'i:
 
-- [ ] Poyraz UI semantic tokenları kullanılıyor.
+- [x] Poyraz UI semantic tokenları kullanılıyor.
 - [x] Marka ayarları root layout'ta server-side okunuyor.
 - [x] İlk render sırasında tema/renk parlaması yok.
 - [x] Primary ve accent renk girdileri doğrulanıyor.
@@ -378,31 +378,31 @@ Referans paket: `poyraz-ui@3.0.2`
 
 ### 12.2. Kurulum checklist'i
 
-- [ ] `poyraz-ui` v3'e yükseltildi.
-- [ ] `@import "poyraz-ui/preset.css";` global CSS'e eklendi.
-- [ ] Atom importları `poyraz-ui/atoms` üzerinden.
-- [ ] Molecule importları `poyraz-ui/molecules` üzerinden.
-- [ ] Organism importları `poyraz-ui/organisms` üzerinden.
-- [ ] Tema gerekiyorsa `poyraz-ui/themes` kullanımı değerlendirildi.
+- [x] `poyraz-ui` v3'e yükseltildi.
+- [x] `@import "poyraz-ui/preset.css";` global CSS'e eklendi.
+- [x] Atom importları `poyraz-ui/atoms` üzerinden.
+- [x] Molecule importları `poyraz-ui/molecules` üzerinden.
+- [x] Organism importları `poyraz-ui/organisms` üzerinden.
+- [x] Tema gerekiyorsa `poyraz-ui/themes` kullanımı değerlendirildi.
 - [x] Package modeli ana kullanım biçimi olarak belirlendi.
 - [x] Source registry yalnızca source ownership gereken istisnalar için kullanılacak.
 
 ### 12.3. Ortak UI standartları
 
-- [ ] Typography hiyerarşisi tanımlandı.
-- [ ] Page header standardı tanımlandı.
-- [ ] Primary ve secondary action standardı tanımlandı.
-- [ ] Form field ve validation standardı tanımlandı.
-- [ ] Status-to-Badge eşleme tablosu oluşturuldu.
-- [ ] Loading state standardı oluşturuldu.
-- [ ] Empty state standardı oluşturuldu.
-- [ ] Error state standardı oluşturuldu.
-- [ ] Permission/forbidden state standardı oluşturuldu.
-- [ ] Destructive confirmation standardı oluşturuldu.
-- [ ] Desktop Dialog/Sheet ve mobil Drawer kullanım kuralı belirlendi.
-- [ ] Toast ve inline feedback ayrımı belirlendi.
-- [ ] DataTable kullanım standardı belirlendi.
-- [ ] Dashboard KPI kart standardı belirlendi.
+- [x] Typography hiyerarşisi tanımlandı.
+- [x] Page header standardı tanımlandı.
+- [x] Primary ve secondary action standardı tanımlandı.
+- [x] Form field ve validation standardı tanımlandı.
+- [x] Status-to-Badge eşleme tablosu oluşturuldu.
+- [x] Loading state standardı oluşturuldu.
+- [x] Empty state standardı oluşturuldu.
+- [x] Error state standardı oluşturuldu.
+- [x] Permission/forbidden state standardı oluşturuldu.
+- [x] Destructive confirmation standardı oluşturuldu.
+- [x] Desktop Dialog/Sheet ve mobil Drawer kullanım kuralı belirlendi.
+- [x] Toast ve inline feedback ayrımı belirlendi.
+- [x] DataTable kullanım standardı belirlendi.
+- [x] Dashboard KPI kart standardı belirlendi.
 
 ### 12.4. Erişilebilirlik kalite kapısı
 
@@ -668,13 +668,13 @@ Mobil hazırlık checklist'i:
 
 ### 18.3. Poyraz UI v3 sonrası değerlendirilecekler
 
-- [ ] `@base-ui/react`
-- [ ] Doğrudan `@radix-ui/*` bağımlılıkları
-- [ ] `radix-ui`
-- [ ] `shadcn`
-- [ ] Kullanılmayan local UI primitive'leri
+- [x] `@base-ui/react`
+- [x] Doğrudan `@radix-ui/*` bağımlılıkları
+- [x] `radix-ui`
+- [x] `shadcn`
+- [x] Kullanılmayan local UI primitive'leri
 - [ ] `framer-motion`, kullanım kalmadıysa
-- [ ] `next-themes`, tema başka şekilde çözüldüyse
+- [x] `next-themes`, tema başka şekilde çözüldüyse
 - [ ] Kullanılmayan icon/form/theme yardımcıları
 
 ### 18.4. İşlevsel gerekçeyle korunabilecekler
@@ -693,12 +693,12 @@ Mobil hazırlık checklist'i:
 Dependency kalite kapısı:
 
 - [ ] Her production dependency için aktif import veya açık gerekçe var.
-- [ ] Aynı işi yapan iki UI primitive sistemi yok.
+- [x] Aynı işi yapan iki UI primitive sistemi yok.
 - [ ] Aynı işi yapan iki auth sistemi yok.
 - [ ] Aynı işi yapan iki runtime database sistemi yok.
 - [ ] Browser database bağımlılığı yok.
 - [ ] Build çıktısında Supabase referansı yok.
-- [ ] Build çıktısında Poyraz UI v2 referansı yok.
+- [x] Build çıktısında Poyraz UI v2 referansı yok.
 
 ## 19. Test stratejisi
 
@@ -769,7 +769,7 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [ ] Upgrade/migration akışı belgelendi.
 - [ ] Mobil API sınırı belgelendi.
 - [ ] Eski ve çelişkili Supabase belgeleri archive veya kaldırıldı.
-- [ ] ADR-0006 Poyraz UI v3 kararıyla güncellendi.
+- [x] ADR-0006 Poyraz UI v3 kararıyla güncellendi.
 - [ ] ADR-0007 ile PWA runtime durumu uyumlu hale getirildi.
 
 ## 22. Uygulama fazları
@@ -867,14 +867,24 @@ Faz 3 tamamlanma notu (2026-07-16):
 
 Amaç: Sayfa dönüşümleri başlamadan önce ortak UI sistemini kurmak.
 
-- [ ] Poyraz UI v3 kuruldu.
-- [ ] Preset CSS eklendi.
-- [ ] Global shell Poyraz Sidebar organism ile kuruldu.
-- [ ] Typography standardı tamamlandı.
-- [ ] Form standardı tamamlandı.
-- [ ] Feedback state'leri tamamlandı.
-- [ ] Tema/branding token bridge tamamlandı.
-- [ ] Local primitive kaldırma politikası uygulandı.
+- [x] Poyraz UI v3 kuruldu.
+- [x] Preset CSS eklendi.
+- [x] Global shell Poyraz Sidebar organism ile kuruldu.
+- [x] Typography standardı tamamlandı.
+- [x] Form standardı tamamlandı.
+- [x] Feedback state'leri tamamlandı.
+- [x] Tema/branding token bridge tamamlandı.
+- [x] Local primitive kaldırma politikası uygulandı.
+
+Faz 4 tamamlanma notu (2026-07-16):
+
+- `poyraz-ui@3.0.2`, preset CSS ve atoms/molecules/organisms subpath import sınırı pnpm/npm lockfile'larıyla birlikte kuruldu.
+- Freelancer ve portal global shell'i Poyraz Sidebar organism'e; hesap menüsü DropdownMenu'ye, global toast katmanı Poyraz Toaster'a taşındı.
+- Branding servisi primary, accent, focus ve radius değerlerini SSR sırasında doğrudan Poyraz semantic tokenlarına köprüler; system dark mode ilk paint öncesi uygulanır.
+- Typography, page header, action, form, status badge, loading/empty/error/forbidden, destructive confirmation, overlay, DataTable ve KPI standartları kod bileşimleri ve Faz 4 belgesiyle tanımlandı.
+- Duplicate local generic primitive'ler ve doğrudan UI dependency'leri kaldırıldı; yalnızca Neta'ya özgü pending/offline davranış bileşimleri Poyraz atomları üzerinde bırakıldı.
+- `phase4:ui-boundary`, typecheck, hedefli ESLint, storage/branding smoke, auth/SSR branding smoke, production build ve `git diff --check` başarılıdır. Repo genel lint'i legacy Faz 5–7 borçları nedeniyle açık tutuldu.
+- Uygulama ve doğrulama ayrıntıları `phase-4-poyraz-ui-foundation.md` belgesinde kaydedildi.
 
 Çıkış kriteri: Yeni sayfalar ek bir primitive sistemi oluşturmadan geliştirilebiliyor.
 
@@ -971,12 +981,12 @@ Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil 
 
 ### UI
 
-- [ ] Poyraz UI v3 kuruldu.
-- [ ] Preset ve token sistemi kuruldu.
-- [ ] Global shell taşındı.
+- [x] Poyraz UI v3 kuruldu.
+- [x] Preset ve token sistemi kuruldu.
+- [x] Global shell taşındı.
 - [ ] Freelancer sayfaları taşındı.
 - [ ] Portal sayfaları taşındı.
-- [ ] Local primitive tekrarı temizlendi.
+- [x] Local primitive tekrarı temizlendi.
 - [ ] Light/dark ve responsive kontroller tamamlandı.
 
 ### Özelleştirme
@@ -1012,7 +1022,7 @@ Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil 
 - [ ] Production Docker smoke başarılı.
 - [ ] README güncel.
 - [ ] Supabase runtime referansı kalmadı.
-- [ ] Poyraz UI v2 referansı kalmadı.
+- [x] Poyraz UI v2 referansı kalmadı.
 
 ## 24. Definition of Done
 

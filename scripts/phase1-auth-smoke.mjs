@@ -145,7 +145,7 @@ try {
     assert.equal(brandingUpdate.payload.data.applicationName, "Neta Smoke Studio");
     const brandedLoginHtml = await (await fetch(`${baseUrl}/login`)).text();
     assert.match(brandedLoginHtml, /Neta Smoke Studio/, "Branding metadata must be server-rendered");
-    assert.match(brandedLoginHtml, /--primary:#336699/, "Brand tokens must be present in first HTML response");
+    assert.match(brandedLoginHtml, /--poyraz-primary:#336699/, "Brand tokens must be present in first HTML response");
     const dynamicManifest = await (await fetch(`${baseUrl}/manifest.webmanifest`)).json();
     assert.equal(dynamicManifest.name, "Neta Smoke Studio", "Manifest must use instance branding");
     const publicLogo = await fetch(`${baseUrl}/api/branding/assets/${logoFileId}`);

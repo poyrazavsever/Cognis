@@ -1,9 +1,10 @@
 "use client";
 
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell, type AppShellBranding } from "@/components/layout/app-shell";
 import { portalSidebarData } from "@/config/portal-sidebar";
 
 type PortalShellProps = {
+  branding: AppShellBranding;
   children: React.ReactNode;
   user: {
     email: string;
@@ -14,9 +15,10 @@ type PortalShellProps = {
   progress?: number;
 };
 
-export function PortalShell({ children, user, progress }: PortalShellProps) {
+export function PortalShell({ branding, children, user, progress }: PortalShellProps) {
   return (
     <AppShell
+      branding={branding}
       homeHref="/portal"
       navGroups={portalSidebarData}
       settingsHref="/portal/settings"
