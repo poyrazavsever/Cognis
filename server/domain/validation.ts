@@ -49,7 +49,17 @@ export const clientCreateSchema = z.object({
   nextFollowUpDate: optionalDate,
   notes: optionalText(10_000),
 });
-export const clientUpdateSchema = clientCreateSchema.omit({ id: true }).partial();
+export const clientUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(160).optional(),
+  companyName: optionalText(160),
+  email: z.email().nullable().optional(),
+  phone: optionalText(40),
+  website: z.url().nullable().optional(),
+  status: z.enum(clientStatuses).optional(),
+  pipelineStage: z.enum(clientPipelineStages).optional(),
+  nextFollowUpDate: optionalDate,
+  notes: optionalText(10_000),
+});
 
 export const clientActivityCreateSchema = z.object({
   id: resourceIdSchema.optional(),
@@ -77,7 +87,22 @@ export const projectCreateSchema = z.object({
   legacyCoverImagePath: optionalText(1_000),
   coverImageAlt: optionalText(500),
 });
-export const projectUpdateSchema = projectCreateSchema.omit({ id: true }).partial();
+export const projectUpdateSchema = z.object({
+  clientId: optionalId,
+  name: z.string().trim().min(1).max(200).optional(),
+  type: z.enum(projectTypes).optional(),
+  description: optionalText(20_000),
+  status: z.enum(projectStatuses).optional(),
+  startDate: optionalDate,
+  dueDate: optionalDate,
+  budgetAmountMinor: minorAmountSchema.nullable().optional(),
+  currency: currencySchema.optional(),
+  progress: z.number().int().min(0).max(100).optional(),
+  progressType: z.enum(projectProgressTypes).optional(),
+  revisionQuota: z.number().int().min(0).max(10_000).optional(),
+  legacyCoverImagePath: optionalText(1_000),
+  coverImageAlt: optionalText(500),
+});
 
 export const taskCreateSchema = z.object({
   id: resourceIdSchema.optional(),
@@ -95,7 +120,21 @@ export const taskCreateSchema = z.object({
   aiGenerated: z.boolean().default(false),
   isPublicToClient: z.boolean().default(false),
 });
-export const taskUpdateSchema = taskCreateSchema.omit({ id: true }).partial();
+export const taskUpdateSchema = z.object({
+  clientId: optionalId,
+  projectId: optionalId,
+  sourceJournalEntryId: optionalId,
+  title: z.string().trim().min(1).max(300).optional(),
+  description: optionalText(20_000),
+  status: z.enum(taskStatuses).optional(),
+  priority: z.enum(taskPriorities).optional(),
+  scheduledDate: optionalDate,
+  dueAt: z.date().nullable().optional(),
+  estimatedMinutes: z.number().int().min(0).nullable().optional(),
+  actualMinutes: z.number().int().min(0).nullable().optional(),
+  aiGenerated: z.boolean().optional(),
+  isPublicToClient: z.boolean().optional(),
+});
 
 const calendarEventBaseSchema = z.object({
     id: resourceIdSchema.optional(),
@@ -113,7 +152,16 @@ export const calendarEventCreateSchema = calendarEventBaseSchema
     message: "Bitiş zamanı başlangıç zamanından önce olamaz.",
     path: ["endsAt"],
   });
-export const calendarEventUpdateSchema = calendarEventBaseSchema.omit({ id: true }).partial();
+export const calendarEventUpdateSchema = z.object({
+  clientId: optionalId,
+  projectId: optionalId,
+  taskId: optionalId,
+  title: z.string().trim().min(1).max(300).optional(),
+  description: optionalText(20_000),
+  type: z.enum(calendarEventTypes).optional(),
+  startsAt: z.date().optional(),
+  endsAt: z.date().nullable().optional(),
+});
 
 export const financeTransactionCreateSchema = z.object({
   id: resourceIdSchema.optional(),
@@ -127,7 +175,17 @@ export const financeTransactionCreateSchema = z.object({
   paymentStatus: z.enum(paymentStatuses).default("planned"),
   description: optionalText(10_000),
 });
-export const financeTransactionUpdateSchema = financeTransactionCreateSchema.omit({ id: true }).partial();
+export const financeTransactionUpdateSchema = z.object({
+  clientId: optionalId,
+  projectId: optionalId,
+  type: z.enum(financeTransactionTypes).optional(),
+  amountMinor: minorAmountSchema.optional(),
+  currency: currencySchema.optional(),
+  transactionDate: businessDateSchema.optional(),
+  category: optionalText(160),
+  paymentStatus: z.enum(paymentStatuses).optional(),
+  description: optionalText(10_000),
+});
 
 export const journalEntrySchema = z.object({
   id: resourceIdSchema.optional(),
@@ -149,7 +207,13 @@ export const planningSectionCreateSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).default({}),
   sortOrder: z.number().int().min(0).default(0),
 });
-export const planningSectionUpdateSchema = planningSectionCreateSchema.omit({ id: true, projectId: true }).partial();
+export const planningSectionUpdateSchema = z.object({
+  category: z.enum(planningSectionCategories).optional(),
+  title: z.string().trim().min(1).max(300).optional(),
+  content: optionalText(50_000),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
 
 export const revisionCreateSchema = z.object({
   id: resourceIdSchema.optional(),

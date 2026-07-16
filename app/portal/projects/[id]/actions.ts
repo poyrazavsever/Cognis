@@ -1,36 +1,22 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cleanText } from "@/server/web/form-data";
+import { requirePortalBackend } from "@/server/web/portal";
 
-export async function createRevisionRequest(projectId: string, clientId: string, formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export async function createRevisionRequest(projectId: string, formData: FormData) {
+  try {
+    const { actor, service } = await requirePortalBackend();
+    const description = cleanText(formData.get("description"));
+    if (!description) return { error: "Revizyon açıklaması boş olamaz." };
 
-  if (!user) {
-    return { error: "Oturum süresi dolmuş." };
+    service.requestRevision(actor, { projectId, description });
+    revalidatePath(`/portal/projects/${projectId}`);
+    revalidatePath("/portal/revisions");
+    return { success: true };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Revizyon talebi oluşturulamadı.",
+    };
   }
-
-  const description = formData.get("description") as string;
-
-  if (!description?.trim()) {
-    return { error: "Revizyon açıklaması boş olamaz." };
-  }
-
-  const { error } = await supabase
-    .from("project_revisions")
-    .insert({
-      project_id: projectId,
-      client_id: clientId,
-      requested_by: user.id,
-      description,
-      status: "pending"
-    });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath(`/portal/projects/${projectId}`);
-  return { success: true };
 }

@@ -1,49 +1,26 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cleanText, optionalDate, requiredText } from "@/server/web/form-data";
+import { requireFreelancerBackend } from "@/server/web/freelancer";
 
-function cleanText(value: FormDataEntryValue | null) {
-  const text = typeof value === "string" ? value.trim() : "";
-  return text.length > 0 ? text : null;
-}
+const ACTIVITY_TYPES = ["note", "call", "meeting", "email"] as const;
 
 export async function addClientActivity(clientId: string, formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { actor, service } = await requireFreelancerBackend();
+  const rawType = cleanText(formData.get("type"));
+  const type = rawType && ACTIVITY_TYPES.includes(rawType as (typeof ACTIVITY_TYPES)[number])
+    ? rawType as (typeof ACTIVITY_TYPES)[number]
+    : "note";
 
-  if (userError || !user) {
-    throw new Error("Kullanıcı bulunamadı.");
-  }
-
-  const title = cleanText(formData.get("title"));
-  if (!title) {
-    throw new Error("Aktivite başlığı zorunludur.");
-  }
-
-  const { error } = await supabase.from("client_activities").insert({
-    user_id: user.id,
-    client_id: clientId,
-    type: formData.get("type") as string || "note",
-    title,
+  service.addClientActivity(actor, {
+    clientId,
+    type,
+    title: requiredText(formData.get("title"), "Aktivite başlığı zorunludur."),
     content: cleanText(formData.get("content")),
-    activity_date: formData.get("activity_date") as string || new Date().toISOString(),
+    activityDate: optionalDate(formData.get("activity_date")) ?? new Date(),
   });
 
-  if (error) {
-    throw new Error(`Aktivite eklenemedi: ${error.message}`);
-  }
-
-  // Update client's last_contact_date
-  await supabase
-    .from("clients")
-    .update({ last_contact_date: new Date().toISOString() })
-    .eq("id", clientId)
-    .eq("user_id", user.id);
-
   revalidatePath(`/clients/${clientId}`);
-  revalidatePath(`/clients`);
+  revalidatePath("/clients");
 }

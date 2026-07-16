@@ -1,110 +1,64 @@
 import { ClientsClient, type ClientListItem } from "@/app/(dashboard)/clients/clients-client";
-import { createClient } from "@/lib/supabase/server";
-
-type ClientRow = {
-  id: string;
-  name: string;
-  company_name: string | null;
-  email: string | null;
-  phone: string | null;
-  website: string | null;
-  status: "active" | "paused" | "archived";
-  notes: string | null;
-  pipeline_stage: "lead" | "contacted" | "proposal_sent" | "won" | "lost";
-  next_follow_up_date: string | null;
-  last_contact_date: string | null;
-  client_value_score: number;
-  created_at: string;
-};
-
-type ProjectRow = {
-  client_id: string | null;
-};
-
-type FinanceRow = {
-  client_id: string | null;
-  amount: number | string;
-  type: "income" | "expense";
-  payment_status: "planned" | "pending" | "paid" | "cancelled";
-};
+import { requireFreelancerBackend } from "@/server/web/freelancer";
 
 export default async function ClientsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { actor, service } = await requireFreelancerBackend();
+  const clientsData = service.listClients(actor);
+  const projects = service.listProjects(actor);
+  const finance = service.listFinanceTransactions(actor);
+  const activities = service.listAllClientActivities(actor);
 
-  if (!user) {
-    return null;
+  const projectCountByClient = new Map<string, number>();
+  for (const project of projects) {
+    if (project.clientId) {
+      projectCountByClient.set(project.clientId, (projectCountByClient.get(project.clientId) ?? 0) + 1);
+    }
   }
 
-  const [{ data: clientRows }, { data: projectRows }, { data: financeRows }] =
-    await Promise.all([
-      supabase
-        .from("clients")
-        .select("id, name, company_name, email, phone, website, status, notes, created_at, pipeline_stage, next_follow_up_date, last_contact_date, client_value_score")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      supabase.from("projects").select("client_id").eq("user_id", user.id),
-      supabase
-        .from("finance_transactions")
-        .select("client_id, amount, type, payment_status")
-        .eq("user_id", user.id),
-    ]);
+  const revenueByClient = new Map<string, number>();
+  for (const transaction of finance) {
+    if (transaction.clientId && transaction.type === "income" && transaction.paymentStatus === "paid") {
+      revenueByClient.set(
+        transaction.clientId,
+        (revenueByClient.get(transaction.clientId) ?? 0) + transaction.amountMinor / 100,
+      );
+    }
+  }
 
-  const projectCountByClient = countProjectsByClient((projectRows || []) as ProjectRow[]);
-  const revenueByClient = sumRevenueByClient((financeRows || []) as FinanceRow[]);
+  const lastActivityByClient = new Map<string, Date>();
+  for (const activity of activities) {
+    if (!lastActivityByClient.has(activity.clientId)) {
+      lastActivityByClient.set(activity.clientId, activity.activityDate);
+    }
+  }
 
-  const clients: ClientListItem[] = ((clientRows || []) as ClientRow[]).map((client) => ({
-    ...client,
-    projectCount: projectCountByClient.get(client.id) || 0,
-    revenueTotal: revenueByClient.get(client.id) || 0,
-  }));
-
-  const activeCount = clients.filter((client) => client.status === "active").length;
-  const pausedCount = clients.filter((client) => client.status === "paused").length;
-  const archivedCount = clients.filter((client) => client.status === "archived").length;
-  const totalRevenue = clients.reduce((sum, client) => sum + client.revenueTotal, 0);
+  const clients: ClientListItem[] = clientsData.map((client) => {
+    return {
+      id: client.id,
+      name: client.name,
+      company_name: client.companyName,
+      email: client.email,
+      phone: client.phone,
+      website: client.website,
+      status: client.status,
+      notes: client.notes,
+      pipeline_stage: client.pipelineStage,
+      next_follow_up_date: client.nextFollowUpDate,
+      last_contact_date: lastActivityByClient.get(client.id)?.toISOString() ?? null,
+      client_value_score: 0,
+      created_at: client.createdAt.toISOString(),
+      projectCount: projectCountByClient.get(client.id) ?? 0,
+      revenueTotal: revenueByClient.get(client.id) ?? 0,
+    };
+  });
 
   return (
     <ClientsClient
       clients={clients}
-      totalRevenue={totalRevenue}
-      activeCount={activeCount}
-      pausedCount={pausedCount}
-      archivedCount={archivedCount}
+      totalRevenue={clients.reduce((sum, client) => sum + client.revenueTotal, 0)}
+      activeCount={clients.filter((client) => client.status === "active").length}
+      pausedCount={clients.filter((client) => client.status === "paused").length}
+      archivedCount={clients.filter((client) => client.status === "archived").length}
     />
   );
-}
-
-function countProjectsByClient(projects: ProjectRow[]) {
-  const countByClient = new Map<string, number>();
-
-  for (const project of projects) {
-    if (!project.client_id) continue;
-    countByClient.set(project.client_id, (countByClient.get(project.client_id) || 0) + 1);
-  }
-
-  return countByClient;
-}
-
-function sumRevenueByClient(transactions: FinanceRow[]) {
-  const revenueByClient = new Map<string, number>();
-
-  for (const transaction of transactions) {
-    if (
-      !transaction.client_id ||
-      transaction.type !== "income" ||
-      transaction.payment_status !== "paid"
-    ) {
-      continue;
-    }
-
-    revenueByClient.set(
-      transaction.client_id,
-      (revenueByClient.get(transaction.client_id) || 0) + Number(transaction.amount || 0),
-    );
-  }
-
-  return revenueByClient;
 }

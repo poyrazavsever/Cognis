@@ -1,90 +1,100 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { auth } from "@/server/auth/auth";
+import { getSqliteConnection } from "@/server/db/client";
+import { appProfiles } from "@/server/db/schema";
+import { domainActorFromSession } from "@/server/auth/domain-actor";
+import { getFileService } from "@/server/files/runtime";
+import { getPublicAiSettings, updateAiSettings } from "@/server/settings/ai";
+import { requireFreelancerBackend } from "@/server/web/freelancer";
+import { cleanText } from "@/server/web/form-data";
 
-import { createServiceRoleClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+export async function loadSettings() {
+  const { context, actor } = await requireFreelancerBackend();
+  const [firstName = "", ...lastNameParts] = context.profile.displayName.trim().split(/\s+/);
+  const ai = getPublicAiSettings(actor);
 
-type ProfileUpdateData = {
-  first_name: string
-  last_name: string
-  avatar_url?: string
+  return {
+    firstName,
+    lastName: lastNameParts.join(" "),
+    avatarUrl: context.user.image ?? "",
+    aiProvider: ai.provider,
+    hasApiKey: ai.hasApiKey,
+  };
 }
 
 export async function updateProfile(formData: FormData) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: 'Kullanıcı bulunamadı.' }
-  }
-
-  const firstName = formData.get('firstName') as string
-  const lastName = formData.get('lastName') as string
-  const avatarFile = formData.get('avatar') as File | null
-
-  let avatarUrl: string | undefined
-
-  if (avatarFile && avatarFile.size > 0) {
-    const fileExt = avatarFile.name.split('.').pop()
-    const fileName = `${user.id}/${Math.random()}.${fileExt}`
-    const admin = createServiceRoleClient()
-
-    const { error: uploadError } = await admin.storage
-      .from('avatars')
-      .upload(fileName, avatarFile, { upsert: true })
-
-    if (uploadError) {
-      return {
-        error: `Profil fotoğrafı yüklenirken hata oluştu: ${uploadError.message}`,
-      }
+  try {
+    const { context } = await requireFreelancerBackend();
+    const firstName = cleanText(formData.get("firstName"));
+    const lastName = cleanText(formData.get("lastName"));
+    if (!firstName || !lastName || firstName.length > 80 || lastName.length > 120) {
+      return { error: "Ad ve soyad zorunludur." };
     }
 
-    const {
-      data: { publicUrl },
-    } = admin.storage.from('avatars').getPublicUrl(fileName)
+    const displayName = `${firstName} ${lastName}`;
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: { name: displayName },
+    });
+    getSqliteConnection().db
+      .update(appProfiles)
+      .set({ displayName, updatedAt: new Date() })
+      .where(eq(appProfiles.authUserId, context.user.id))
+      .run();
 
-    avatarUrl = publicUrl
+    const avatar = formData.get("avatar");
+    if (avatar instanceof File && avatar.size > 0) {
+      getFileService().upload(domainActorFromSession(context), {
+        kind: "avatar",
+        originalName: avatar.name,
+        claimedMimeType: avatar.type,
+        bytes: new Uint8Array(await avatar.arrayBuffer()),
+      });
+    }
+
+    revalidatePath("/settings");
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Profil güncellenemedi." };
   }
-
-  const updateData: ProfileUpdateData = {
-    first_name: firstName,
-    last_name: lastName,
-  }
-
-  if (avatarUrl) {
-    updateData.avatar_url = avatarUrl
-  }
-
-  const { error } = await supabase.from('profiles').upsert({
-    id: user.id,
-    ...updateData,
-  })
-
-  if (error) {
-    return { error: `Profil güncellenirken hata oluştu: ${error.message}` }
-  }
-
-  revalidatePath('/settings')
-  return { success: true }
 }
 
 export async function updatePassword(formData: FormData) {
-  const supabase = await createClient()
-  const password = formData.get('password') as string
+  const currentPassword = cleanText(formData.get("currentPassword"));
+  const newPassword = cleanText(formData.get("password"));
 
-  if (!password || password.length < 6) {
-    return { error: 'Şifre en az 6 karakter olmalıdır.' }
+  if (!currentPassword || !newPassword || newPassword.length < 8) {
+    return { error: "Mevcut şifre zorunludur; yeni şifre en az 8 karakter olmalıdır." };
   }
 
-  const { error } = await supabase.auth.updateUser({ password })
-
-  if (error) {
-    return { error: `Şifre güncellenirken hata oluştu: ${error.message}` }
+  try {
+    await requireFreelancerBackend();
+    await auth.api.changePassword({
+      headers: await headers(),
+      body: {
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      },
+    });
+    return { success: true };
+  } catch {
+    return { error: "Mevcut şifre doğrulanamadı veya şifre güncellenemedi." };
   }
+}
 
-  return { success: true }
+export async function saveAiSettings(provider: string, apiKey: string) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const settings = updateAiSettings(actor, { provider, apiKey });
+    revalidatePath("/settings");
+    return { success: true, hasApiKey: settings.hasApiKey };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Ayarlar kaydedilemedi." };
+  }
 }

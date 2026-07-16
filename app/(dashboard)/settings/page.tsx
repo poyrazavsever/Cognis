@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Blocks, Brain, Key, Save, Shield, User } from "lucide-react";
-import { updatePassword, updateProfile } from "./actions";
-import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
+import { Blocks, Brain, Key, Save, Shield, User } from "lucide-react";
+import { loadSettings, saveAiSettings, updatePassword, updateProfile } from "./actions";
 import { Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import { toast } from "poyraz-ui/molecules";
 
@@ -23,9 +23,7 @@ export default function SettingsPage() {
   // AI States
   const [aiProvider, setAiProvider] = useState<AiProvider>("gemini");
   const [apiKey, setApiKey] = useState("");
-  
-  // Supabase
-  const [supabase] = useState(() => createClient());
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   const tabs = [
     { name: "Profile & Account", icon: User },
@@ -37,42 +35,18 @@ export default function SettingsPage() {
     let isActive = true;
 
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !isActive) return;
-
-      // 1. Fetch Profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profile && isActive) {
-        setFirstName(profile.first_name || "");
-        setLastName(profile.last_name || "");
-        setAvatarUrl(profile.avatar_url || "");
-      }
-
-      // 2. Fetch User Settings from Supabase
-      const { data: settings } = await supabase
-        .from("app_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-        
-      if (settings && isActive) {
-        setAiProvider((settings.ai_provider as AiProvider) || "gemini");
-        setApiKey(settings.api_key || "");
-        
-        // Also sync to local storage for existing API route calls if they use it
-        localStorage.setItem("mindspace_ai_provider", settings.ai_provider || "gemini");
-        localStorage.setItem("mindspace_api_key", settings.api_key || "");
-      }
+      const settings = await loadSettings();
+      if (!isActive) return;
+      setFirstName(settings.firstName);
+      setLastName(settings.lastName);
+      setAvatarUrl(settings.avatarUrl);
+      setAiProvider(settings.aiProvider);
+      setHasApiKey(settings.hasApiKey);
     };
 
     void fetchData();
     return () => { isActive = false; };
-  }, [supabase]);
+  }, []);
 
   const handleProfileAction = async (formData: FormData) => {
     const response = await updateProfile(formData);
@@ -96,32 +70,14 @@ export default function SettingsPage() {
   };
 
   const handleSaveAI = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Giriş yapılmamış");
-
-      // Save to Supabase app_settings table
-      const { error } = await supabase
-        .from("app_settings")
-        .upsert({
-          user_id: user.id,
-          ai_provider: aiProvider,
-          ai_model: null, // Reset to allow default model fallback
-          api_key: apiKey,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-
-      // Sync to localStorage as a redundant fallback
-      localStorage.setItem("mindspace_ai_provider", aiProvider);
-      localStorage.setItem("mindspace_api_key", apiKey);
-
-      toast.success("Yapay Zeka ayarları kaydedildi!");
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Hata oluştu, veritabanına kaydedilemedi.");
+    const response = await saveAiSettings(aiProvider, apiKey);
+    if (response.error) {
+      toast.error(response.error);
+      return;
     }
+    setHasApiKey(Boolean(response.hasApiKey));
+    setApiKey("");
+    toast.success("Yapay Zeka ayarları kaydedildi!");
   };
 
   return (
@@ -173,7 +129,14 @@ export default function SettingsPage() {
                 <form action={handleProfileAction} className="space-y-6 max-w-xl">
                   <div className="flex items-center gap-4 mb-6">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full border border-border object-cover" />
+                      <Image
+                        src={avatarUrl}
+                        alt="Avatar"
+                        width={64}
+                        height={64}
+                        unoptimized
+                        className="h-16 w-16 rounded-full border border-border object-cover"
+                      />
                     ) : (
                       <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border bg-muted/50">
                         <User className="h-8 w-8 text-muted-foreground" />
@@ -212,8 +175,12 @@ export default function SettingsPage() {
                 <h2 className="text-xl font-bold mb-6 text-foreground">Şifre İşlemleri</h2>
                 <form ref={formRef} action={handlePasswordAction} className="space-y-6 max-w-xl">
                   <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Mevcut Şifre</Label>
+                    <Input id="currentPassword" name="currentPassword" type="password" required />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="password">Yeni Şifre</Label>
-                    <Input id="password" name="password" type="password" minLength={6} placeholder="En az 6 karakter" required />
+                    <Input id="password" name="password" type="password" minLength={8} placeholder="En az 8 karakter" required />
                   </div>
                   <div className="flex items-center gap-4 pt-4">
                     <Button type="submit" className="gap-2">
@@ -269,7 +236,7 @@ export default function SettingsPage() {
                           type="password" 
                           value={apiKey} 
                           onChange={(e) => setApiKey(e.target.value)}
-                          placeholder="sk-..."
+                          placeholder={hasApiKey ? "Kayıtlı anahtarı korumak için boş bırakın" : "sk-..."}
                         />
                       </div>
                     </div>

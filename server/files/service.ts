@@ -176,6 +176,7 @@ export class FileService {
     const scope = requireClientScope(actor);
     if (file.kind === "avatar" && file.authUserId === scope.authUserId) return;
     if (file.kind === "project_asset" && file.visibility === "portal" && file.projectId) {
+      this.getClientOwner(actor);
       const project = this.db
         .select({ id: projects.id })
         .from(projects)

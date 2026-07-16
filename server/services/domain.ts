@@ -82,6 +82,16 @@ export class DomainService {
     return this.repositories.clients.createActivity(scope, { ...value, id: value.id ?? this.id() });
   }
 
+  listClientActivities(actor: DomainActor, clientId: string) {
+    const scope = requireOwnerScope(actor);
+    this.requireOwnedClient(scope, clientId);
+    return this.repositories.clients.listActivities(scope, clientId);
+  }
+
+  listAllClientActivities(actor: DomainActor) {
+    return this.repositories.clients.listAllActivities(requireOwnerScope(actor));
+  }
+
   listProjects(actor: DomainActor) {
     if (actor.role === "client") {
       return this.repositories.projects.listForClient(requireClientScope(actor));
@@ -108,7 +118,15 @@ export class DomainService {
     const current = this.repositories.projects.get(scope, projectId) ?? this.throwNotFound("Proje");
     const value = parseDomainInput(projectUpdateSchema, input);
     this.assertProjectClient(scope, value.type ?? current.type, value.clientId === undefined ? current.clientId : value.clientId);
-    return this.repositories.projects.update(scope, projectId, value) ?? this.throwNotFound("Proje");
+    const updated = this.repositories.projects.update(scope, projectId, value) ?? this.throwNotFound("Proje");
+    if (
+      updated.progressType === "auto"
+      && (value.progressType === "auto" || value.progress !== undefined)
+    ) {
+      this.recalculateProjectProgress(scope, projectId);
+      return this.repositories.projects.get(scope, projectId) ?? this.throwNotFound("Proje");
+    }
+    return updated;
   }
 
   deleteProject(actor: DomainActor, id: string) {
@@ -118,6 +136,7 @@ export class DomainService {
   listTasks(actor: DomainActor, projectId?: string) {
     if (actor.role === "client") {
       const scope = requireClientScope(actor);
+      this.getClient(actor, scope.clientId);
       if (projectId) this.getProject(actor, projectId);
       return this.repositories.tasks.listPublicForClient(scope, projectId);
     }
@@ -216,6 +235,16 @@ export class DomainService {
     return this.repositories.journal.list(requireOwnerScope(actor));
   }
 
+  updateJournalEntry(actor: DomainActor, entryId: string, input: unknown) {
+    const scope = requireOwnerScope(actor);
+    const value = parseDomainInput(journalEntrySchema.omit({ id: true }), input);
+    const conflicting = this.repositories.journal.getByDate(scope, value.entryDate);
+    if (conflicting && conflicting.id !== entryId) {
+      throw conflict("Bu tarih için zaten bir günlük kaydı var.");
+    }
+    return this.repositories.journal.update(scope, entryId, value) ?? this.throwNotFound("Günlük kaydı");
+  }
+
   deleteJournalEntry(actor: DomainActor, entryId: string) {
     return this.repositories.journal.remove(requireOwnerScope(actor), entryId) ?? this.throwNotFound("Günlük kaydı");
   }
@@ -251,6 +280,7 @@ export class DomainService {
 
   requestRevision(actor: DomainActor, input: unknown) {
     const scope = requireClientScope(actor);
+    this.getClient(actor, scope.clientId);
     const value = parseDomainInput(revisionCreateSchema, input);
     const revisionId = value.id ?? this.id();
 
@@ -273,9 +303,16 @@ export class DomainService {
     }, { behavior: "immediate" });
   }
 
-  updateRevisionStatus(actor: DomainActor, revisionId: string, statusInput: unknown) {
+  updateRevisionStatus(actor: DomainActor, revisionId: string, statusInput: unknown, projectId?: string) {
+    const scope = requireOwnerScope(actor);
+    if (projectId) {
+      this.requireOwnedProject(scope, projectId);
+      if (!this.repositories.revisions.list(scope, projectId).some((revision) => revision.id === revisionId)) {
+        throw notFound("Revizyon");
+      }
+    }
     const status = parseDomainInput(revisionStatusSchema, statusInput);
-    return this.repositories.revisions.updateStatus(requireOwnerScope(actor), revisionId, status) ?? this.throwNotFound("Revizyon");
+    return this.repositories.revisions.updateStatus(scope, revisionId, status) ?? this.throwNotFound("Revizyon");
   }
 
   listRevisions(actor: DomainActor, projectId: string) {
@@ -287,6 +324,29 @@ export class DomainService {
     const scope = requireOwnerScope(actor);
     this.requireOwnedProject(scope, projectId);
     return this.repositories.revisions.list(scope, projectId);
+  }
+
+  listPortalRevisions(actor: DomainActor) {
+    const scope = requireClientScope(actor);
+    this.getClient(actor, scope.clientId);
+    return this.repositories.revisions.listAllForClient(scope);
+  }
+
+  getRevisionAllowance(actor: DomainActor, projectId: string) {
+    const scope = requireClientScope(actor);
+    const project = this.getProject(actor, projectId);
+    const used = this.repositories.revisions
+      .listForClient(scope, projectId)
+      .filter((revision) => revision.status !== "rejected")
+      .length;
+    const remaining = Math.max(project.revisionQuota - used, 0);
+
+    return {
+      quota: project.revisionQuota,
+      used,
+      remaining,
+      canRequest: project.status === "active" && remaining > 0,
+    };
   }
 
   createChatSession(actor: DomainActor, input: unknown) {
@@ -315,6 +375,88 @@ export class DomainService {
       finance: { ...finance, netMinor: finance.incomeMinor - finance.expenseMinor },
       projectsByStatus: this.repositories.analytics.projectStatusCounts(scope),
       tasksByStatus: this.repositories.analytics.taskStatusCounts(scope),
+    };
+  }
+
+  getFreelancerDashboard(
+    actor: DomainActor,
+    range: { startDate: string; endDate: string; startAt: Date; endAt: Date },
+  ) {
+    const scope = requireOwnerScope(actor);
+    const finance = this.repositories.finance.listInRange(scope, range.startDate, range.endDate);
+    const journal = this.repositories.journal.listInRange(scope, range.startDate, range.endDate);
+    const projectsByStatus = this.repositories.analytics.projectStatusCounts(scope);
+    const tasksByStatus = this.repositories.analytics.taskStatusCountsInRange(
+      scope,
+      range.startAt,
+      range.endAt,
+    );
+
+    const financeByDate = new Map<string, { income: number; expense: number }>();
+    let incomeMinor = 0;
+    let expenseMinor = 0;
+    for (const transaction of finance) {
+      if (transaction.paymentStatus !== "paid") continue;
+      const current = financeByDate.get(transaction.transactionDate) ?? { income: 0, expense: 0 };
+      if (transaction.type === "income") {
+        current.income += transaction.amountMinor;
+        incomeMinor += transaction.amountMinor;
+      } else {
+        current.expense += transaction.amountMinor;
+        expenseMinor += transaction.amountMinor;
+      }
+      financeByDate.set(transaction.transactionDate, current);
+    }
+
+    const moodValues = journal.flatMap((entry) =>
+      entry.moodScore == null ? [] : [entry.moodScore],
+    );
+
+    return {
+      metrics: {
+        netProfit: (incomeMinor - expenseMinor) / 100,
+        activeProjectsCount:
+          projectsByStatus.find((item) => item.status === "active")?.value ?? 0,
+        completedTasksCount:
+          tasksByStatus.find((item) => item.status === "done")?.value ?? 0,
+        avgMood: moodValues.length
+          ? (moodValues.reduce((sum, value) => sum + value, 0) / moodValues.length).toFixed(1)
+          : "0.0",
+        financeTrend: Array.from(financeByDate, ([date, value]) => ({
+          date,
+          income: value.income / 100,
+          expense: value.expense / 100,
+        })),
+        moodTrend: journal.map((entry) => ({
+          date: entry.entryDate,
+          mood: entry.moodScore ?? 0,
+          energy: entry.energyScore ?? 0,
+        })),
+      },
+      projects: this.repositories.projects.recent(scope, 5),
+      clients: this.repositories.clients.recent(scope, 5),
+    };
+  }
+
+  getFreelancerAnalytics(
+    actor: DomainActor,
+    range: { startDate: string; endDate: string; startAt: Date; endAt: Date },
+  ) {
+    const scope = requireOwnerScope(actor);
+    const tasksByStatus = this.repositories.analytics.taskStatusCountsInRange(
+      scope,
+      range.startAt,
+      range.endAt,
+    );
+    const taskCount = (status: string) =>
+      tasksByStatus.find((item) => item.status === status)?.value ?? 0;
+
+    return {
+      projectIncomeData: this.repositories.analytics
+        .projectIncomeInRange(scope, range.startDate, range.endDate)
+        .map((item) => ({ name: item.name, value: Number(item.amountMinor) / 100 })),
+      completedTasks: taskCount("done"),
+      activeTasks: taskCount("todo") + taskCount("in_progress"),
     };
   }
 

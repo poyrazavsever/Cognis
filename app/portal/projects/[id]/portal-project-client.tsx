@@ -11,7 +11,46 @@ import { createRevisionRequest } from "./actions";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "poyraz-ui/molecules";
 
-export function PortalProjectClient({ project, sections, tasks, revisions, clientId }: any) {
+export type PortalProjectDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  status: "planning" | "active" | "paused" | "completed" | "cancelled";
+  progress: number;
+  due_date: string | null;
+  revision_quota: number;
+  can_request_revision: boolean;
+};
+
+export type PortalPlanningSection = {
+  id: string;
+  title: string;
+  content: string | null;
+  type: string;
+};
+
+export type PortalTask = {
+  id: string;
+  title: string;
+  status: "todo" | "in_progress" | "done";
+  date: string | null;
+};
+
+export type PortalRevision = {
+  id: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "rejected";
+  created_at: string;
+};
+
+type PortalProjectClientProps = {
+  project: PortalProjectDetail;
+  sections: PortalPlanningSection[];
+  tasks: PortalTask[];
+  revisions: PortalRevision[];
+};
+
+export function PortalProjectClient({ project, sections, tasks, revisions }: PortalProjectClientProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openRevision, setOpenRevision] = useState(false);
 
@@ -20,19 +59,19 @@ export function PortalProjectClient({ project, sections, tasks, revisions, clien
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await createRevisionRequest(project.id, clientId, formData);
+      const res = await createRevisionRequest(project.id, formData);
       if (res.error) throw new Error(res.error);
       toast.success("Revizyon talebiniz başarıyla iletildi.");
       setOpenRevision(false);
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Revizyon talebi oluşturulamadı.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const pendingRevisions = revisions.filter((r: any) => r.status === 'pending' || r.status === 'in_progress').length;
-  const hasRevisionQuota = project.revision_quota === null || project.revision_quota > 0;
+  const pendingRevisions = revisions.filter((revision) => revision.status === 'pending' || revision.status === 'in_progress').length;
+  const hasRevisionQuota = project.can_request_revision;
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -64,8 +103,8 @@ export function PortalProjectClient({ project, sections, tasks, revisions, clien
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label>Lütfen yapılmasını istediğiniz değişiklikleri detaylıca açıklayın</Label>
-                        <Textarea name="description" required rows={5} placeholder="Şu kısmın rengi mavi olabilir mi? Ayrıca metinleri güncelleyelim..." />
+                        <Label htmlFor="revision-description">Lütfen yapılmasını istediğiniz değişiklikleri detaylıca açıklayın</Label>
+                        <Textarea id="revision-description" name="description" required rows={5} placeholder="Şu kısmın rengi mavi olabilir mi? Ayrıca metinleri güncelleyelim..." />
                       </div>
                     </div>
                     <DialogFooter>
@@ -138,15 +177,15 @@ export function PortalProjectClient({ project, sections, tasks, revisions, clien
                   <p className="text-sm text-muted-foreground italic">Listelenecek görev bulunmuyor.</p>
                 ) : (
                   <ul className="space-y-3 max-h-60 overflow-y-auto tiny-scrollbar pr-2">
-                    {tasks.map((task: any) => (
+                    {tasks.map((task) => (
                       <li key={task.id} className="text-sm flex gap-3 p-2 rounded hover:bg-muted/30 transition-colors">
-                        {task.status === 'completed' || task.status === 'done' ? (
+                        {task.status === 'done' ? (
                           <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                         ) : (
                           <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0 mt-0.5" />
                         )}
                         <div>
-                          <span className={task.status === 'completed' || task.status === 'done' ? "text-muted-foreground" : "text-foreground font-medium"}>
+                          <span className={task.status === 'done' ? "text-muted-foreground" : "text-foreground font-medium"}>
                             {task.title}
                           </span>
                           {task.date && (
@@ -171,7 +210,7 @@ export function PortalProjectClient({ project, sections, tasks, revisions, clien
             </div>
           ) : (
             <div className="space-y-4">
-              {sections.map((section: any) => (
+              {sections.map((section) => (
                 <Card key={section.id}>
                   <CardContent className="p-5 space-y-3">
                     <div className="flex items-center justify-between">
@@ -205,7 +244,7 @@ export function PortalProjectClient({ project, sections, tasks, revisions, clien
             </div>
           ) : (
             <div className="space-y-4">
-              {revisions.map((rev: any) => (
+              {revisions.map((rev) => (
                 <Card key={rev.id} className="transition-colors hover:border-primary/30">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-3">

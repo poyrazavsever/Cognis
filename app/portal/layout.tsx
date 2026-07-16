@@ -1,14 +1,19 @@
 import { PortalShell } from "@/components/layout/portal-shell";
-import { requireClientUser } from "@/server/auth/session";
 import { getPublicBranding } from "@/server/branding/runtime";
+import { requirePortalBackend } from "@/server/web/portal";
 
 export default async function PortalLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user, profile } = await requireClientUser();
+  const { context, actor, service } = await requirePortalBackend();
+  const { user, profile } = context;
   const branding = getPublicBranding();
+  const projects = service.listProjects(actor);
+  const progress = projects.length
+    ? Math.round(projects.reduce((sum, project) => sum + project.progress, 0) / projects.length)
+    : 0;
   const displayName = profile.displayName || user.name || user.email.split("@")[0] || "Müşteri";
 
   const shortName =
@@ -34,7 +39,7 @@ export default async function PortalLayout({
         shortName,
         avatarUrl: user.image || null,
       }}
-      progress={0}
+      progress={progress}
     >
       {children}
     </PortalShell>
