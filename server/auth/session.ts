@@ -1,13 +1,13 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/server/auth/auth";
 import type { UserRole } from "@/server/auth/types";
 import { getSqliteConnection } from "@/server/db/client";
-import { appProfiles } from "@/server/db/schema";
+import { appProfiles, clients } from "@/server/db/schema";
 
 type BetterAuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
@@ -108,5 +108,26 @@ export function getProfileByAuthUserId(authUserId: string): SessionContext["prof
     .limit(1)
     .all();
 
-  return profile ?? null;
+  if (!profile) {
+    return null;
+  }
+
+  if (profile.role === "client") {
+    if (!profile.clientId) return null;
+
+    const linkedClient = db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(
+        and(
+          eq(clients.id, profile.clientId),
+          eq(clients.authUserId, profile.authUserId),
+        ),
+      )
+      .get();
+
+    if (!linkedClient) return null;
+  }
+
+  return profile;
 }

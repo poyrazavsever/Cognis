@@ -14,6 +14,7 @@
     "db:restore": "node scripts/restore.mjs",
     "phase1:smoke": "node scripts/phase1-smoke.mjs",
     "phase1:auth-smoke": "node scripts/phase1-auth-smoke.mjs",
+    "phase2:domain-smoke": "node scripts/phase2-domain-smoke.mjs",
     "phase2:smoke": "node scripts/phase2-auth-smoke.mjs",
     "phase3:ui-boundary": "node scripts/phase3-ui-boundary.mjs"
   },

@@ -31,7 +31,14 @@ export async function POST(request: Request) {
 
 function invitationErrorResponse(error: unknown) {
   if (error instanceof PortalInvitationError) {
-    const status = error.code === "FORBIDDEN" ? 403 : error.code === "INVALID_INPUT" ? 400 : 409;
+    const status =
+      error.code === "FORBIDDEN"
+        ? 403
+        : error.code === "INVALID_INPUT"
+          ? 400
+          : error.code === "CLIENT_NOT_FOUND"
+            ? 404
+            : 409;
     return NextResponse.json({ error: error.message, code: error.code }, { status });
   }
 

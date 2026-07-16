@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import type { SessionContext } from "@/server/auth/session";
 import { getServerConfig } from "@/server/config";
@@ -11,6 +11,7 @@ import {
   account,
   appProfiles,
   authAuditEvents,
+  clients,
   portalInvitations,
   session,
   user,
@@ -37,6 +38,7 @@ export type PortalInvitationErrorCode =
   | "INVITATION_NOT_FOUND"
   | "INVITATION_NOT_PENDING"
   | "INVITATION_EXPIRED"
+  | "CLIENT_NOT_FOUND"
   | "CLIENT_ALREADY_LINKED"
   | "EMAIL_ALREADY_REGISTERED";
 
@@ -70,6 +72,25 @@ export async function createPortalInvitation(
   const { db } = getSqliteConnection();
 
   const invitationId = db.transaction((tx) => {
+    const client = tx
+      .select({ id: clients.id, authUserId: clients.authUserId })
+      .from(clients)
+      .where(
+        and(eq(clients.id, parsed.clientId), eq(clients.ownerUserId, actor.user.id)),
+      )
+      .get();
+
+    if (!client) {
+      throw new PortalInvitationError("CLIENT_NOT_FOUND", "Müşteri bulunamadı.");
+    }
+
+    if (client.authUserId) {
+      throw new PortalInvitationError(
+        "CLIENT_ALREADY_LINKED",
+        "Bu müşteri için portal hesabı zaten mevcut.",
+      );
+    }
+
     const [linkedProfile] = tx
       .select({ id: appProfiles.id })
       .from(appProfiles)
@@ -333,6 +354,24 @@ export async function acceptPortalInvitation(input: {
         })
         .run();
 
+      const linkedClient = tx
+        .update(clients)
+        .set({ authUserId, updatedAt: now })
+        .where(
+          and(
+            eq(clients.id, invitation.clientId),
+            isNull(clients.authUserId),
+          ),
+        )
+        .run();
+
+      if (linkedClient.changes !== 1) {
+        throw new PortalInvitationError(
+          "CLIENT_ALREADY_LINKED",
+          "Müşteri kaydı bulunamadı veya başka bir hesaba bağlandı.",
+        );
+      }
+
       const accepted = tx
         .update(portalInvitations)
         .set({ status: "accepted", acceptedAt: now })
@@ -417,6 +456,16 @@ export function setClientPortalAccess(
   const { db } = getSqliteConnection();
 
   db.transaction((tx) => {
+    const ownedClient = tx
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.id, clientId), eq(clients.ownerUserId, actor.user.id)))
+      .get();
+
+    if (!ownedClient) {
+      throw new PortalInvitationError("CLIENT_NOT_FOUND", "Müşteri bulunamadı.");
+    }
+
     const [profile] = tx
       .select({ authUserId: appProfiles.authUserId, email: appProfiles.email })
       .from(appProfiles)

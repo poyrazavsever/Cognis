@@ -34,12 +34,12 @@ Bu dosya tarihsel adı korunarak Faz 1'de tamamlanan Better Auth + SQLite auth t
 - Token `randomBytes(32)` ile üretilir; SQLite'ta yalnızca SHA-256 hash saklanır.
 - Varsayılan TTL 72 saat, servis üst sınırı 168 saattir.
 - Aynı `clientId` için yeni davet önceki pending davetleri revoke eder ve bu değişiklik audit edilir.
-- Kabul sırasında Better Auth `user`, credential `account`, `app_profiles` client kaydı, `client_id` identity bağı ve invitation `accepted` durumu tek SQLite transaction'ında yazılır.
+- Kabul sırasında Better Auth `user`, credential `account`, `app_profiles` client kaydı, `clients.auth_user_id` bağı ve invitation `accepted` durumu tek SQLite transaction'ında yazılır.
 - Kullanılmış, değiştirilmiş, süresi dolmuş veya revoke edilmiş token yeniden kullanılamaz.
 - Disable işlemi profile'ı kapatır ve o client'ın aktif Better Auth session kayıtlarını aynı transaction'da siler.
 - Disabled veya `client_id` bağı eksik client, Better Auth endpoint'ini doğrudan çağırsa bile session oluşturamaz.
 
-`app_profiles.client_id`, Faz 1 auth sınırında opaque domain identity bağıdır. Yerel `clients` tablosu ve foreign key Faz 2 domain migration'ında eklenecektir; mevcut Supabase client sayfaları bu nedenle henüz domain açısından hibrittir.
+Faz 2 ile yerel `clients` tablosu eklenmiştir. Davet hedefi artık owner'a ait gerçek bir client kaydı olmak zorundadır; kabul transaction'ı `app_profiles.client_id` ile `clients.auth_user_id` bağlarını birlikte kurar ve session çözümlemesi iki yönlü bağın eşleştiğini doğrular. Mevcut ekran sorgularının Supabase'ten service katmanına taşınması sayfa bazlı dönüşüm fazlarında sürdürülecektir.
 
 ## Audit kapsamı
 

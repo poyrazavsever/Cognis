@@ -5,7 +5,7 @@ import type {
   PortalInvitationStatus,
   SetupStatus,
   UserRole,
-} from "@/server/auth/types";
+} from "../../auth/types";
 
 const nowMs = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
 

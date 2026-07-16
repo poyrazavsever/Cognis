@@ -248,7 +248,7 @@ Checklist:
 - [x] Davet iptal edilebiliyor.
 - [x] Aynı müşteri için aktif davet politikası tanımlandı.
 - [x] Kabul işlemi transaction içinde.
-- [x] Client profile ve client kimlik bağı atomik kuruluyor (`app_profiles.client_id`; domain FK Faz 2'de eklenecek).
+- [x] Client profile ve client kimlik bağı atomik kuruluyor (`app_profiles.client_id` + `clients.auth_user_id`).
 - [x] Kullanılmış veya süresi dolmuş token tekrar kullanılamıyor.
 - [x] Client hesabı disable/revoke edilebiliyor.
 
@@ -567,14 +567,14 @@ Transaction içinde doğrulanacaklar:
 
 Checklist:
 
-- [ ] `project_id` ve `client_id` eşleşmesi server-side doğrulanıyor.
-- [ ] İstemciden gelen `clientId` güven kaynağı olarak kullanılmıyor.
-- [ ] Quota server-side kontrol ediliyor.
-- [ ] Quota atomik azaltılıyor veya tüketim kayıtlarından hesaplanıyor.
-- [ ] Başarısız insert quota tüketmiyor.
-- [ ] Cross-project revision negatif testi var.
-- [ ] Başka client adına revision oluşturma negatif testi var.
-- [ ] Kota aşımı negatif testi var.
+- [x] `project_id` ve `client_id` eşleşmesi server-side doğrulanıyor.
+- [x] İstemciden gelen `clientId` güven kaynağı olarak kullanılmıyor.
+- [x] Quota server-side kontrol ediliyor.
+- [x] Quota atomik azaltılıyor veya tüketim kayıtlarından hesaplanıyor.
+- [x] Başarısız insert quota tüketmiyor.
+- [x] Cross-project revision negatif testi var.
+- [x] Başka client adına revision oluşturma negatif testi var.
+- [x] Kota aşımı negatif testi var.
 
 ## 16. API v1 ve mobil hazırlığı
 
@@ -600,13 +600,13 @@ DELETE /api/v1/device-sessions/:id
 
 Mobil hazırlık checklist'i:
 
-- [ ] API response envelope standardı tanımlandı.
-- [ ] API hata kodları tanımlandı.
+- [x] API response envelope standardı tanımlandı.
+- [x] API hata kodları tanımlandı.
 - [ ] API sürümleme stratejisi tanımlandı.
 - [ ] Instance metadata sözleşmesi tanımlandı.
 - [ ] Minimum desteklenen client sürümü alanı düşünüldü.
 - [ ] Capability listesi sözleşmesi düşünüldü.
-- [ ] Service katmanı cookie/Next.js objelerine bağımlı değil.
+- [x] Service katmanı cookie/Next.js objelerine bağımlı değil.
 - [ ] Mobil pairing ilk release kapsamı dışında tutuldu.
 - [ ] Gelecekte HTTPS zorunluluğu belgelendi.
 
@@ -714,9 +714,9 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [x] Client invitation testi
 - [x] Expired/revoked invitation negatif testi
 - [ ] Her repository için cross-owner negatif test
-- [ ] Client private task erişim negatif testi
-- [ ] Revision project-client eşleşme negatif testi
-- [ ] Revision quota testi
+- [x] Client private task erişim negatif testi
+- [x] Revision project-client eşleşme negatif testi
+- [x] Revision quota testi
 - [ ] File upload MIME/size testi
 - [ ] Path traversal negatif testi
 - [x] Backup oluşturma testi
@@ -820,13 +820,22 @@ Faz 1 tamamlanma notu (2026-07-16):
 
 Amaç: Tüm çekirdek iş verileri için Drizzle schema, migration, repository ve service katmanını kurmak.
 
-- [ ] Çekirdek tablolar oluşturuldu.
-- [ ] Repository katmanı oluşturuldu.
-- [ ] Service katmanı oluşturuldu.
-- [ ] Actor/authorization sözleşmesi standartlaştırıldı.
-- [ ] Validation ve error sözleşmesi standartlaştırıldı.
-- [ ] Negatif authorization testleri yazıldı.
-- [ ] Analytics aggregate sorgu yaklaşımı belirlendi.
+- [x] Çekirdek tablolar oluşturuldu.
+- [x] Repository katmanı oluşturuldu.
+- [x] Service katmanı oluşturuldu.
+- [x] Actor/authorization sözleşmesi standartlaştırıldı.
+- [x] Validation ve error sözleşmesi standartlaştırıldı.
+- [x] Negatif authorization testleri yazıldı.
+- [x] Analytics aggregate sorgu yaklaşımı belirlendi.
+
+Faz 2 tamamlanma notu (2026-07-16):
+
+- 11 çekirdek domain tablosu ile kaynak verisi korunacak 4 business tablosu Drizzle schema ve migration'a eklendi; storage ve branding tabloları Faz 3 sınırında bırakıldı.
+- Scope zorunlu repository katmanı ve Next.js/session bağımsız service katmanı; CRUD, ilişki tutarlılığı, otomatik proje ilerlemesi, portal görünürlüğü ve aggregate sorguları uygular.
+- Davet hedefi yerel owner-scoped client kaydına bağlandı. Kabul transaction'ı `app_profiles.client_id` ve `clients.auth_user_id` kimlik bağlarını birlikte kurar; client session bu iki yönlü bağı doğrular.
+- Revizyon isteği `BEGIN IMMEDIATE` transaction içinde actor-derived client, proje ilişkisi, aktif proje ve tüketim kayıtlarından kota kontrolüyle oluşturulur.
+- `phase2:domain-smoke`; cross-owner, client owner-only erişimi, private task, başka client/proje, kota aşımı, ilişkisel owner ve SQLite constraint negatiflerini gerçek migration uygulanmış veritabanında doğrular.
+- Tasarım ve doğrulama ayrıntıları `phase-2-domain-core.md` belgesinde kaydedildi.
 
 Çıkış kriteri: Çekirdek domain işlemleri UI veya Supabase'e bağımlı olmadan test edilebiliyor.
 

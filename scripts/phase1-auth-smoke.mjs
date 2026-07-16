@@ -78,6 +78,20 @@ try {
       "Exactly one freelancer profile must exist",
     );
 
+    const ownerUserId = db
+      .prepare("select auth_user_id as authUserId from app_profiles where role = 'freelancer'")
+      .get().authUserId;
+    const insertClient = db.prepare(
+      "insert into clients (id, owner_user_id, name) values (?, ?, ?)",
+    );
+    for (const [clientId, name] of [
+      ["client-alpha", "Alpha Client"],
+      ["client-expired", "Expired Client"],
+      ["client-revoked", "Revoked Client"],
+    ]) {
+      insertClient.run(clientId, ownerUserId, name);
+    }
+
     const rejectedRegistration = await authPost("/api/auth/sign-up/email", {
       name: "Public Attacker",
       email: "attacker@example.com",
@@ -109,6 +123,13 @@ try {
       body: { clientId: "", email: "not-an-email" },
     });
     assert.equal(invalidInvite.response.status, 400, "Invalid invitation input must fail");
+
+    const missingClientInvite = await jsonRequest("/api/portal-invitations", {
+      method: "POST",
+      cookie: ownerCookie,
+      body: { clientId: "missing-client", email: "missing@example.com" },
+    });
+    assert.equal(missingClientInvite.response.status, 404, "Invitation target must be an owned client");
 
     const firstInvite = await jsonRequest("/api/portal-invitations", {
       method: "POST",
@@ -149,6 +170,12 @@ try {
         .prepare("select role, client_id as clientId, disabled from app_profiles where email = ?")
         .get("client@example.com"),
       { role: "client", clientId: "client-alpha", disabled: 0 },
+    );
+    assert.equal(
+      db.prepare("select auth_user_id as authUserId from clients where id = ?").get("client-alpha")
+        .authUserId,
+      clientAuthUserId,
+      "Accepted invitation must atomically link the domain client",
     );
     assert.notEqual(
       db.prepare("select password from account where user_id = ?").get(clientAuthUserId).password,
