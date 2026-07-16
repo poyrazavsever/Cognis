@@ -37,6 +37,10 @@ try {
   sqlite.close();
 }
 
+const uploadFixturePath = path.join(smokeRoot, "uploads", "project-assets", "backup-fixture.txt");
+fs.mkdirSync(path.dirname(uploadFixturePath), { recursive: true });
+fs.writeFileSync(uploadFixturePath, "neta-upload-backup-fixture");
+
 const reopened = new Database(dbPath, { readonly: true });
 
 try {
@@ -81,6 +85,31 @@ try {
   }
 } finally {
   restored.close();
+}
+
+const restoredUploadFixture = path.join(
+  restoreRoot,
+  "uploads",
+  "project-assets",
+  "backup-fixture.txt",
+);
+if (fs.readFileSync(restoredUploadFixture, "utf8") !== "neta-upload-backup-fixture") {
+  throw new Error("Restore smoke check failed: upload fixture missing or corrupted.");
+}
+
+fs.appendFileSync(path.join(backupDir, "uploads", "project-assets", "backup-fixture.txt"), "-tampered");
+let corruptedBackupRejected = false;
+try {
+  execFileSync(
+    process.execPath,
+    ["scripts/restore.mjs", "--from", backupDir, "--target", `${restoreRoot}-corrupt`, "--force"],
+    { cwd: process.cwd(), env: process.env, stdio: "pipe" },
+  );
+} catch {
+  corruptedBackupRejected = true;
+}
+if (!corruptedBackupRejected) {
+  throw new Error("Restore smoke check failed: corrupted upload checksum was accepted.");
 }
 
 console.log("Phase 1 smoke checks passed.");

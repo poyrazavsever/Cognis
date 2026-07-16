@@ -1,36 +1,45 @@
 import type { Metadata, Viewport } from "next";
+import type { CSSProperties } from "react";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { Toaster } from "@/components/ui/toast";
+import { getPublicBranding } from "@/server/branding/runtime";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
-export const metadata: Metadata = {
-  title: "Neta",
-  description: "Self-hosted freelancer operating dashboard",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Neta",
-  },
-};
+export function generateMetadata(): Metadata {
+  const branding = getPublicBranding();
+  return {
+    title: { default: branding.applicationName, template: `%s · ${branding.applicationName}` },
+    description: "Self-hosted freelancer operating dashboard",
+    manifest: "/manifest.webmanifest",
+    icons: branding.iconUrl ? { icon: branding.iconUrl, apple: branding.iconUrl } : undefined,
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: branding.shortName,
+    },
+  };
+}
 
-export const viewport: Viewport = {
-  themeColor: "#ffffff",
-};
+export function generateViewport(): Viewport {
+  return { themeColor: getPublicBranding().primaryColor };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const branding = getPublicBranding();
   return (
     <html
       lang="tr"
-      className={cn("font-sans", geist.variable)}
+      className={cn("font-sans", geist.variable, branding.defaultColorMode === "dark" && "dark")}
+      data-color-mode={branding.defaultColorMode}
+      style={branding.cssVariables as CSSProperties}
       suppressHydrationWarning
     >
       <body>

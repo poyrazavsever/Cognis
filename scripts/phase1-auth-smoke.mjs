@@ -6,6 +6,8 @@ import net from "node:net";
 import path from "node:path";
 import Database from "better-sqlite3";
 
+const PNG_BYTES = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
+
 const dataDir = path.join(process.cwd(), ".data", `phase1-auth-smoke-${Date.now()}`);
 const databasePath = path.join(dataDir, "neta.db");
 const port = await getAvailablePort();
@@ -91,6 +93,9 @@ try {
     ]) {
       insertClient.run(clientId, ownerUserId, name);
     }
+    db.prepare(
+      "insert into projects (id, owner_user_id, client_id, name, status) values (?, ?, ?, ?, ?)",
+    ).run("project-alpha", ownerUserId, "client-alpha", "Alpha Project", "active");
 
     const rejectedRegistration = await authPost("/api/auth/sign-up/email", {
       name: "Public Attacker",
@@ -110,6 +115,60 @@ try {
       ownerCookie = cookieHeader(signedIn.response);
     }
     assert.ok(ownerCookie, "Owner session cookie must be issued");
+
+    const anonymousUpload = await uploadFile("avatar", { fileName: "anonymous.png" });
+    assert.equal(anonymousUpload.response.status, 401, "Anonymous file upload must fail");
+    assert.deepEqual(
+      { ok: anonymousUpload.payload.ok, code: anonymousUpload.payload.error.code },
+      { ok: false, code: "UNAUTHENTICATED" },
+      "File API errors must use the standard envelope",
+    );
+
+    const logoUpload = await uploadFile("branding_logo", {
+      cookie: ownerCookie,
+      fileName: "logo.png",
+    });
+    assert.equal(logoUpload.response.status, 201, JSON.stringify(logoUpload.payload));
+    assert.equal(logoUpload.payload.ok, true, "File API success must use the standard envelope");
+    const logoFileId = logoUpload.payload.data.id;
+    const brandingUpdate = await jsonRequest("/api/branding", {
+      method: "PATCH",
+      cookie: ownerCookie,
+      body: {
+        applicationName: "Neta Smoke Studio",
+        primaryColor: "#336699",
+        accentColor: "#F0CC22",
+        lightLogoFileId: logoFileId,
+      },
+    });
+    assert.equal(brandingUpdate.response.ok, true, JSON.stringify(brandingUpdate.payload));
+    assert.equal(brandingUpdate.payload.data.applicationName, "Neta Smoke Studio");
+    const brandedLoginHtml = await (await fetch(`${baseUrl}/login`)).text();
+    assert.match(brandedLoginHtml, /Neta Smoke Studio/, "Branding metadata must be server-rendered");
+    assert.match(brandedLoginHtml, /--primary:#336699/, "Brand tokens must be present in first HTML response");
+    const dynamicManifest = await (await fetch(`${baseUrl}/manifest.webmanifest`)).json();
+    assert.equal(dynamicManifest.name, "Neta Smoke Studio", "Manifest must use instance branding");
+    const publicLogo = await fetch(`${baseUrl}/api/branding/assets/${logoFileId}`);
+    assert.equal(publicLogo.status, 200, "Referenced branding asset must be publicly readable");
+    assert.equal(publicLogo.headers.get("x-content-type-options"), "nosniff");
+    assert.deepEqual(new Uint8Array(await publicLogo.arrayBuffer()), PNG_BYTES);
+
+    const portalAssetUpload = await uploadFile("project_asset", {
+      cookie: ownerCookie,
+      fileName: "portal.png",
+      projectId: "project-alpha",
+      portalVisible: true,
+    });
+    assert.equal(portalAssetUpload.response.status, 201, JSON.stringify(portalAssetUpload.payload));
+    const portalAssetFileId = portalAssetUpload.payload.data.id;
+    const privateAssetUpload = await uploadFile("project_asset", {
+      cookie: ownerCookie,
+      fileName: "private.png",
+      projectId: "project-alpha",
+      portalVisible: false,
+    });
+    assert.equal(privateAssetUpload.response.status, 201, JSON.stringify(privateAssetUpload.payload));
+    const privateAssetFileId = privateAssetUpload.payload.data.id;
 
     const anonymousInvite = await jsonRequest("/api/portal-invitations", {
       method: "POST",
@@ -192,6 +251,39 @@ try {
     });
     assert.equal(clientSignIn.response.ok, true, JSON.stringify(clientSignIn.payload));
     const clientCookie = cookieHeader(clientSignIn.response);
+
+    const clientPortalAsset = await fetch(`${baseUrl}/api/files/${portalAssetFileId}`, {
+      headers: { cookie: clientCookie },
+    });
+    assert.equal(clientPortalAsset.status, 200, "Client must read portal-visible project asset");
+    const clientPrivateAsset = await fetch(`${baseUrl}/api/files/${privateAssetFileId}`, {
+      headers: { cookie: clientCookie },
+    });
+    assert.equal(clientPrivateAsset.status, 404, "Client must not read private project asset");
+
+    const forbiddenProjectUpload = await uploadFile("project_asset", {
+      cookie: clientCookie,
+      fileName: "forbidden.png",
+      projectId: "project-alpha",
+      portalVisible: true,
+    });
+    assert.equal(forbiddenProjectUpload.response.status, 403, "Client must not upload project assets");
+
+    const clientAvatarUpload = await uploadFile("avatar", {
+      cookie: clientCookie,
+      fileName: "client-avatar.png",
+    });
+    assert.equal(clientAvatarUpload.response.status, 201, JSON.stringify(clientAvatarUpload.payload));
+    const clientAvatarFileId = clientAvatarUpload.payload.data.id;
+    const clientAvatar = await fetch(`${baseUrl}/api/files/${clientAvatarFileId}`, {
+      headers: { cookie: clientCookie },
+    });
+    assert.equal(clientAvatar.status, 200, "Client must read own avatar");
+    const deletedAvatar = await fetch(`${baseUrl}/api/files/${clientAvatarFileId}`, {
+      method: "DELETE",
+      headers: { cookie: clientCookie, origin: baseUrl },
+    });
+    assert.equal(deletedAvatar.status, 204, "Client must delete own avatar");
 
     const roleViolation = await jsonRequest("/api/portal-invitations", {
       method: "POST",
@@ -316,6 +408,19 @@ async function acceptInvite(token) {
 
 async function authPost(pathname, body, cookie) {
   return jsonRequest(pathname, { method: "POST", body, cookie });
+}
+
+async function uploadFile(kind, { cookie, fileName, projectId, portalVisible } = {}) {
+  const formData = new FormData();
+  formData.set("kind", kind);
+  formData.set("file", new Blob([PNG_BYTES], { type: "image/png" }), fileName ?? "upload.png");
+  if (projectId) formData.set("projectId", projectId);
+  if (portalVisible !== undefined) formData.set("portalVisible", String(portalVisible));
+  const headers = { origin: baseUrl };
+  if (cookie) headers.cookie = cookie;
+  const response = await fetch(`${baseUrl}/api/files`, { method: "POST", headers, body: formData });
+  const text = await response.text();
+  return { response, payload: text ? JSON.parse(text) : null };
 }
 
 async function jsonRequest(pathname, { method, body, cookie } = {}) {

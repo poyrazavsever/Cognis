@@ -29,6 +29,13 @@
       "when": 1784208712933,
       "tag": "0003_chief_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1784210311370,
+      "tag": "0004_fancy_baron_zemo",
+      "breakpoints": true
     }
   ]
 }

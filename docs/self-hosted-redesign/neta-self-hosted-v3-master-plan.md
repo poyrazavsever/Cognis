@@ -289,19 +289,19 @@ Hedef klasör yapısı:
 
 Dosya checklist'i:
 
-- [ ] Dosya metadata tablosu oluşturuldu.
-- [ ] Relative path dışında mutlak kullanıcı girdisi kullanılmıyor.
-- [ ] Path traversal koruması var.
-- [ ] Dosya boyutu limiti var.
-- [ ] MIME allowlist var.
-- [ ] Gerekli türlerde magic-byte doğrulaması var.
-- [ ] SVG kabul ediliyorsa sanitizasyon kararı uygulandı.
-- [ ] Yetkili upload Route Handler yazıldı.
-- [ ] Yetkili download Route Handler yazıldı.
-- [ ] Public branding asset'leri ayrı ve kontrollü sunuluyor.
-- [ ] Project asset erişimi owner/project/client ilişkisiyle doğrulanıyor.
-- [ ] Dosya silme ve DB metadata işlemi tutarlı.
-- [ ] Backup içine upload klasörü dahil.
+- [x] Dosya metadata tablosu oluşturuldu.
+- [x] Relative path dışında mutlak kullanıcı girdisi kullanılmıyor.
+- [x] Path traversal koruması var.
+- [x] Dosya boyutu limiti var.
+- [x] MIME allowlist var.
+- [x] Gerekli türlerde magic-byte doğrulaması var.
+- [x] SVG kabul ediliyorsa sanitizasyon kararı uygulandı (ilk sürümde SVG reddediliyor).
+- [x] Yetkili upload Route Handler yazıldı.
+- [x] Yetkili download Route Handler yazıldı.
+- [x] Public branding asset'leri ayrı ve kontrollü sunuluyor.
+- [x] Project asset erişimi owner/project/client ilişkisiyle doğrulanıyor.
+- [x] Dosya silme ve DB metadata işlemi tutarlı.
+- [x] Backup içine upload klasörü dahil.
 
 ## 11. Instance özelleştirme ve tema
 
@@ -351,15 +351,15 @@ type BrandingSettings = {
 Tema checklist'i:
 
 - [ ] Poyraz UI semantic tokenları kullanılıyor.
-- [ ] Marka ayarları root layout'ta server-side okunuyor.
-- [ ] İlk render sırasında tema/renk parlaması yok.
-- [ ] Primary ve accent renk girdileri doğrulanıyor.
-- [ ] Metin/zemin kontrastı kontrol ediliyor.
+- [x] Marka ayarları root layout'ta server-side okunuyor.
+- [x] İlk render sırasında tema/renk parlaması yok.
+- [x] Primary ve accent renk girdileri doğrulanıyor.
+- [x] Metin/zemin kontrastı kontrol ediliyor.
 - [ ] Hard-coded brand renkleri feature sayfalarına dağılmıyor.
-- [ ] Açık ve koyu modda logo fallback'i var.
-- [ ] Logo kaldırma ve varsayılana dönme desteği var.
-- [ ] Branding ayarlarına yalnızca freelancer/admin yazabiliyor.
-- [ ] Client portal aynı instance markasını güvenli biçimde kullanıyor.
+- [x] Açık ve koyu modda logo fallback'i var.
+- [x] Logo kaldırma ve varsayılana dönme desteği var.
+- [x] Branding ayarlarına yalnızca freelancer/admin yazabiliyor.
+- [x] Client portal aynı instance markasını güvenli biçimde kullanıyor.
 
 ## 12. Poyraz UI v3 stratejisi
 
@@ -717,13 +717,13 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [x] Client private task erişim negatif testi
 - [x] Revision project-client eşleşme negatif testi
 - [x] Revision quota testi
-- [ ] File upload MIME/size testi
-- [ ] Path traversal negatif testi
+- [x] File upload MIME/size testi
+- [x] Path traversal negatif testi
 - [x] Backup oluşturma testi
-- [ ] Restore ve checksum testi
+- [x] Restore ve checksum testi
 - [ ] Supabase import fixture testi
-- [ ] API response/error contract testi
-- [ ] Kritik sayfalar için SSR smoke testi
+- [x] API response/error contract testi
+- [x] Kritik sayfalar için SSR smoke testi
 
 ### 19.2. Her faz sonunda çalıştırılacak kalite kapıları
 
@@ -843,13 +843,23 @@ Faz 2 tamamlanma notu (2026-07-16):
 
 Amaç: Supabase Storage yerine güvenli local filesystem ve instance özelleştirmesi sağlamak.
 
-- [ ] File metadata schema tamamlandı.
-- [ ] Upload/download servisleri tamamlandı.
-- [ ] Avatar desteği tamamlandı.
-- [ ] Branding asset desteği tamamlandı.
-- [ ] Project asset desteği tamamlandı.
-- [ ] Instance branding schema ve service tamamlandı.
-- [ ] Server-rendered token uygulaması tamamlandı.
+- [x] File metadata schema tamamlandı.
+- [x] Upload/download servisleri tamamlandı.
+- [x] Avatar desteği tamamlandı.
+- [x] Branding asset desteği tamamlandı.
+- [x] Project asset desteği tamamlandı.
+- [x] Instance branding schema ve service tamamlandı.
+- [x] Server-rendered token uygulaması tamamlandı.
+
+Faz 3 tamamlanma notu (2026-07-16):
+
+- `files` ve `instance_branding` tabloları; owner/resource/visibility constraint'leri ve SHA-256 metadata ile eklendi.
+- Local file servisi 5 MiB limit, MIME allowlist, magic-byte kontrolü, SVG reddi, root-bound relative path, symlink koruması ve geri alınabilir upload/delete sırası uygular.
+- Authenticated upload/download/delete, kontrollü public branding asset ve owner-only branding Route Handler'ları standart API envelope ile eklendi.
+- Avatar subject, private/portal project asset ve referenced-only public branding authorization kuralları gerçek SQLite/filesystem ve Next.js HTTP smoke testleriyle doğrulandı.
+- Instance adı, logo/icon, primary/accent, color mode ve radius; root layout metadata/CSS tokenları ile dinamik web manifest'e server-side uygulanıyor.
+- Backup uploads ağacını kapsıyor; restore artık path, symlink, byte size, manifest completeness ve SHA-256 checksum doğrulaması yapıyor.
+- Tasarım, güvenlik ve test ayrıntıları `phase-3-storage-branding.md` belgesinde kaydedildi.
 
 Çıkış kriteri: Logo, avatar ve project asset için Supabase Storage gerekmiyor.
 
@@ -971,22 +981,22 @@ Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil 
 
 ### Özelleştirme
 
-- [ ] Instance adı değiştirilebiliyor.
-- [ ] Logo yüklenebiliyor.
-- [ ] Favicon/ikon yüklenebiliyor.
-- [ ] Primary renk değiştirilebiliyor.
-- [ ] Accent renk değiştirilebiliyor.
-- [ ] Varsayılan tema değiştirilebiliyor.
-- [ ] Radius yoğunluğu değiştirilebiliyor.
-- [ ] Portal markası uygulanıyor.
+- [x] Instance adı değiştirilebiliyor.
+- [x] Logo yüklenebiliyor.
+- [x] Favicon/ikon yüklenebiliyor.
+- [x] Primary renk değiştirilebiliyor.
+- [x] Accent renk değiştirilebiliyor.
+- [x] Varsayılan tema değiştirilebiliyor.
+- [x] Radius yoğunluğu değiştirilebiliyor.
+- [x] Portal markası uygulanıyor.
 
 ### Operasyon
 
 - [ ] Docker kurulumu çalışıyor.
 - [ ] Persistent volume doğrulandı.
 - [ ] Migration güvenli.
-- [ ] Backup çalışıyor.
-- [ ] Restore ve checksum doğrulaması çalışıyor.
+- [x] Backup çalışıyor.
+- [x] Restore ve checksum doğrulaması çalışıyor.
 - [ ] Health endpoint'leri çalışıyor.
 - [ ] Upgrade dokümantasyonu hazır.
 - [ ] Rollback planı hazır.

@@ -90,6 +90,50 @@
     color-scheme: light;
   }
 
+  :root[data-color-mode="dark"] {
+    color-scheme: dark;
+    --background: #0b1018;
+    --background-dark: #0b1018;
+    --foreground: #f2f4f7;
+    --surface: #121926;
+    --surface-raised: #182230;
+    --card: #121926;
+    --card-foreground: #f2f4f7;
+    --popover: #182230;
+    --popover-foreground: #f2f4f7;
+    --secondary: #253044;
+    --secondary-foreground: #f2f4f7;
+    --muted: #253044;
+    --muted-foreground: #98a2b3;
+    --border: #344054;
+    --border-strong: #475467;
+    --input: #475467;
+    --input-bg: #121926;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root[data-color-mode="system"] {
+      color-scheme: dark;
+      --background: #0b1018;
+      --background-dark: #0b1018;
+      --foreground: #f2f4f7;
+      --surface: #121926;
+      --surface-raised: #182230;
+      --card: #121926;
+      --card-foreground: #f2f4f7;
+      --popover: #182230;
+      --popover-foreground: #f2f4f7;
+      --secondary: #253044;
+      --secondary-foreground: #f2f4f7;
+      --muted: #253044;
+      --muted-foreground: #98a2b3;
+      --border: #344054;
+      --border-strong: #475467;
+      --input: #475467;
+      --input-bg: #121926;
+    }
+  }
+
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
     font-size: 14px;

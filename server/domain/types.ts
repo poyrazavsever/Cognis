@@ -48,3 +48,15 @@ export type ContractStatus = (typeof contractStatuses)[number];
 export type InvoiceStatus = (typeof invoiceStatuses)[number];
 export type SubscriptionBillingCycle = (typeof subscriptionBillingCycles)[number];
 export type SubscriptionStatus = (typeof subscriptionStatuses)[number];
+
+export const fileKinds = ["avatar", "branding_logo", "branding_icon", "project_asset"] as const;
+export type FileKind = (typeof fileKinds)[number];
+
+export const fileVisibilities = ["private", "portal", "public_branding"] as const;
+export type FileVisibility = (typeof fileVisibilities)[number];
+
+export const brandingColorModes = ["light", "dark", "system"] as const;
+export type BrandingColorMode = (typeof brandingColorModes)[number];
+
+export const brandingRadiusScales = ["compact", "default", "soft"] as const;
+export type BrandingRadiusScale = (typeof brandingRadiusScales)[number];
