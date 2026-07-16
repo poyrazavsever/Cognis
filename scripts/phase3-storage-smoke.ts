@@ -30,6 +30,7 @@ const ownerOne: DomainActor = { authUserId: "owner-1", role: "freelancer", clien
 const ownerTwo: DomainActor = { authUserId: "owner-2", role: "freelancer", clientId: null, disabled: false };
 const clientOne: DomainActor = { authUserId: "client-user-1", role: "client", clientId: "client-1", disabled: false };
 const clientTwo: DomainActor = { authUserId: "client-user-2", role: "client", clientId: "client-2", disabled: false };
+const spoofedClient: DomainActor = { authUserId: "client-user-2", role: "client", clientId: "client-1", disabled: false };
 const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
 
 try {
@@ -104,6 +105,7 @@ try {
   assert.equal(fileService.read(clientOne, portalAsset.id).metadata.id, portalAsset.id);
   assertDomainError(() => fileService.read(clientOne, privateAsset.id), "NOT_FOUND");
   assertDomainError(() => fileService.read(clientTwo, portalAsset.id), "NOT_FOUND");
+  assertDomainError(() => fileService.read(spoofedClient, portalAsset.id), "FORBIDDEN");
   assertDomainError(
     () => fileService.upload(clientOne, { ...imageInput("project_asset", "attack.png"), projectId: "project-1" }),
     "FORBIDDEN",

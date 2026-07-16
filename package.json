@@ -17,7 +17,11 @@
     "phase2:domain-smoke": "node scripts/phase2-domain-smoke.mjs",
     "phase3:storage-smoke": "node scripts/phase3-storage-smoke.mjs",
     "phase2:smoke": "node scripts/phase2-auth-smoke.mjs",
-    "phase4:ui-boundary": "node scripts/phase4-ui-boundary.mjs"
+    "phase4:ui-boundary": "node scripts/phase4-ui-boundary.mjs",
+    "phase5:backend-boundary": "node scripts/phase5-backend-boundary.mjs",
+    "phase5:smoke": "node scripts/phase5-freelancer-smoke.mjs",
+    "phase6:portal-boundary": "node scripts/phase6-portal-boundary.mjs",
+    "phase6:smoke": "node scripts/phase6-portal-smoke.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",

@@ -96,6 +96,19 @@ try {
     db.prepare(
       "insert into projects (id, owner_user_id, client_id, name, status) values (?, ?, ?, ?, ?)",
     ).run("project-alpha", ownerUserId, "client-alpha", "Alpha Project", "active");
+    db.prepare("update projects set revision_quota = ? where id = ?").run(2, "project-alpha");
+    db.prepare(
+      "insert into projects (id, owner_user_id, client_id, name, status) values (?, ?, ?, ?, ?)",
+    ).run("project-foreign", ownerUserId, "client-expired", "Foreign Project", "active");
+    db.prepare(
+      "insert into tasks (id, owner_user_id, client_id, project_id, title, status, priority, is_public_to_client) values (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run("task-portal-public", ownerUserId, "client-alpha", "project-alpha", "Portal Public Task", "todo", "medium", 1);
+    db.prepare(
+      "insert into tasks (id, owner_user_id, client_id, project_id, title, status, priority, is_public_to_client) values (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run("task-portal-private", ownerUserId, "client-alpha", "project-alpha", "Portal Private Task", "todo", "medium", 0);
+    db.prepare(
+      "insert into project_planning_sections (id, owner_user_id, project_id, category, title, content, metadata, sort_order) values (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run("planning-portal", ownerUserId, "project-alpha", "overview", "Portal Plan", "Visible planning content", "{}", 0);
 
     const rejectedRegistration = await authPost("/api/auth/sign-up/email", {
       name: "Public Attacker",
@@ -115,6 +128,27 @@ try {
       ownerCookie = cookieHeader(signedIn.response);
     }
     assert.ok(ownerCookie, "Owner session cookie must be issued");
+
+    for (const pathname of [
+      "/",
+      "/clients",
+      "/clients/client-alpha",
+      "/projects",
+      "/projects/project-alpha",
+      "/tasks",
+      "/calendar",
+      "/finance",
+      "/journal",
+      "/analytics",
+      "/settings",
+    ]) {
+      const page = await fetch(`${baseUrl}${pathname}`, {
+        headers: { cookie: ownerCookie },
+        redirect: "manual",
+      });
+      assert.equal(page.status, 200, `Freelancer SSR route failed: ${pathname}`);
+      assert.doesNotMatch(await page.text(), /lib\/supabase|supabase\.co/i, `SSR output leaked Supabase: ${pathname}`);
+    }
 
     const anonymousUpload = await uploadFile("avatar", { fileName: "anonymous.png" });
     assert.equal(anonymousUpload.response.status, 401, "Anonymous file upload must fail");
@@ -241,6 +275,17 @@ try {
       "Client-Password-123",
       "Client password must be hashed",
     );
+    db.prepare(
+      "insert into project_revisions (id, owner_user_id, project_id, client_id, requested_by_user_id, description, status) values (?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      "revision-portal",
+      ownerUserId,
+      "project-alpha",
+      "client-alpha",
+      clientAuthUserId,
+      "Portal Revision Request",
+      "pending",
+    );
 
     const replayed = await acceptInvite(rawClientToken);
     assert.equal(replayed.response.status, 409, "Accepted invitation must be single-use");
@@ -251,6 +296,39 @@ try {
     });
     assert.equal(clientSignIn.response.ok, true, JSON.stringify(clientSignIn.payload));
     const clientCookie = cookieHeader(clientSignIn.response);
+
+    for (const pathname of [
+      "/portal",
+      "/portal/projects",
+      "/portal/projects/project-alpha",
+      "/portal/tasks",
+      "/portal/revisions",
+    ]) {
+      const page = await fetch(`${baseUrl}${pathname}`, {
+        headers: { cookie: clientCookie },
+        redirect: "manual",
+      });
+      assert.equal(page.status, 200, `Portal SSR route failed: ${pathname}`);
+      const html = await page.text();
+      assert.doesNotMatch(html, /lib\/supabase|supabase\.co/i, `Portal SSR output leaked Supabase: ${pathname}`);
+      if (pathname === "/portal") assert.match(html, /Neta Smoke Studio/, "Portal must render local branding");
+      if (pathname === "/portal/tasks" || pathname === "/portal/projects/project-alpha") {
+        assert.match(html, /Portal Public Task/, `Public task missing from ${pathname}`);
+        assert.doesNotMatch(html, /Portal Private Task/, `Private task leaked from ${pathname}`);
+      }
+      if (pathname === "/portal/projects/project-alpha") {
+        assert.match(html, /Visible planning content/, "Portal planning section must be visible");
+      }
+      if (pathname === "/portal/revisions") {
+        assert.match(html, /Portal Revision Request/, "Portal revision history must be visible");
+      }
+    }
+
+    const foreignProject = await fetch(`${baseUrl}/portal/projects/project-foreign`, {
+      headers: { cookie: clientCookie },
+      redirect: "manual",
+    });
+    assert.equal(foreignProject.status, 404, "Client must not open another client's project");
 
     const clientPortalAsset = await fetch(`${baseUrl}/api/files/${portalAssetFileId}`, {
       headers: { cookie: clientCookie },
