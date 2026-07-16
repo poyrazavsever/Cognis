@@ -2,6 +2,7 @@
 title: Neta Self-Hosted v3 Ana Dönüşüm Planı
 description: Supabase çıkışı, SQLite tabanlı backend, Better Auth, Poyraz UI v3 ve instance özelleştirmesi için ana yol haritası.
 status: active
+current_phase: "7 — AI ve gelişmiş modüller backend geçişi"
 last_updated: 2026-07-16
 ---
 
@@ -14,10 +15,21 @@ Bu belge Neta'nın mevcut Supabase tabanlı uygulamadan tamamen self-hosted, tek
 Plan üç ana hedefi birlikte ele alır:
 
 1. Supabase Auth, Postgres, Storage ve RLS bağımlılıklarını tamamen kaldırmak.
-2. UI katmanını yalnızca Poyraz UI v3 tabanlı olacak şekilde sayfa sayfa yenilemek.
+2. Backend geçişi tamamlandıktan sonra UI katmanını yalnızca Poyraz UI v3 tabanlı olacak şekilde sayfa sayfa yenilemek.
 3. Self-host eden kişinin Neta'yı logo, renk, tema ve temel marka bilgileriyle özelleştirebilmesini sağlamak.
 
 Bu belge yalnızca teknik görev listesi değildir. Mimari kararları, faz bağımlılıklarını, kalite kapılarını, sayfa bazlı çalışma yöntemini, production cutover sürecini ve gelecekteki mobil istemciye hazırlık sınırlarını da tanımlar.
+
+### 1.1. Uygulama önceliği
+
+Faz 4 sonrasında çalışma sırası kesin olarak backend-first'tür:
+
+1. Faz 5–7'de freelancer, portal, AI ve kapsam içindeki business backend'leri SQLite/service katmanına taşınır.
+2. Faz 8'de import, Supabase runtime temizliği ve production hardening tamamlanır.
+3. Faz 9'da mobil istemci için stabil API sınırı hazırlanır.
+4. Görsel tasarım ve sayfa UX revizyonları en son Faz 10'da yapılır.
+
+Faz 5–9 sırasında mevcut ekranlar yalnızca yeni backend'e bağlanacak kadar değiştirilir. Bilgi mimarisi, görsel dil, layout ve kapsamlı UX değişiklikleri Faz 10'a ertelenir. Faz 10'da kullanıcı her sayfa için tasarım yönünü adım adım tarif eder ve açık kabul vermeden sonraki sayfaya geçilmez.
 
 ## 2. Ürün hedefi
 
@@ -418,138 +430,104 @@ Referans paket: `poyraz-ui@3.0.2`
 - [ ] Light ve dark mod kontrastları kontrol edildi.
 - [ ] Reduced-motion tercihleri göz önünde tutuldu.
 
-## 13. Sayfa bazlı çalışma yöntemi
+## 13. Backend-first çalışma yöntemi
 
-Her sayfa bir dikey dilim olarak tamamlanır. Yalnızca görünüm değiştirilmiş veya yalnızca backend'i taşınmış yarım sayfa tamamlanmış sayılmaz.
+Faz 5–9 ile Faz 10 birbirinden ayrı teslimatlar olarak yürütülür. Backend'in taşınmış sayılması için ekranın yeniden tasarlanması gerekmez; ekranın yeni service/repository sözleşmesiyle güvenli ve Supabase'siz çalışması yeterlidir. Tasarımın tamamlanmış sayılması için ise backend sözleşmesinin önceden stabil olması ve kullanıcının sayfa bazlı kabul vermesi gerekir.
 
-Her sayfa için uygulanacak süreç:
+### 13.1. Backend geçiş süreci — Faz 5–9
 
-1. Kullanıcı sayfanın amacını ve istenen UX'i tarif eder.
-2. Bilgi hiyerarşisi ve ana kullanıcı aksiyonları netleştirilir.
-3. Sayfanın veri sözleşmesi çıkarılır.
-4. Repository ve service işlemleri tamamlanır.
-5. Server Component sorguları ve Server Action mutation'ları yazılır.
-6. Gerekli `/api/v1` sözleşmeleri eklenir veya hazırlanır.
-7. Sayfa Poyraz UI v3 ile tasarlanır.
-8. Loading, empty, error ve permission state'leri eklenir.
-9. Responsive ve keyboard davranışı doğrulanır.
-10. Pozitif ve negatif testler çalıştırılır.
-11. Kullanıcı kabulünden sonra sonraki sayfaya geçilir.
+Her modül için aşağıdaki sıra uygulanır:
 
-### 13.1. Sayfa kabul checklist'i
+1. Route, Server Component, Server Action, Route Handler ve client-side veri erişimi envanteri çıkarılır.
+2. Supabase tablo, RPC, auth, storage ve realtime kullanımları listelenir.
+3. Okuma, mutation, aggregate ve dosya veri sözleşmeleri netleştirilir.
+4. Eksik repository ve service işlemleri tamamlanır.
+5. Owner/client scope, role, ilişki ve invariant kontrolleri service katmanına yerleştirilir.
+6. Server Component ve Server Action'lar yeni service katmanına bağlanır.
+7. Gerekli Route Handler'lar aynı service katmanını kullanır; browser'a DB veya secret çıkarılmaz.
+8. Eski Supabase çağrıları ve yalnızca o çağrılara ait adapter kodu kaldırılır.
+9. Pozitif, validation ve negatif authorization testleri çalıştırılır.
+10. Mevcut ekran, kapsamlı görsel revizyon yapılmadan yeni backend ile smoke test edilir.
 
-Her sayfa için bu şablon kopyalanmalıdır:
+Backend kabul checklist'i:
 
-- [ ] Sayfanın amacı yazıldı.
-- [ ] Birincil kullanıcı aksiyonu belirlendi.
-- [ ] İkincil aksiyonlar belirlendi.
-- [ ] Bilgi hiyerarşisi onaylandı.
-- [ ] Veri okuma sözleşmesi oluşturuldu.
-- [ ] Mutation sözleşmeleri oluşturuldu.
-- [ ] Owner/role kontrolleri tamamlandı.
+- [ ] Modülün aktif route ve veri erişim envanteri çıkarıldı.
+- [ ] Supabase bağımlılıkları listelendi.
+- [ ] Okuma sözleşmeleri service/repository katmanında.
+- [ ] Mutation sözleşmeleri service/repository katmanında.
+- [ ] Aggregate sorgular gerekiyorsa server-side tamamlandı.
+- [ ] Owner/role/client scope kontrolleri tamamlandı.
 - [ ] Input validation tamamlandı.
-- [ ] Poyraz UI v3 bileşenleri kullanıldı.
-- [ ] Custom primitive eklenmedi.
-- [ ] Loading state tamamlandı.
-- [ ] Empty state tamamlandı.
-- [ ] Error state tamamlandı.
-- [ ] Permission state tamamlandı.
-- [ ] Mobil görünüm doğrulandı.
-- [ ] Tablet görünüm doğrulandı.
-- [ ] Desktop görünüm doğrulandı.
-- [ ] Keyboard kullanımı doğrulandı.
-- [ ] Light mode doğrulandı.
-- [ ] Dark mode doğrulandı.
-- [ ] Typecheck geçti.
-- [ ] İlgili testler geçti.
-- [ ] Kullanıcı kabulü alındı.
+- [ ] İlişkisel invariant'lar transaction içinde korunuyor.
+- [ ] Server Component ve Server Action geçişi tamamlandı.
+- [ ] İlgili Route Handler geçişi tamamlandı.
+- [ ] Modülün runtime Supabase importu kalmadı.
+- [ ] Cross-owner/cross-client negatif testleri geçti.
+- [ ] Mevcut UI ile temel kullanıcı akışı smoke test edildi.
+- [ ] Typecheck ve production build geçti.
 
-## 14. Önerilen sayfa dönüşüm sırası
+### 13.2. Tasarım süreci — yalnızca Faz 10
 
-### 14.1. Temel deneyim
+Backend geçişinde tasarım kararı alınmaz. Faz 10'da her sayfa için şu süreç ayrı ayrı uygulanır:
 
-- [ ] İlk kurulum sayfası
-- [ ] Login sayfası
-- [ ] Şifremi unuttum akışı
-- [ ] Global app shell
-- [ ] Sidebar ve mobil navigation
-- [ ] Hesap menüsü ve çıkış
-- [ ] Ayarlar ana sayfası
-- [ ] Marka ve tema özelleştirme sayfası
-- [ ] Profil ve şifre ayarları
+1. Kullanıcı sayfanın amacını, görmek istediği bilgi hiyerarşisini ve UX yönünü tarif eder.
+2. Birincil ve ikincil kullanıcı aksiyonları birlikte netleştirilir.
+3. Gerekirse wireframe/bileşim önerisi hazırlanır ve kullanıcı onayı alınır.
+4. Sayfa Poyraz UI v3 bileşenleriyle yeniden tasarlanır.
+5. Loading, empty, error ve permission state'leri tasarımla birlikte tamamlanır.
+6. Mobil, tablet, desktop, keyboard, light ve dark davranışları doğrulanır.
+7. Kullanıcı sayfayı kabul ettikten sonra sıradaki sayfaya geçilir.
 
-### 14.2. Müşteri yönetimi
+Tasarım kabul checklist'i Faz 10 altında tutulur; backend checklist'i ile birleştirilmez.
 
-- [ ] Müşteri listesi
-- [ ] Müşteri oluşturma/düzenleme
-- [ ] CRM pipeline görünümü
-- [ ] Müşteri detay sayfası
-- [ ] Müşteri aktivite geçmişi
-- [ ] Portal davet durumu ve aksiyonları
+## 14. Backend taşıma sırası
 
-### 14.3. Proje ve görev yönetimi
+Faz 5'in başlangıç noktası freelancer runtime'ındaki Supabase erişimleridir. Öncelik, bir modülün yeni SQLite/service katmanında uçtan uca çalışmasıdır.
 
-- [ ] Proje listesi
-- [ ] Proje oluşturma/düzenleme
-- [ ] Proje detay genel bakış
-- [ ] Proje planlama bölümleri
-- [ ] Proje design system bölümleri
-- [ ] Proje dosyaları/kapak görseli
-- [ ] Proje görevleri
-- [ ] Proje finans özeti
-- [ ] Proje revizyon yönetimi
-- [ ] Genel görev listesi
-- [ ] Kanban görünümü
-- [ ] Görev filtreleri ve arama
+### 14.1. Freelancer temel backend akışları
 
-### 14.4. Operasyon ve kişisel takip
+- [x] Setup/login sonrası profil ve session adapter'ları gözden geçirildi.
+- [x] Hesap, profil ve şifre mutation'ları local backend'e bağlandı.
+- [x] Instance ve branding ayarları local service'e bağlandı.
+- [x] Freelancer layout/navigation için gereken server verisi Supabase'siz sağlanıyor.
 
-- [ ] Takvim
-- [ ] Etkinlik oluşturma/düzenleme
-- [ ] Finans listesi
-- [ ] Gelir/gider oluşturma/düzenleme
-- [ ] Finans filtreleri ve özetleri
-- [ ] Günlük listesi
-- [ ] Günlük oluşturma/düzenleme
+### 14.2. Müşteri backend'i
 
-### 14.5. Özet ve analiz
+- [x] Müşteri liste/detay sorguları taşındı.
+- [x] Müşteri create/update/status mutation'ları taşındı.
+- [x] CRM pipeline status işlemleri taşındı.
+- [x] Müşteri aktivite ve ilişkili özet sorguları taşındı.
+- [x] Portal davet yönetimi local client kayıtlarıyla bağlandı.
 
-- [ ] Dashboard
-- [ ] Dashboard tarih aralığı
-- [ ] Analytics
-- [ ] Aggregate repository sorguları
-- [ ] Grafikler ve erişilebilir veri özetleri
+### 14.3. Proje ve görev backend'i
 
-### 14.6. Müşteri portalı
+- [x] Proje liste/detay sorguları taşındı.
+- [x] Proje create/update/status/progress mutation'ları taşındı.
+- [x] Planning section ve design-system içerik işlemleri taşındı.
+- [x] Proje dosyaları local file service'e bağlandı.
+- [x] Proje ve genel görev CRUD/status/kanban işlemleri taşındı.
+- [x] Kanban, filtre ve arama veri akışları taşındı.
+- [x] Proje finans özeti ve revizyon yönetimi taşındı.
 
-- [ ] Portal davet kabul sayfası
-- [ ] Portal shell
-- [ ] Portal dashboard
-- [ ] Portal proje listesi
-- [ ] Portal proje detayı
-- [ ] Public görev görünümü
-- [ ] Planlama bölümleri görünümü
-- [ ] Revizyon talebi oluşturma
-- [ ] Revizyon geçmişi
-- [ ] Portal hesap ayarları
+### 14.4. Operasyon backend'i
 
-### 14.7. AI
+- [x] Takvim ve etkinlik işlemleri taşındı.
+- [x] Finans liste, create/update/delete ve özet işlemleri taşındı.
+- [x] Günlük liste ve mutation işlemleri taşındı.
 
-- [ ] AI provider ayarlarının server-only hale getirilmesi
-- [ ] AI chat session listesi
-- [ ] AI chat mesaj ekranı
-- [ ] Kullanıcı verisi context builder
-- [ ] Finans analizi
-- [ ] Proje risk analizi
-- [ ] Provider hata ve timeout yönetimi
-- [ ] Kullanıcıya veri paylaşımı/gizlilik açıklaması
+### 14.5. Dashboard ve analytics backend'i
 
-### 14.8. Opsiyonel business modülleri
+- [x] Dashboard aggregate sorguları repository/service katmanına taşındı.
+- [x] Tarih aralığı ve filtre sözleşmeleri server-side doğrulanıyor.
+- [x] Analytics sorguları SQLite üzerinde tamamlandı.
+- [x] Grafik verisi browser-side Supabase sorgusu gerektirmiyor.
 
-- [ ] Teklifler
-- [ ] Sözleşmeler
-- [ ] Faturalar
-- [ ] Abonelikler
+### 14.6. Portal, AI ve business devam sırası
+
+- [x] Portal backend'i Faz 6 sözleşmesine göre tamamlandı.
+- [ ] AI/chat ve business backend'i Faz 7 sözleşmesine göre tamamlandı.
+- [ ] Import ve runtime Supabase temizliği Faz 8'de tamamlandı.
+- [ ] Mobil API sınırı Faz 9'da tamamlandı.
 
 ## 15. Revizyon güvenliği ve kota işlemi
 
@@ -865,7 +843,7 @@ Faz 3 tamamlanma notu (2026-07-16):
 
 ### Faz 4 — Poyraz UI v3 foundation
 
-Amaç: Sayfa dönüşümleri başlamadan önce ortak UI sistemini kurmak.
+Amaç: Backend geçişi sırasında ikinci bir primitive sistemi oluşmasını engellemek ve en son yapılacak sayfa tasarımları için ortak UI temelini kurmak.
 
 - [x] Poyraz UI v3 kuruldu.
 - [x] Preset CSS eklendi.
@@ -888,35 +866,70 @@ Faz 4 tamamlanma notu (2026-07-16):
 
 Çıkış kriteri: Yeni sayfalar ek bir primitive sistemi oluşturmadan geliştirilebiliyor.
 
-### Faz 5 — Freelancer sayfalarının dikey dönüşümü
+### Faz 5 — Freelancer backend geçişi
 
-Amaç: Her freelancer sayfasını backend ve UI ile birlikte Supabase'ten çıkarmak.
+Amaç: Freelancer tarafındaki tüm aktif veri okuma ve mutation akışlarını mevcut tasarımları mümkün olduğunca koruyarak Supabase'ten SQLite/repository/service katmanına taşımak.
 
-- [ ] Temel deneyim sayfaları tamamlandı.
-- [ ] Müşteri sayfaları tamamlandı.
-- [ ] Proje sayfaları tamamlandı.
-- [ ] Görev sayfaları tamamlandı.
-- [ ] Takvim tamamlandı.
-- [ ] Finans tamamlandı.
-- [ ] Günlük tamamlandı.
-- [ ] Dashboard tamamlandı.
-- [ ] Analytics tamamlandı.
+- [x] Freelancer route ve Supabase erişim envanteri tamamlandı.
+- [x] Profil, hesap ve instance ayarları backend geçişi tamamlandı.
+- [x] Müşteri yönetimi backend geçişi tamamlandı.
+- [x] Proje yönetimi backend geçişi tamamlandı.
+- [x] Görev yönetimi backend geçişi tamamlandı.
+- [x] Takvim backend geçişi tamamlandı.
+- [x] Finans backend geçişi tamamlandı.
+- [x] Günlük backend geçişi tamamlandı.
+- [x] Dashboard aggregate sorguları taşındı.
+- [x] Analytics sorguları taşındı.
+- [x] İlgili Server Action ve Route Handler'lar service katmanına bağlandı.
+- [x] Faz 5 kapsamındaki freelancer runtime'ında Supabase veri erişimi kalmadı.
+- [x] Modül bazlı validation ve authorization testleri geçti.
+- [x] Mevcut ekranlarla kritik freelancer akışları smoke test edildi.
 
-Çıkış kriteri: Freelancer dashboard'u Supabase olmadan tam çalışıyor.
+Faz 5 kapsam notu:
+
+- Sayfaların bilgi mimarisi, görsel dili ve kapsamlı UX'i bu fazda değiştirilmeyecek.
+- Backend bağlantısı için zorunlu olmayan component/layout refactor'ları Faz 10'a bırakılacak.
+- Mevcut UI yeni veri sözleşmesiyle çalışmayacak durumdaysa yalnızca minimum uyumluluk düzenlemesi yapılacak.
+
+Faz 5 tamamlanma notu (2026-07-16):
+
+- Profil, avatar ve şifre Better Auth/local file service'e; AI tercih kaydı encrypted SQLite ayar tablosuna taşındı. API key browser'a geri okunmuyor ve `localStorage` kullanılmıyor.
+- Müşteri, CRM aktivitesi, proje, planning section, görev, takvim, finans ve günlük ekranları owner-scoped domain service adapter'larına bağlandı; mevcut görsel yapı korundu.
+- Proje kapakları local file service'e, para alanları integer minor unit sözleşmesine taşındı.
+- Dashboard ve analytics RPC'leri tarih aralığı doğrulanan SQLite aggregate sorgularıyla değiştirildi.
+- `phase5:backend-boundary` 31 kapsam dosyasını tarar; `phase5:smoke` cross-owner/domain testleri ile 11 Better Auth korumalı SSR route'unu doğrular.
+- Typecheck, hedefli ESLint, Faz 5 smoke, production build ve `git diff --check` başarılıdır. Repo genel lint'indeki legacy client-component borçları Faz 6–7/10 kapsamında açık kalır.
+- Uygulama, kapsam, güvenlik ve test ayrıntıları `phase-5-freelancer-backend.md` belgesinde kaydedildi.
+
+Çıkış kriteri: Freelancer runtime'ındaki çekirdek iş akışları Supabase sorgusu olmadan SQLite/service katmanında çalışıyor ve negatif authorization testleriyle korunuyor.
 
 ### Faz 6 — Müşteri portalı
 
-Amaç: Better Auth client hesabı ve server-side authorization ile güvenli portalı tamamlamak.
+Amaç: Mevcut portal görünümünü koruyarak Better Auth client hesabı ve server-side authorization ile portal backend'ini tamamlamak.
 
 - [x] Portal davet kabulü tamamlandı.
-- [ ] Portal shell tamamlandı.
-- [ ] Portal proje ve görev görünümü tamamlandı.
-- [ ] Planning section görünümü tamamlandı.
-- [ ] Revision akışı ve quota transaction'ı tamamlandı.
-- [ ] Portal authorization negatif testleri geçti.
-- [ ] Portal branding tamamlandı.
+- [x] Portal session/actor ve client scope entegrasyonu tamamlandı.
+- [x] Portal proje ve görev sorguları local service'e taşındı.
+- [x] Planning section görünürlük sorguları local service'e taşındı.
+- [x] Revision akışı ve quota transaction'ı tamamlandı.
+- [x] Portal authorization negatif testleri geçti.
+- [x] Portal asset ve branding erişimi local backend ile doğrulandı.
+- [x] Portal runtime'ında Supabase veri erişimi kalmadı.
+- [x] Mevcut portal ekranlarıyla kritik akışlar smoke test edildi.
 
-Çıkış kriteri: Client yalnızca kendi verisini görüyor ve güvenli revision talebi oluşturabiliyor.
+Faz 6 kapsam notu: Portal sayfalarının görsel tasarımı ve UX revizyonu Faz 10'da kullanıcı yönlendirmesiyle yapılır.
+
+Faz 6 tamamlanma notu (2026-07-16):
+
+- Portal layout ve beş aktif portal route'u Better Auth client session'dan actor üreten ortak adapter'a ve domain service katmanına taşındı.
+- Client proje sorguları `client_id` yanında `clients.auth_user_id` bağını repository seviyesinde doğrular; spoofed actor ve foreign project erişimi engellenir.
+- Portal yalnızca public görevleri, kendi planning section/revision kayıtlarını ve portal-visible dosyaları görür; private/foreign kaynaklar negatif testlerle korunur.
+- Revision action'dan istemci kaynaklı `clientId` kaldırıldı. Kalan kota server-side hesaplanır; nihai aktif proje/kota kontrolü `BEGIN IMMEDIATE` transaction içinde yeniden yapılır.
+- Portal branding local service'ten SSR edilir ve shell ilerlemesi client projelerinden hesaplanır.
+- `phase6:portal-boundary`, domain/storage negatifleri, Better Auth client-cookie SSR smoke, typecheck, hedefli ESLint, production build ve `git diff --check` başarılıdır.
+- Uygulama, authorization ve test ayrıntıları `phase-6-portal-backend.md` belgesinde kaydedildi.
+
+Çıkış kriteri: Client yalnızca kendi verisini görüyor, güvenli revision talebi oluşturabiliyor ve portal runtime'ı Supabase sorgusu yapmıyor.
 
 ### Faz 7 — AI ve gelişmiş modüller
 
@@ -959,6 +972,57 @@ Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil 
 
 Çıkış kriteri: Mobil istemci backend'in iç uygulama detaylarına bağımlı olmadan entegrasyona başlayabilir.
 
+### Faz 10 — Kullanıcı yönlendirmeli sayfa tasarımları
+
+Amaç: Backend, import/cleanup ve mobil API sınırı tamamlandıktan sonra bütün web arayüzünü kullanıcı yönlendirmesiyle sayfa sayfa Poyraz UI v3 üzerinde yeniden tasarlamak.
+
+Başlangıç koşulları:
+
+- [x] Faz 5 freelancer backend geçişi tamamlandı.
+- [x] Faz 6 portal backend geçişi tamamlandı.
+- [ ] Faz 7 kapsamındaki runtime modülleri tamamlandı veya açıkça ertelendi.
+- [ ] Faz 8 Supabase runtime temizliği ve release hardening tamamlandı.
+- [ ] Faz 9 mobil API hazırlığı tamamlandı.
+- [ ] Tasarım sırasında kullanılacak backend veri sözleşmeleri stabil.
+
+Sayfa grupları:
+
+- [ ] Setup, login ve hesap kurtarma tasarımları tamamlandı.
+- [ ] Global app shell, sidebar, mobil navigation ve hesap menüsü tasarımları tamamlandı.
+- [ ] Profil, instance, branding ve ayarlar tasarımları tamamlandı.
+- [ ] Müşteri listesi, pipeline, form ve detay tasarımları tamamlandı.
+- [ ] Proje listesi, form, detay ve alt bölüm tasarımları tamamlandı.
+- [ ] Genel görev, proje görevleri, kanban, filtre ve arama tasarımları tamamlandı.
+- [ ] Takvim ve etkinlik tasarımları tamamlandı.
+- [ ] Finans liste, form, filtre ve özet tasarımları tamamlandı.
+- [ ] Günlük liste ve form tasarımları tamamlandı.
+- [ ] Dashboard ve analytics tasarımları tamamlandı.
+- [ ] Portal dashboard, proje, görev, planning ve revizyon tasarımları tamamlandı.
+- [ ] AI/chat ve kapsamda kalan business sayfalarının tasarımları tamamlandı.
+
+Her sayfa için tasarım kabul checklist'i:
+
+- [ ] Kullanıcı sayfanın amacını ve beklediği UX'i tarif etti.
+- [ ] Bilgi hiyerarşisi kullanıcıyla onaylandı.
+- [ ] Birincil ve ikincil aksiyonlar kullanıcıyla onaylandı.
+- [ ] Poyraz UI v3 atoms/molecules/organisms kullanıldı.
+- [ ] Custom generic primitive eklenmedi.
+- [ ] Loading state tamamlandı.
+- [ ] Empty state tamamlandı.
+- [ ] Error state tamamlandı.
+- [ ] Permission state tamamlandı.
+- [ ] Mobil görünüm doğrulandı.
+- [ ] Tablet görünüm doğrulandı.
+- [ ] Desktop görünüm doğrulandı.
+- [ ] Keyboard ve screen-reader semantiği doğrulandı.
+- [ ] Light ve dark mod doğrulandı.
+- [ ] Typecheck, hedefli lint ve production build geçti.
+- [ ] Kullanıcı sayfayı kabul etti.
+
+Çalışma kuralı: Tasarım sırası Faz 10 başladığında kullanıcı tarafından belirlenir. Kullanıcı yönlendirmesi ve kabulü olmadan toplu sayfa redesign yapılmaz.
+
+Çıkış kriteri: Kapsamdaki tüm sayfalar kullanıcı tarafından tek tek kabul edilmiş, Poyraz UI v3 ile tutarlı ve responsive/accessible olarak doğrulanmıştır.
+
 ## 23. Genel ilerleme checklist'i
 
 ### Mimari
@@ -984,9 +1048,10 @@ Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil 
 - [x] Poyraz UI v3 kuruldu.
 - [x] Preset ve token sistemi kuruldu.
 - [x] Global shell taşındı.
-- [ ] Freelancer sayfaları taşındı.
-- [ ] Portal sayfaları taşındı.
 - [x] Local primitive tekrarı temizlendi.
+- [ ] Faz 10 kullanıcı yönlendirmeli freelancer sayfa tasarımları tamamlandı.
+- [ ] Faz 10 kullanıcı yönlendirmeli portal sayfa tasarımları tamamlandı.
+- [ ] Bütün kapsam sayfaları kullanıcı tarafından tek tek kabul edildi.
 - [ ] Light/dark ve responsive kontroller tamamlandı.
 
 ### Özelleştirme
@@ -1043,15 +1108,18 @@ Neta Self-Hosted v3 aşağıdaki koşulların tümü sağlandığında tamamlanm
 - Production Docker kurulumu belgelenmiş ve smoke testten geçmiştir.
 - Supabase, PWA/Dexie ve Poyraz UI v2 legacy kodu runtime'dan kaldırılmıştır.
 - Gelecekteki mobil istemci için service ve API sınırları belgelenmiştir.
+- Sayfa tasarımları backend ve runtime Supabase temizliği tamamlandıktan sonra yapılmış, kullanıcı tarafından tek tek kabul edilmiştir.
 
-## 25. İlk uygulanacak çalışma paketi
+## 25. Sıradaki çalışma paketi — Faz 7
 
-Plan onaylandıktan sonra önerilen ilk çalışma paketi:
+Faz 0–6 tamamlandı. Sıradaki çalışma paketi chat, AI analizleri ve kapsamda kalan business modüllerinin backend geçişidir:
 
-1. Bölüm 4'teki açık ürün kararlarını cevaplamak.
-2. ADR-0006'yı Poyraz UI v3 kararıyla değiştirmek.
-3. Tek owner/admin varsayımını schema ve authorization sözleşmesine yazmak.
-4. Hedef domain schema taslağını oluşturmak.
-5. Client invitation akışını tasarlamak.
-6. Poyraz UI v3 foundation için mevcut import/dependency envanterini çıkarmak.
-7. İlk sayfa grubu olarak kurulum, login, app shell ve branding/settings tasarımını netleştirmek.
+1. Chat sayfası, chat route'u, finans analizi, proje risk analizi ve business route'larındaki Supabase erişimlerini envanterlemek.
+2. Chat session/message okuma ve mutation sözleşmelerini domain service'e bağlamak.
+3. AI provider key'lerini browser request/localStorage akışından tamamen kaldırıp Faz 5'teki encrypted server-side settings service'i kullanmak.
+4. AI context builder'ı owner-scoped proje, görev, finans ve günlük service okumalarıyla yeniden kurmak.
+5. Finans analizi ve proje risk route'larını local backend'e taşımak; provider timeout/error sözleşmelerini standartlaştırmak.
+6. Release kapsamında tutulacak business modüllerinin repository/service ve runtime adapter'larını tamamlamak.
+7. Supabase boundary, secret leakage, cross-owner, AI failure ve authenticated SSR/API smoke testlerini çalıştırmak.
+
+Tasarım backlog'u Faz 10'a kadar açılmaz. Faz 10 başladığında sayfa sırası ve her sayfanın görsel/UX yönü kullanıcı tarafından adım adım belirlenecektir.
