@@ -7,7 +7,12 @@ const repoRoot = process.cwd();
 const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 const globalsCss = fs.readFileSync(path.join(repoRoot, "app/globals.css"), "utf8");
 const appShell = fs.readFileSync(path.join(repoRoot, "components/layout/app-shell.tsx"), "utf8");
+const loginActions = fs.readFileSync(path.join(repoRoot, "app/login/actions.ts"), "utf8");
 const rootLayout = fs.readFileSync(path.join(repoRoot, "app/layout.tsx"), "utf8");
+const brandingService = fs.readFileSync(
+  path.join(repoRoot, "server/branding/service.ts"),
+  "utf8",
+);
 const settingsPage = fs.readFileSync(
   path.join(repoRoot, "app/(dashboard)/settings/page.tsx"),
   "utf8",
@@ -63,6 +68,26 @@ assert.doesNotMatch(
   /<DropdownMenuItem[^>]*\binteractiveMotion=/s,
   "Poyraz UI 3.0.2 leaks DropdownMenuItem interactiveMotion to the DOM",
 );
+assert.doesNotMatch(
+  appShell,
+  /<form\s+action=\{signOut\}>/,
+  "Dropdown menu selection must not rely on a cancelable native form submit for logout",
+);
+for (const logoutMarker of [
+  "startSignOutTransition",
+  "await signOut()",
+  "router.replace(result.redirectTo)",
+  "loading={isSigningOut}",
+]) {
+  assert.ok(
+    appShell.includes(logoutMarker),
+    `Sidebar logout flow is missing ${logoutMarker}`,
+  );
+}
+assert.ok(
+  loginActions.includes("return { redirectTo: '/login' } as const"),
+  "Logout server action must return an explicit client navigation target after clearing cookies",
+);
 
 assert.match(settingsPage, /\bRadioGroup\b/, "Settings must use the Poyraz RadioGroup for theme selection");
 for (const workspaceControl of [
@@ -95,6 +120,17 @@ assert.ok(
   rootLayout.includes("COLOR_MODE_COOKIE"),
   "Root layout must resolve the persisted color mode before rendering",
 );
+for (const semanticAccentToken of [
+  "--poyraz-accent",
+  "--poyraz-accent-foreground",
+  "--poyraz-accent-hover",
+]) {
+  assert.doesNotMatch(
+    brandingService,
+    new RegExp(`"${semanticAccentToken}"\\s*:`),
+    `Branding must not override Poyraz's light/dark ${semanticAccentToken} token`,
+  );
+}
 assert.ok(
   appShell.includes("ColorModeSync"),
   "Authenticated shells must synchronize the database-backed color mode",

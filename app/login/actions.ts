@@ -99,5 +99,5 @@ export async function signOut() {
   await callAuthAction<{ success: boolean }>('/sign-out')
 
   revalidatePath('/', 'layout')
-  redirect('/login')
+  return { redirectTo: '/login' } as const
 }

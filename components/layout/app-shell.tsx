@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  toast,
 } from "poyraz-ui/molecules";
 import {
   SidebarContent,
@@ -39,7 +40,8 @@ import { ChevronUp, LogOut, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 export type AppShellNavItem = {
   title: string;
@@ -306,6 +308,21 @@ function ProgressSummary({ progress }: { progress: number }) {
 }
 
 function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: string }) {
+  const router = useRouter();
+  const [isSigningOut, startSignOutTransition] = useTransition();
+
+  function handleSignOut() {
+    startSignOutTransition(async () => {
+      try {
+        const result = await signOut();
+        router.replace(result.redirectTo);
+        router.refresh();
+      } catch {
+        toast.error("Çıkış yapılamadı. Lütfen tekrar deneyin.");
+      }
+    });
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -352,17 +369,25 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <form action={signOut}>
-          <DropdownMenuItem
-            asChild
-            className="text-destructive focus:text-destructive data-[highlighted]:text-destructive"
+        <DropdownMenuItem
+          asChild
+          disabled={isSigningOut}
+          className="text-destructive focus:text-destructive data-[highlighted]:text-destructive"
+        >
+          <Button
+            effect="shine"
+            type="button"
+            variant="secondary"
+            size="sm"
+            loading={isSigningOut}
+            aria-busy={isSigningOut}
+            onClick={handleSignOut}
+            className="w-full justify-start gap-2 text-left text-destructive"
           >
-            <Button effect="shine" type="submit" variant="secondary" size="sm" className="w-full justify-start gap-2 text-left text-destructive">
-              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Çıkış yap</span>
-            </Button>
-          </DropdownMenuItem>
-        </form>
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}</span>
+          </Button>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

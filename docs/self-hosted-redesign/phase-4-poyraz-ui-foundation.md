@@ -102,11 +102,10 @@ Renk tek başına anlam taşımaz; badge her zaman Türkçe durum metni içerir.
 Branding servisi eski `--primary` benzeri uygulama tokenları yerine Poyraz v3 sözleşmesini server-side üretir:
 
 - `--poyraz-primary` ve foreground/hover/active/scale rolleri
-- `--poyraz-accent` ve foreground/hover rolleri
 - `--poyraz-ring` ve `--poyraz-focus-ring`
 - `--poyraz-radius-xs` … `--poyraz-radius-xl`
 
-Değerler root `<html style>` içine SSR edilir; bu nedenle ilk render'da varsayılan renkten instance rengine geçiş parlaması oluşmaz. `system` renk modu ilk paint öncesi media query ile `.dark` sınıfına çevrilir ve işletim sistemi değişikliği dinlenir. Poyraz preset kalan surface, status, elevation, density ve motion rollerinin tek kaynağıdır.
+Değerler root `<html style>` içine SSR edilir; bu nedenle ilk render'da varsayılan renkten instance rengine geçiş parlaması oluşmaz. `system` renk modu ilk paint öncesi media query ile `.dark` sınıfına çevrilir ve işletim sistemi değişikliği dinlenir. `--poyraz-accent`, secondary, surface, status, elevation, density ve motion gibi semantik etkileşim rolleri inline branding katmanında ezilmez; light/dark karşılıklarının tek kaynağı Poyraz presetidir. Branding API'sindeki türetilmiş `accentColor` alanı mobil ve harici istemciler için korunur, web tema köprüsüne enjekte edilmez.
 
 Recharts içindeki eski `hsl(var(--...))` ifadeleri geçerli Poyraz CSS renk tokenlarına taşındı.
 
