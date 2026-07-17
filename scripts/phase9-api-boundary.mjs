@@ -21,6 +21,9 @@ for (const value of [
   '"auth.device-pairing"',
   'status: "planned"',
   "minimumSupportedVersion",
+  "workspaceName",
+  "metaTitle",
+  "faviconUrl",
 ]) {
   assert.ok(contracts.includes(value), `Missing API contract marker: ${value}`);
 }
@@ -37,6 +40,11 @@ assert.doesNotMatch(
   discovery,
   /getSession|requireSession|authorization/i,
   "Discovery must remain public and session-independent",
+);
+assert.match(
+  read("app/api/v1/me/route.ts"),
+  /getUserPreferences/,
+  "Authenticated mobile metadata must expose the persisted user color mode",
 );
 
 for (const route of requiredRoutes.slice(1)) {

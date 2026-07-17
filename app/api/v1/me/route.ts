@@ -1,7 +1,9 @@
 import { apiV1Error, apiV1Success } from "@/server/api/v1/responses";
+import { domainActorFromSession } from "@/server/auth/domain-actor";
 import { getSessionContextFromHeaders } from "@/server/auth/session";
 import { getServerConfig } from "@/server/config";
 import { DomainError } from "@/server/domain/errors";
+import { getUserPreferences } from "@/server/settings/preferences";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +14,7 @@ export async function GET(request: Request) {
     if (!context) {
       throw new DomainError("UNAUTHENTICATED", "Geçerli bir oturum gerekli.");
     }
+    const preferences = getUserPreferences(domainActorFromSession(context));
 
     return apiV1Success({
       user: {
@@ -25,6 +28,7 @@ export async function GET(request: Request) {
       session: {
         expiresAt: context.session.expiresAt.toISOString(),
       },
+      preferences,
     });
   } catch (error) {
     return apiV1Error(error);

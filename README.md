@@ -111,7 +111,7 @@ Davet token'ının yalnızca hash'i saklanır. Eski Supabase Auth şifre/session
 
 ## Marka özelleştirmesi
 
-Instance adı, kısa ad, açık/koyu logo, ikon, primary/accent renk, varsayılan görünüm ve radius yoğunluğu SQLite'ta tutulur ve root layout'a server-side uygulanır. Görseller yerel upload alanında saklanır. Branding mutation'ı yalnızca owner rolüne açıktır; portal aynı güvenli public marka çıktısını kullanır.
+`Ayarlar > Genel` alanındaki workspace adı, meta title, kısa uygulama adı, açık/koyu tema logoları, favicon, ana renk ve görünüm tercihi SQLite'ta tutulur ve root layout'a server-side uygulanır. Görseller yerel upload alanında saklanır. Branding mutation'ı yalnızca owner rolüne açıktır; portal aynı güvenli public marka çıktısını kullanır. `/api/v1/meta` bu markayı absolute asset URL'leriyle, `/api/v1/me` ise oturum sahibinin renk modu tercihiyle mobil istemcilere sunar.
 
 ## Backup ve restore
 

@@ -113,8 +113,8 @@ Mevcut hata kodları:
 - Protokol/discovery/API major sürümü
 - Neta server package sürümü
 - Kalıcı instance kimliği ve oluşturulma zamanı
-- Application/organization adı
-- Mobil için absolute logo/icon URL'leri ve semantic marka bilgisi
+- Workspace adı, meta title ve kısa uygulama adı
+- Mobil için ayrı light/dark logo, favicon absolute URL'leri ve semantic marka bilgisi
 - Minimum desteklenen mobil client sürümü
 - `ios` ve `android` platform listesi
 - Authentication durumu
@@ -133,6 +133,14 @@ Capability kaydı:
 ```
 
 İstemci bilinmeyen capability ID ve alanlarını yok saymalıdır. `status=planned`, endpoint'in kullanılabilir olduğu anlamına gelmez.
+
+`instance.workspaceName` kullanıcıya gösterilecek firma/freelance çalışma alanı adıdır.
+`instance.metaTitle` web metadata başlığıdır. `branding.lightLogoUrl`,
+`branding.darkLogoUrl` ve `branding.faviconUrl` absolute URL döner; mobil istemci
+aktif renk moduna göre doğru logoyu seçmeli ve eksik yeni alanlarda eski
+`applicationName` / `iconUrl` alanlarına geriye uyumlu fallback uygulamalıdır.
+Authenticated `/api/v1/me` yanıtındaki `preferences.colorMode`, kullanıcının
+`light`, `dark` veya `system` tercihini taşır.
 
 İlk capability seti:
 

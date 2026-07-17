@@ -10,6 +10,11 @@ const PNG_BYTES = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0
 
 const dataDir = path.join(process.cwd(), ".data", `phase1-auth-smoke-${Date.now()}`);
 const databasePath = path.join(dataDir, "neta.db");
+const distDir = `.next-phase1-auth-smoke-${Date.now()}`;
+const nextGeneratedConfigFiles = ["next-env.d.ts", "tsconfig.json"].map((file) => ({
+  file,
+  content: fs.readFileSync(path.join(process.cwd(), file), "utf8"),
+}));
 const port = await getAvailablePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 const env = {
@@ -22,6 +27,7 @@ const env = {
   BETTER_AUTH_SECRET: "phase1-auth-smoke-secret-is-longer-than-32-characters",
   TRUSTED_ORIGINS: baseUrl,
   NETA_MINIMUM_MOBILE_VERSION: "1.2.3-smoke.1",
+  NEXT_DIST_DIR: distDir,
   NEXT_TELEMETRY_DISABLED: "1",
 };
 
@@ -178,6 +184,7 @@ try {
         clientId: null,
       },
     );
+    assert.equal(ownerMe.payload.data.preferences.colorMode, "system");
     assert.doesNotMatch(
       JSON.stringify(ownerMe.payload),
       /token|password/i,
@@ -333,38 +340,83 @@ try {
       "File API errors must use the standard envelope",
     );
 
-    const logoUpload = await uploadFile("branding_logo", {
+    const lightLogoUpload = await uploadFile("branding_logo", {
       cookie: ownerCookie,
-      fileName: "logo.png",
+      fileName: "light-logo.png",
     });
-    assert.equal(logoUpload.response.status, 201, JSON.stringify(logoUpload.payload));
-    assert.equal(logoUpload.payload.ok, true, "File API success must use the standard envelope");
-    const logoFileId = logoUpload.payload.data.id;
+    const darkLogoUpload = await uploadFile("branding_logo", {
+      cookie: ownerCookie,
+      fileName: "dark-logo.png",
+    });
+    const faviconUpload = await uploadFile("branding_icon", {
+      cookie: ownerCookie,
+      fileName: "favicon.png",
+    });
+    for (const upload of [lightLogoUpload, darkLogoUpload, faviconUpload]) {
+      assert.equal(upload.response.status, 201, JSON.stringify(upload.payload));
+      assert.equal(upload.payload.ok, true, "File API success must use the standard envelope");
+    }
+    const lightLogoFileId = lightLogoUpload.payload.data.id;
+    const darkLogoFileId = darkLogoUpload.payload.data.id;
+    const faviconFileId = faviconUpload.payload.data.id;
     const brandingUpdate = await jsonRequest("/api/branding", {
       method: "PATCH",
       cookie: ownerCookie,
       body: {
-        applicationName: "Neta Smoke Studio",
+        applicationName: "Neta Smoke Meta",
+        organizationName: "Neta Smoke Studio",
+        shortName: "Neta Smoke",
         primaryColor: "#336699",
         accentColor: "#F0CC22",
-        lightLogoFileId: logoFileId,
+        lightLogoFileId,
+        darkLogoFileId,
+        iconFileId: faviconFileId,
       },
     });
     assert.equal(brandingUpdate.response.ok, true, JSON.stringify(brandingUpdate.payload));
-    assert.equal(brandingUpdate.payload.data.applicationName, "Neta Smoke Studio");
+    assert.equal(brandingUpdate.payload.data.applicationName, "Neta Smoke Meta");
+    assert.equal(brandingUpdate.payload.data.organizationName, "Neta Smoke Studio");
+    assert.notEqual(
+      brandingUpdate.payload.data.lightLogoUrl,
+      brandingUpdate.payload.data.darkLogoUrl,
+      "Light and dark logo assets must remain distinct",
+    );
     const brandedLoginHtml = await (await fetch(`${baseUrl}/login`)).text();
-    assert.match(brandedLoginHtml, /Neta Smoke Studio/, "Branding metadata must be server-rendered");
+    assert.match(brandedLoginHtml, /Neta Smoke Studio/, "Workspace branding must be server-rendered");
+    assert.match(brandedLoginHtml, /Neta Smoke Meta/, "Meta title must be server-rendered");
+    assert.match(brandedLoginHtml, new RegExp(`/api/branding/assets/${lightLogoFileId}`));
+    assert.match(brandedLoginHtml, new RegExp(`/api/branding/assets/${darkLogoFileId}`));
+    assert.match(brandedLoginHtml, new RegExp(`/api/branding/assets/${faviconFileId}`));
+    assert.doesNotMatch(
+      brandedLoginHtml,
+      /href="\/favicon\.ico"/,
+      "Static favicon metadata must not override the active branding favicon",
+    );
     assert.match(brandedLoginHtml, /--poyraz-primary:#336699/, "Brand tokens must be present in first HTML response");
     const dynamicManifest = await (await fetch(`${baseUrl}/manifest.webmanifest`)).json();
-    assert.equal(dynamicManifest.name, "Neta Smoke Studio", "Manifest must use instance branding");
+    assert.equal(dynamicManifest.name, "Neta Smoke Studio", "Manifest must use workspace branding");
+    assert.equal(dynamicManifest.short_name, "Neta Smoke");
+    assert.equal(dynamicManifest.icons[0].src, `/api/branding/assets/${faviconFileId}`);
     const brandedMeta = await jsonRequest("/api/v1/meta");
-    assert.equal(brandedMeta.payload.data.instance.applicationName, "Neta Smoke Studio");
+    assert.equal(brandedMeta.payload.data.instance.applicationName, "Neta Smoke Meta");
+    assert.equal(brandedMeta.payload.data.instance.metaTitle, "Neta Smoke Meta");
+    assert.equal(brandedMeta.payload.data.instance.workspaceName, "Neta Smoke Studio");
     assert.equal(
       brandedMeta.payload.data.branding.lightLogoUrl,
-      `${baseUrl}/api/branding/assets/${logoFileId}`,
-      "Mobile metadata must expose absolute branding asset URLs",
+      `${baseUrl}/api/branding/assets/${lightLogoFileId}`,
+      "Mobile metadata must expose the absolute light logo URL",
     );
-    const publicLogo = await fetch(`${baseUrl}/api/branding/assets/${logoFileId}`);
+    assert.equal(
+      brandedMeta.payload.data.branding.darkLogoUrl,
+      `${baseUrl}/api/branding/assets/${darkLogoFileId}`,
+      "Mobile metadata must expose the absolute dark logo URL",
+    );
+    assert.equal(
+      brandedMeta.payload.data.branding.faviconUrl,
+      `${baseUrl}/api/branding/assets/${faviconFileId}`,
+      "Mobile metadata must expose the absolute favicon URL",
+    );
+    const publicLogo = await fetch(`${baseUrl}/api/branding/assets/${lightLogoFileId}`);
     assert.equal(publicLogo.status, 200, "Referenced branding asset must be publicly readable");
     assert.equal(publicLogo.headers.get("x-content-type-options"), "nosniff");
     assert.deepEqual(new Uint8Array(await publicLogo.arrayBuffer()), PNG_BYTES);
@@ -690,6 +742,10 @@ try {
     new Promise((resolve) => server.once("exit", resolve)),
     new Promise((resolve) => setTimeout(resolve, 5000)),
   ]);
+  fs.rmSync(path.join(process.cwd(), distDir), { recursive: true, force: true });
+  for (const snapshot of nextGeneratedConfigFiles) {
+    fs.writeFileSync(path.join(process.cwd(), snapshot.file), snapshot.content);
+  }
 }
 
 async function acceptInvite(token) {

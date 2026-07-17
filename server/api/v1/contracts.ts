@@ -32,6 +32,7 @@ export type NetaDiscoveryDocument = {
   discoveryVersion: typeof NETA_DISCOVERY_VERSION;
   instanceId: string;
   applicationName: string;
+  workspaceName: string;
   api: {
     version: typeof NETA_API_VERSION;
     baseUrl: string;
@@ -57,6 +58,8 @@ export type NetaInstanceMetadata = {
     id: string;
     createdAt: string;
     applicationName: string;
+    workspaceName: string;
+    metaTitle: string;
     shortName: string;
     organizationName: string | null;
   };
@@ -68,6 +71,7 @@ export type NetaInstanceMetadata = {
     lightLogoUrl: string | null;
     darkLogoUrl: string | null;
     iconUrl: string | null;
+    faviconUrl: string | null;
   };
   client: {
     minimumSupportedVersion: string | null;
@@ -103,6 +107,7 @@ export function buildDiscoveryDocument(
     discoveryVersion: NETA_DISCOVERY_VERSION,
     instanceId: input.identity.instanceId,
     applicationName: input.branding.applicationName,
+    workspaceName: input.branding.organizationName ?? input.branding.applicationName,
     api: {
       version: NETA_API_VERSION,
       baseUrl: apiBaseUrl,
@@ -132,6 +137,8 @@ export function buildInstanceMetadata(
       id: input.identity.instanceId,
       createdAt: input.identity.createdAt,
       applicationName: input.branding.applicationName,
+      workspaceName: input.branding.organizationName ?? input.branding.applicationName,
+      metaTitle: input.branding.applicationName,
       shortName: input.branding.shortName,
       organizationName: input.branding.organizationName,
     },
@@ -143,6 +150,7 @@ export function buildInstanceMetadata(
       lightLogoUrl: absoluteOptionalUrl(input.appUrl, input.branding.lightLogoUrl),
       darkLogoUrl: absoluteOptionalUrl(input.appUrl, input.branding.darkLogoUrl),
       iconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
+      faviconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
     },
     client: {
       minimumSupportedVersion: input.minimumMobileClientVersion,
