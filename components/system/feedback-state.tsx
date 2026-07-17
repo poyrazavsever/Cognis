@@ -62,7 +62,7 @@ export function LoadingState({ label = "İçerik yükleniyor" }: { label?: strin
 
 export function RetryAction({ onClick }: { onClick: () => void }) {
   return (
-    <Button type="button" variant="outline" size="sm" onClick={onClick}>
+    <Button effect="shine" type="button" variant="secondary" size="sm" onClick={onClick}>
       Yeniden dene
     </Button>
   );

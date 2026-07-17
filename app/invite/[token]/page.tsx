@@ -77,7 +77,7 @@ export default async function InvitationPage({
                   <p className="text-xs text-muted-foreground">En az 8 karakter kullan.</p>
                 </div>
               </div>
-              <SubmitButton formAction={acceptInvitation} className="h-11 w-full" pendingText="Hesap oluşturuluyor...">
+              <SubmitButton size="lg" formAction={acceptInvitation} className="w-full" pendingText="Hesap oluşturuluyor...">
                 Portal hesabını oluştur
               </SubmitButton>
             </form>

@@ -75,7 +75,7 @@ export default async function LoginPage({
               </div>
             </div>
 
-            <SubmitButton formAction={login} className="h-11 w-full gap-2" pendingText="Giriş yapılıyor...">
+            <SubmitButton size="lg" formAction={login} className="w-full gap-2" pendingText="Giriş yapılıyor...">
               <LogIn className="h-4 w-4" />
               Giriş yap
             </SubmitButton>

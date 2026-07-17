@@ -41,13 +41,14 @@ export function DestructiveConfirmation({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline" disabled={loading}>
+            <Button effect="shine" type="button" variant="secondary" disabled={loading}>
               {cancelLabel}
             </Button>
           </DialogClose>
           <Button
+            effect="shine"
             type="button"
-            variant="destructive"
+            variant="default"
             loading={loading}
             aria-busy={loading}
             onClick={onConfirm}

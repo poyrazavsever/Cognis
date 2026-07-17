@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
 const repoRoot = process.cwd();
 const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
@@ -164,6 +165,8 @@ for (const sliderBehavior of [
   "snap-mandatory",
   "overflow-x-auto",
   "scrollBy",
+  "[scrollbar-width:none]",
+  "[&::-webkit-scrollbar]:hidden",
   'event.key === "ArrowLeft"',
   'event.key === "ArrowRight"',
 ]) {
@@ -172,6 +175,45 @@ for (const sliderBehavior of [
     `Finance summary slider is missing ${sliderBehavior}`,
   );
 }
+
+const pageHeaderFiles = [
+  "app/(dashboard)/dashboard-client.tsx",
+  "app/(dashboard)/analytics/analytics-client.tsx",
+  "app/(dashboard)/calendar/calendar-client.tsx",
+  "app/(dashboard)/clients/clients-client.tsx",
+  "app/(dashboard)/clients/[id]/client-detail-client.tsx",
+  "app/(dashboard)/finance/finance-client.tsx",
+  "app/(dashboard)/journal/journal-client.tsx",
+  "app/(dashboard)/projects/projects-client.tsx",
+  "app/(dashboard)/projects/[id]/project-detail-client.tsx",
+  "app/(dashboard)/tasks/tasks-client.tsx",
+  "app/(dashboard)/settings/page.tsx",
+  "app/(dashboard)/business/invoices/invoices-client.tsx",
+  "app/(dashboard)/business/proposals/proposals-client.tsx",
+  "app/(dashboard)/business/subscriptions/subscriptions-client.tsx",
+  "app/(dashboard)/chat/page.tsx",
+  "app/portal/page.tsx",
+  "app/portal/projects/page.tsx",
+  "app/portal/projects/[id]/portal-project-client.tsx",
+  "app/portal/tasks/page.tsx",
+  "app/portal/revisions/page.tsx",
+];
+for (const pageHeaderFile of pageHeaderFiles) {
+  const content = fs.readFileSync(path.join(repoRoot, pageHeaderFile), "utf8");
+  assert.doesNotMatch(
+    content,
+    /<\/h1>\s*(?:\{[^\n]*&&\s*)?<p\b[^>]*text-muted-foreground/,
+    `${pageHeaderFile} must not render a description directly below its page title`,
+  );
+}
+assert.doesNotMatch(
+  fs.readFileSync(
+    path.join(repoRoot, "app/(dashboard)/projects/[id]/project-detail-client.tsx"),
+    "utf8",
+  ),
+  /project\.description\s*\|\|/,
+  "Project detail header must not render the project description below its title",
+);
 
 const allowedLocalUiFiles = new Set([
   "pending-link.tsx",
@@ -220,6 +262,80 @@ function walk(targetPath) {
     return /\.(css|tsx?|jsx?)$/.test(entry.name) ? [entryPath] : [];
   });
 }
+
+const buttonViolations = ["app", "components"]
+  .flatMap(walk)
+  .filter((filePath) => filePath.endsWith(".tsx"))
+  .flatMap((filePath) => {
+    const content = fs.readFileSync(filePath, "utf8");
+    const relativePath = path.relative(repoRoot, filePath);
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+    const violations = [];
+    let hasPoyrazButtonImport = false;
+    const buttonNodes = [];
+
+    function visit(node) {
+      if (
+        ts.isImportDeclaration(node) &&
+        node.moduleSpecifier.text === "poyraz-ui/atoms" &&
+        node.importClause?.namedBindings &&
+        ts.isNamedImports(node.importClause.namedBindings)
+      ) {
+        hasPoyrazButtonImport ||= node.importClause.namedBindings.elements.some(
+          (element) => element.name.text === "Button",
+        );
+      }
+
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tagName = node.tagName.getText(sourceFile);
+        if (tagName === "button") {
+          const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+          violations.push(`${relativePath}:${line}: native button must use Poyraz Button`);
+        }
+        if (tagName === "Button") buttonNodes.push(node);
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(sourceFile);
+
+    if (buttonNodes.length > 0 && !hasPoyrazButtonImport) {
+      violations.push(`${relativePath}: Button must be imported from poyraz-ui/atoms`);
+    }
+
+    for (const node of buttonNodes) {
+      const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+      const attributes = node.attributes.properties.filter(ts.isJsxAttribute);
+      const effect = attributes.find((attribute) => attribute.name.getText(sourceFile) === "effect");
+      const variant = attributes.find((attribute) => attribute.name.getText(sourceFile) === "variant");
+      const variantText = variant?.getText(sourceFile) ?? "";
+
+      if (effect?.getText(sourceFile) !== 'effect="shine"') {
+        violations.push(`${relativePath}:${line}: Button must use effect="shine"`);
+      }
+      if (!variant || /outline|ghost|destructive|soft|glass|link/.test(variantText)) {
+        violations.push(
+          `${relativePath}:${line}: Button variant must be default or secondary`,
+        );
+      }
+      if (/bg-indigo|border-indigo|text-indigo/.test(node.getText(sourceFile))) {
+        violations.push(`${relativePath}:${line}: Button must not override Poyraz variant colors`);
+      }
+    }
+
+    return violations;
+  });
+
+assert.deepEqual(
+  buttonViolations,
+  [],
+  `Poyraz Button boundary violations:\n${buttonViolations.join("\n")}`,
+);
 
 const violations = ["app", "components"]
   .flatMap(walk)

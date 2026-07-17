@@ -4,6 +4,7 @@ import { signOut } from "@/app/login/actions";
 import { ColorModeSync } from "@/components/theme/color-mode-sync";
 import type { ColorMode } from "@/lib/color-mode";
 import {
+  Button,
   Card,
   CardContent,
   Typography,
@@ -308,10 +309,11 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button effect="shine"
           type="button"
+          variant="secondary"
           aria-label={`${user.displayName} için hesap menüsünü aç`}
-          className="group flex w-full items-center gap-2 rounded-md border border-transparent p-1.5 text-left outline-none transition-[color,background-color,border-color] hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=open]:border-border data-[state=open]:bg-accent"
+          className="group h-auto min-h-10 w-full justify-start p-1.5 text-left"
         >
           <SidebarUserProfile
             className="min-w-0 flex-1"
@@ -324,7 +326,7 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
             className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
             aria-hidden="true"
           />
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
@@ -355,10 +357,10 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
             asChild
             className="text-destructive focus:text-destructive data-[highlighted]:text-destructive"
           >
-            <button type="submit" className="w-full gap-2 text-left">
+            <Button effect="shine" type="submit" variant="secondary" size="sm" className="w-full justify-start gap-2 text-left text-destructive">
               <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Çıkış yap</span>
-            </button>
+            </Button>
           </DropdownMenuItem>
         </form>
       </DropdownMenuContent>

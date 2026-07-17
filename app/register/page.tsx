@@ -79,7 +79,7 @@ export default async function RegisterPage({
               </div>
             </div>
 
-            <SubmitButton formAction={signup} className="h-11 w-full gap-2" pendingText="Oluşturuluyor...">
+            <SubmitButton size="lg" formAction={signup} className="w-full gap-2" pendingText="Oluşturuluyor...">
               <UserPlus className="h-4 w-4" />
               Admin hesabını oluştur
             </SubmitButton>
