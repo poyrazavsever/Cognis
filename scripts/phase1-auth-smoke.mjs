@@ -109,6 +109,29 @@ try {
     db.prepare(
       "insert into project_planning_sections (id, owner_user_id, project_id, category, title, content, metadata, sort_order) values (?, ?, ?, ?, ?, ?, ?, ?)",
     ).run("planning-portal", ownerUserId, "project-alpha", "overview", "Portal Plan", "Visible planning content", "{}", 0);
+    db.prepare(
+      "insert into finance_transactions (id, owner_user_id, type, amount_minor, currency, transaction_date, payment_status) values (?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      "phase7-finance",
+      ownerUserId,
+      "income",
+      10_000,
+      "TRY",
+      new Date().toISOString().slice(0, 10),
+      "paid",
+    );
+    db.prepare(
+      "insert into chat_sessions (id, owner_user_id, title) values (?, ?, ?)",
+    ).run("phase7-chat", ownerUserId, "Phase 7 Chat");
+    db.prepare(
+      "insert into proposals (id, owner_user_id, client_id, project_id, title, amount_minor, currency, status) values (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run("phase7-proposal", ownerUserId, "client-alpha", "project-alpha", "Phase 7 Proposal", 25_000, "TRY", "draft");
+    db.prepare(
+      "insert into invoices (id, owner_user_id, client_id, project_id, invoice_number, amount_minor, currency, status, issue_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run("phase7-invoice", ownerUserId, "client-alpha", "project-alpha", "P7-001", 25_000, "TRY", "draft", "2026-07-17");
+    db.prepare(
+      "insert into subscriptions (id, owner_user_id, name, amount_minor, currency, billing_cycle, status) values (?, ?, ?, ?, ?, ?, ?)",
+    ).run("phase7-subscription", ownerUserId, "Phase 7 Hosting", 5_000, "TRY", "monthly", "active");
 
     const rejectedRegistration = await authPost("/api/auth/sign-up/email", {
       name: "Public Attacker",
@@ -141,6 +164,10 @@ try {
       "/journal",
       "/analytics",
       "/settings",
+      "/chat",
+      "/business/proposals",
+      "/business/invoices",
+      "/business/subscriptions",
     ]) {
       const page = await fetch(`${baseUrl}${pathname}`, {
         headers: { cookie: ownerCookie },
@@ -149,6 +176,54 @@ try {
       assert.equal(page.status, 200, `Freelancer SSR route failed: ${pathname}`);
       assert.doesNotMatch(await page.text(), /lib\/supabase|supabase\.co/i, `SSR output leaked Supabase: ${pathname}`);
     }
+
+    for (const [pathname, body] of [
+      ["/api/finance-analysis", undefined],
+      ["/api/project-risk", { projectId: "project-alpha" }],
+    ]) {
+      const anonymousAi = await jsonRequest(pathname, {
+        method: "POST",
+        body,
+      });
+      assert.equal(anonymousAi.response.status, 401, `Anonymous AI request must fail: ${pathname}`);
+
+      const missingAiSettings = await jsonRequest(pathname, {
+        method: "POST",
+        cookie: ownerCookie,
+        body,
+      });
+      assert.equal(missingAiSettings.response.status, 400, `Missing AI key must fail: ${pathname}`);
+    }
+    const chatBody = {
+      sessionId: "phase7-chat",
+      messages: [{
+        id: "phase7-user-message",
+        role: "user",
+        parts: [{ type: "text", text: "Projeyi özetle" }],
+      }],
+    };
+    const anonymousChat = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: baseUrl },
+      body: JSON.stringify(chatBody),
+    });
+    assert.equal(anonymousChat.status, 401, "Anonymous chat request must fail");
+    const missingChatSettings = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: ownerCookie,
+        origin: baseUrl,
+      },
+      body: JSON.stringify(chatBody),
+    });
+    assert.equal(missingChatSettings.status, 400, "Missing AI key must fail: /api/chat");
+    assert.equal(
+      db.prepare("select count(*) as value from chat_messages where session_id = ?")
+        .get("phase7-chat").value,
+      0,
+      "A rejected AI request must not append chat messages",
+    );
 
     const anonymousUpload = await uploadFile("avatar", { fileName: "anonymous.png" });
     assert.equal(anonymousUpload.response.status, 401, "Anonymous file upload must fail");
@@ -296,6 +371,28 @@ try {
     });
     assert.equal(clientSignIn.response.ok, true, JSON.stringify(clientSignIn.payload));
     const clientCookie = cookieHeader(clientSignIn.response);
+
+    for (const [pathname, body] of [
+      ["/api/finance-analysis", undefined],
+      ["/api/project-risk", { projectId: "project-alpha" }],
+    ]) {
+      const forbiddenAi = await jsonRequest(pathname, {
+        method: "POST",
+        cookie: clientCookie,
+        body,
+      });
+      assert.equal(forbiddenAi.response.status, 403, `Client AI access must fail: ${pathname}`);
+    }
+    const forbiddenClientChat = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: clientCookie,
+        origin: baseUrl,
+      },
+      body: JSON.stringify(chatBody),
+    });
+    assert.equal(forbiddenClientChat.status, 403, "Client chat access must fail");
 
     for (const pathname of [
       "/portal",

@@ -17,9 +17,11 @@ import {
   clientCreateSchema,
   clientUpdateSchema,
   contractCreateSchema,
+  contractUpdateSchema,
   financeTransactionCreateSchema,
   financeTransactionUpdateSchema,
   invoiceCreateSchema,
+  invoiceUpdateSchema,
   journalEntrySchema,
   parseDomainInput,
   planningSectionCreateSchema,
@@ -27,9 +29,11 @@ import {
   projectCreateSchema,
   projectUpdateSchema,
   proposalCreateSchema,
+  proposalUpdateSchema,
   revisionCreateSchema,
   revisionStatusSchema,
   subscriptionCreateSchema,
+  subscriptionUpdateSchema,
   taskCreateSchema,
   taskUpdateSchema,
   calendarEventUpdateSchema,
@@ -355,6 +359,26 @@ export class DomainService {
     return this.repositories.chat.createSession(scope, { ...value, id: value.id ?? this.id() });
   }
 
+  listChatSessions(actor: DomainActor) {
+    return this.repositories.chat.listSessions(requireOwnerScope(actor));
+  }
+
+  getChatSession(actor: DomainActor, sessionId: string) {
+    return this.repositories.chat.getSession(requireOwnerScope(actor), sessionId)
+      ?? this.throwNotFound("Sohbet");
+  }
+
+  listChatMessages(actor: DomainActor, sessionId: string) {
+    const scope = requireOwnerScope(actor);
+    if (!this.repositories.chat.getSession(scope, sessionId)) throw notFound("Sohbet");
+    return this.repositories.chat.listMessages(scope, sessionId);
+  }
+
+  deleteChatSession(actor: DomainActor, sessionId: string) {
+    return this.repositories.chat.removeSession(requireOwnerScope(actor), sessionId)
+      ?? this.throwNotFound("Sohbet");
+  }
+
   addChatMessage(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
     const value = parseDomainInput(chatMessageCreateSchema, input);
@@ -467,14 +491,59 @@ export class DomainService {
     return this.repositories.business.createProposal(scope, { ...value, id: value.id ?? this.id() });
   }
 
+  listProposals(actor: DomainActor) {
+    return this.repositories.business.listProposals(requireOwnerScope(actor));
+  }
+
+  getProposal(actor: DomainActor, proposalId: string) {
+    return this.repositories.business.getProposal(requireOwnerScope(actor), proposalId)
+      ?? this.throwNotFound("Teklif");
+  }
+
+  updateProposal(actor: DomainActor, proposalId: string, input: unknown) {
+    const scope = requireOwnerScope(actor);
+    const current = this.repositories.business.getProposal(scope, proposalId)
+      ?? this.throwNotFound("Teklif");
+    const value = parseDomainInput(proposalUpdateSchema, input);
+    this.assertTaskRelations(scope, { ...current, ...value });
+    return this.repositories.business.updateProposal(scope, proposalId, value)
+      ?? this.throwNotFound("Teklif");
+  }
+
+  deleteProposal(actor: DomainActor, proposalId: string) {
+    return this.repositories.business.removeProposal(requireOwnerScope(actor), proposalId)
+      ?? this.throwNotFound("Teklif");
+  }
+
   createContract(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
     const value = parseDomainInput(contractCreateSchema, input);
-    if (value.clientId) this.requireOwnedClient(scope, value.clientId);
-    if (value.proposalId && !this.repositories.business.getProposal(scope, value.proposalId)) {
-      throw notFound("Teklif");
-    }
+    this.assertContractRelations(scope, value);
     return this.repositories.business.createContract(scope, { ...value, id: value.id ?? this.id() });
+  }
+
+  listContracts(actor: DomainActor) {
+    return this.repositories.business.listContracts(requireOwnerScope(actor));
+  }
+
+  getContract(actor: DomainActor, contractId: string) {
+    return this.repositories.business.getContract(requireOwnerScope(actor), contractId)
+      ?? this.throwNotFound("Sözleşme");
+  }
+
+  updateContract(actor: DomainActor, contractId: string, input: unknown) {
+    const scope = requireOwnerScope(actor);
+    const current = this.repositories.business.getContract(scope, contractId)
+      ?? this.throwNotFound("Sözleşme");
+    const value = parseDomainInput(contractUpdateSchema, input);
+    this.assertContractRelations(scope, { ...current, ...value });
+    return this.repositories.business.updateContract(scope, contractId, value)
+      ?? this.throwNotFound("Sözleşme");
+  }
+
+  deleteContract(actor: DomainActor, contractId: string) {
+    return this.repositories.business.removeContract(requireOwnerScope(actor), contractId)
+      ?? this.throwNotFound("Sözleşme");
   }
 
   createInvoice(actor: DomainActor, input: unknown) {
@@ -484,10 +553,58 @@ export class DomainService {
     return this.repositories.business.createInvoice(scope, { ...value, id: value.id ?? this.id() });
   }
 
+  listInvoices(actor: DomainActor) {
+    return this.repositories.business.listInvoices(requireOwnerScope(actor));
+  }
+
+  getInvoice(actor: DomainActor, invoiceId: string) {
+    return this.repositories.business.getInvoice(requireOwnerScope(actor), invoiceId)
+      ?? this.throwNotFound("Fatura");
+  }
+
+  updateInvoice(actor: DomainActor, invoiceId: string, input: unknown) {
+    const scope = requireOwnerScope(actor);
+    const current = this.repositories.business.getInvoice(scope, invoiceId)
+      ?? this.throwNotFound("Fatura");
+    const value = parseDomainInput(invoiceUpdateSchema, input);
+    this.assertTaskRelations(scope, { ...current, ...value });
+    return this.repositories.business.updateInvoice(scope, invoiceId, value)
+      ?? this.throwNotFound("Fatura");
+  }
+
+  deleteInvoice(actor: DomainActor, invoiceId: string) {
+    return this.repositories.business.removeInvoice(requireOwnerScope(actor), invoiceId)
+      ?? this.throwNotFound("Fatura");
+  }
+
   createSubscription(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
     const value = parseDomainInput(subscriptionCreateSchema, input);
     return this.repositories.business.createSubscription(scope, { ...value, id: value.id ?? this.id() });
+  }
+
+  listSubscriptions(actor: DomainActor) {
+    return this.repositories.business.listSubscriptions(requireOwnerScope(actor));
+  }
+
+  getSubscription(actor: DomainActor, subscriptionId: string) {
+    return this.repositories.business.getSubscription(requireOwnerScope(actor), subscriptionId)
+      ?? this.throwNotFound("Abonelik");
+  }
+
+  updateSubscription(actor: DomainActor, subscriptionId: string, input: unknown) {
+    const scope = requireOwnerScope(actor);
+    const value = parseDomainInput(subscriptionUpdateSchema, input);
+    if (!this.repositories.business.getSubscription(scope, subscriptionId)) {
+      throw notFound("Abonelik");
+    }
+    return this.repositories.business.updateSubscription(scope, subscriptionId, value)
+      ?? this.throwNotFound("Abonelik");
+  }
+
+  deleteSubscription(actor: DomainActor, subscriptionId: string) {
+    return this.repositories.business.removeSubscription(requireOwnerScope(actor), subscriptionId)
+      ?? this.throwNotFound("Abonelik");
   }
 
   private requireOwnedClient(scope: OwnerScope, clientId: string) {
@@ -530,6 +647,25 @@ export class DomainService {
     }
     if (value.sourceJournalEntryId && !this.repositories.journal.get(scope, value.sourceJournalEntryId)) {
       throw notFound("Günlük kaydı");
+    }
+  }
+
+  private assertContractRelations(scope: OwnerScope, value: {
+    clientId?: string | null;
+    proposalId?: string | null;
+  }) {
+    const client = value.clientId ? this.requireOwnedClient(scope, value.clientId) : null;
+    const proposal = value.proposalId
+      ? this.repositories.business.getProposal(scope, value.proposalId) ?? this.throwNotFound("Teklif")
+      : null;
+    if (proposal?.clientId && client?.id && proposal.clientId !== client.id) {
+      throw new DomainError("INVARIANT_VIOLATION", "Teklif ve sözleşme müşterisi uyuşmuyor.");
+    }
+    if (proposal?.clientId && !client) {
+      throw new DomainError(
+        "INVARIANT_VIOLATION",
+        "Müşterili tekliften üretilen sözleşme müşteri kimliğini içermelidir.",
+      );
     }
   }
 

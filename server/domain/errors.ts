@@ -4,7 +4,9 @@ export type DomainErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "CONFLICT"
-  | "INVARIANT_VIOLATION";
+  | "INVARIANT_VIOLATION"
+  | "UPSTREAM_ERROR"
+  | "UPSTREAM_TIMEOUT";
 
 const statusByCode: Record<DomainErrorCode, number> = {
   VALIDATION_ERROR: 400,
@@ -13,6 +15,8 @@ const statusByCode: Record<DomainErrorCode, number> = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   INVARIANT_VIOLATION: 422,
+  UPSTREAM_ERROR: 502,
+  UPSTREAM_TIMEOUT: 504,
 };
 
 export class DomainError extends Error {

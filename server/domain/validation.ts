@@ -245,6 +245,7 @@ export const proposalCreateSchema = z.object({
   status: z.enum(proposalStatuses).default("draft"),
   validUntil: z.date().nullable().optional(),
 });
+export const proposalUpdateSchema = proposalCreateSchema.omit({ id: true }).partial();
 export const contractCreateSchema = z.object({
   id: resourceIdSchema.optional(),
   proposalId: optionalId,
@@ -254,6 +255,7 @@ export const contractCreateSchema = z.object({
   status: z.enum(contractStatuses).default("draft"),
   signedAt: z.date().nullable().optional(),
 });
+export const contractUpdateSchema = contractCreateSchema.omit({ id: true }).partial();
 export const invoiceCreateSchema = z.object({
   id: resourceIdSchema.optional(),
   clientId: optionalId,
@@ -267,6 +269,7 @@ export const invoiceCreateSchema = z.object({
   dueDate: optionalDate,
   paidAt: z.date().nullable().optional(),
 });
+export const invoiceUpdateSchema = invoiceCreateSchema.omit({ id: true }).partial();
 export const subscriptionCreateSchema = z.object({
   id: resourceIdSchema.optional(),
   name: z.string().trim().min(1).max(300),
@@ -277,6 +280,7 @@ export const subscriptionCreateSchema = z.object({
   status: z.enum(subscriptionStatuses).default("active"),
   category: optionalText(160),
 });
+export const subscriptionUpdateSchema = subscriptionCreateSchema.omit({ id: true }).partial();
 
 export function parseDomainInput<TSchema extends z.ZodType>(
   schema: TSchema,

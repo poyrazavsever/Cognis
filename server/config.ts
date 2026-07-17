@@ -14,6 +14,8 @@ const envSchema = z.object({
   TRUSTED_ORIGINS: z.string().trim().optional(),
   DATA_DIR: z.string().trim().optional(),
   DATABASE_PATH: z.string().trim().optional(),
+  OLLAMA_BASE_URL: z.string().url().optional(),
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).optional(),
 });
 
 export type ServerConfig = {
@@ -27,6 +29,8 @@ export type ServerConfig = {
   trustedOrigins: string[];
   secureCookies: boolean;
   betterAuthSecret?: string;
+  ollamaBaseUrl: string;
+  aiRequestTimeoutMs: number;
 };
 
 let cachedConfig: ServerConfig | undefined;
@@ -76,6 +80,8 @@ export function getServerConfig(): ServerConfig {
     trustedOrigins,
     secureCookies,
     betterAuthSecret,
+    ollamaBaseUrl: parsed.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434/v1",
+    aiRequestTimeoutMs: parsed.AI_REQUEST_TIMEOUT_MS ?? 30_000,
   };
 
   return cachedConfig;

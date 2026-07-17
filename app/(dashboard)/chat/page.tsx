@@ -1,12 +1,17 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { Brain, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
 import { Button } from "poyraz-ui/atoms";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "poyraz-ui/molecules";
+import {
+  createChatSessionAction,
+  deleteChatSessionAction,
+  listChatMessagesAction,
+  listChatSessionsAction,
+} from "./actions";
 
 function formatMessageContent(text: string) {
   if (!text) return null;
@@ -38,7 +43,6 @@ type ChatSession = {
 };
 
 export default function AIChatPage() {
-  const [supabase] = useState(() => createClient());
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -60,26 +64,17 @@ export default function AIChatPage() {
 
   useEffect(() => {
     async function fetchSessions() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("chat_sessions")
-        .select("id, title, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (data) {
+      try {
+        const data = await listChatSessionsAction();
         setSessions(data);
         setActiveSessionId(data[0]?.id || null);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Sohbetler yüklenemedi.");
       }
     }
 
     void fetchSessions();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -88,23 +83,21 @@ export default function AIChatPage() {
         return;
       }
 
-      const { data } = await supabase
-        .from("chat_messages")
-        .select("id, role, content")
-        .eq("session_id", activeSessionId)
-        .order("created_at", { ascending: true });
-
-      const formattedMessages: UIMessage[] = (data || []).map((message) => ({
-        id: message.id,
-        role: message.role as UIMessage["role"],
-        parts: [{ type: "text", text: message.content || "" }],
-      }));
-
-      setMessages(formattedMessages);
+      try {
+        const data = await listChatMessagesAction(activeSessionId);
+        const formattedMessages: UIMessage[] = data.map((message) => ({
+          id: message.id,
+          role: message.role as UIMessage["role"],
+          parts: [{ type: "text", text: message.content }],
+        }));
+        setMessages(formattedMessages);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Mesajlar yüklenemedi.");
+      }
     }
 
     void fetchMessages();
-  }, [activeSessionId, setMessages, supabase]);
+  }, [activeSessionId, setMessages]);
 
   async function handleNewChat() {
     setActiveSessionId(null);
@@ -113,7 +106,12 @@ export default function AIChatPage() {
 
   async function handleDeleteSession(id: string, event: React.MouseEvent) {
     event.stopPropagation();
-    await supabase.from("chat_sessions").delete().eq("id", id);
+    try {
+      await deleteChatSessionAction(id);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sohbet silinemedi.");
+      return;
+    }
 
     const nextSessions = sessions.filter((session) => session.id !== id);
     setSessions(nextSessions);
@@ -134,22 +132,16 @@ export default function AIChatPage() {
     setInput("");
 
     if (!sessionId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const { data: newSession } = await supabase
-        .from("chat_sessions")
-        .insert({
-          user_id: user.id,
-          title: currentInput.length > 32 ? `${currentInput.slice(0, 32)}...` : currentInput,
-        })
-        .select("id, title, created_at")
-        .single();
-
-      if (!newSession) return;
+      let newSession: ChatSession;
+      try {
+        newSession = await createChatSessionAction(
+          currentInput.length > 32 ? `${currentInput.slice(0, 32)}...` : currentInput,
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Sohbet oluşturulamadı.");
+        setInput(currentInput);
+        return;
+      }
 
       sessionId = newSession.id;
       setActiveSessionId(sessionId);
