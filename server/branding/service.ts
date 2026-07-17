@@ -106,7 +106,7 @@ export class BrandingService {
       lightLogoUrl: publicAssetUrl(lightLogoId),
       darkLogoUrl: publicAssetUrl(darkLogoId),
       iconUrl: publicAssetUrl(settings.iconFileId),
-      cssVariables: buildBrandingTokens(settings.primaryColor, settings.accentColor, settings.radiusScale),
+      cssVariables: buildBrandingTokens(settings.primaryColor, settings.radiusScale),
     };
   }
 
@@ -164,7 +164,6 @@ export class BrandingService {
 
 export function buildBrandingTokens(
   primary: string,
-  accent: string,
   radiusScale: "compact" | "default" | "soft",
 ): Record<`--${string}`, string> {
   const radii = {
@@ -173,7 +172,6 @@ export function buildBrandingTokens(
     soft: ["0.5rem", "0.75rem", "1rem", "1.25rem", "1.5rem"],
   }[radiusScale];
   const primaryForeground = readableForeground(primary);
-  const accentForeground = readableForeground(accent);
 
   return {
     "--poyraz-primary": primary,
@@ -188,9 +186,6 @@ export function buildBrandingTokens(
     "--poyraz-primary-dark": mixHex(primary, "#000000", 0.4),
     "--poyraz-primary-muted": `color-mix(in srgb, ${primary} 12%, var(--poyraz-surface))`,
     "--poyraz-primary-muted-foreground": primary,
-    "--poyraz-accent": accent,
-    "--poyraz-accent-foreground": accentForeground,
-    "--poyraz-accent-hover": mixHex(accent, accentForeground, 0.1),
     "--poyraz-ring": primary,
     "--poyraz-focus-ring": primary,
     "--poyraz-radius-xs": radii[0],

@@ -93,7 +93,21 @@ try {
   assert.equal(fileService.readPublicBranding(darkLogo.id).metadata.id, darkLogo.id);
   assert.equal(fileService.readPublicBranding(icon.id).metadata.id, icon.id);
   assert.ok(contrastRatio(branding.primaryColor, branding.cssVariables["--poyraz-primary-foreground"]) >= 4.5);
-  assert.ok(contrastRatio(branding.accentColor, branding.cssVariables["--poyraz-accent-foreground"]) >= 4.5);
+  assert.equal(
+    branding.cssVariables["--poyraz-accent"],
+    undefined,
+    "Poyraz must own the light/dark semantic accent surface",
+  );
+  assert.equal(
+    branding.cssVariables["--poyraz-accent-foreground"],
+    undefined,
+    "Poyraz must own the light/dark semantic accent foreground",
+  );
+  assert.equal(
+    branding.cssVariables["--poyraz-accent-hover"],
+    undefined,
+    "Poyraz must own the light/dark semantic accent hover surface",
+  );
   assertDomainError(() => brandingService.update(clientOne, { applicationName: "Attack" }), "FORBIDDEN");
   assertDomainError(() => brandingService.update(ownerTwo, { applicationName: "Attack" }), "FORBIDDEN");
   assertDomainError(() => brandingService.update(ownerOne, { primaryColor: "red" }), "VALIDATION_ERROR");

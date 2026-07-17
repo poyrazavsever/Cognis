@@ -19,7 +19,6 @@ export function getPublicBranding(): PublicBranding {
         iconUrl: null,
         cssVariables: buildBrandingTokens(
           DEFAULT_BRANDING.primaryColor,
-          DEFAULT_BRANDING.accentColor,
           DEFAULT_BRANDING.radiusScale,
         ),
       };
