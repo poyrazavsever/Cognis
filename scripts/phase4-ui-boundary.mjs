@@ -7,6 +7,10 @@ const repoRoot = process.cwd();
 const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 const globalsCss = fs.readFileSync(path.join(repoRoot, "app/globals.css"), "utf8");
 const appShell = fs.readFileSync(path.join(repoRoot, "components/layout/app-shell.tsx"), "utf8");
+const errorToaster = fs.readFileSync(
+  path.join(repoRoot, "components/error-toaster.tsx"),
+  "utf8",
+);
 const loginActions = fs.readFileSync(path.join(repoRoot, "app/login/actions.ts"), "utf8");
 const rootLayout = fs.readFileSync(path.join(repoRoot, "app/layout.tsx"), "utf8");
 const brandingService = fs.readFileSync(
@@ -67,6 +71,11 @@ assert.doesNotMatch(
   appShell,
   /<DropdownMenuItem[^>]*\binteractiveMotion=/s,
   "Poyraz UI 3.0.2 leaks DropdownMenuItem interactiveMotion to the DOM",
+);
+assert.match(
+  errorToaster,
+  /toast\.error\(message,\s*\{\s*id:/,
+  "Route error toasts must use a stable id so React development effects cannot duplicate them",
 );
 assert.doesNotMatch(
   appShell,
@@ -183,6 +192,7 @@ for (const statPage of [
   "app/(dashboard)/projects/projects-client.tsx",
   "app/(dashboard)/journal/journal-client.tsx",
   "app/(dashboard)/finance/finance-client.tsx",
+  "app/portal/page.tsx",
 ]) {
   const content = fs.readFileSync(path.join(repoRoot, statPage), "utf8");
   assert.ok(
