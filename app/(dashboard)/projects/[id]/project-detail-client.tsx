@@ -198,7 +198,7 @@ export function ProjectDetailClient({
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
-          <Button asChild variant="ghost" className="h-8 gap-2 px-0 text-muted-foreground">
+          <Button size="sm" effect="shine" asChild variant="secondary" className="gap-2 px-0 text-muted-foreground">
             <PendingLink href="/projects" className="flex items-center gap-2" showSpinner>
               <ArrowLeft className="h-4 w-4" />
               Projelere dön
@@ -213,9 +213,6 @@ export function ProjectDetailClient({
                 {statusLabels[project.status]}
               </Badge>
             </div>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              {project.description || "Bu proje için kısa açıklama eklenmedi."}
-            </p>
           </div>
         </div>
 
@@ -226,7 +223,7 @@ export function ProjectDetailClient({
             <form action={completeProjectRecord}>
               <input type="hidden" name="id" value={project.id} />
               <PendingSubmitButton
-                variant="outline"
+                variant="secondary"
                 className="gap-2"
                 idleIcon={<CheckCircle2 className="h-4 w-4" />}
                 pendingChildren="Tamamlanıyor"
@@ -457,8 +454,8 @@ function PlanningSectionCard({ section }: { section: ProjectPlanningSectionItem 
               <input type="hidden" name="id" value={section.id} />
               <input type="hidden" name="project_id" value={section.project_id} />
               <PendingSubmitButton
-                variant="outline"
-                className="h-9 px-3 text-rose-600"
+                variant="secondary"
+                className="px-3 text-rose-600"
                 idleIcon={<Trash2 className="h-4 w-4" />}
                 aria-label="Sil"
               />
@@ -505,9 +502,9 @@ function SectionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={mode === "create" ? "default" : "outline"}
-          className="h-9 gap-2 px-3"
+        <Button effect="shine"
+          variant={mode === "create" ? "default" : "secondary"}
+          className="gap-2 px-3"
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Alan ekle" : null}
@@ -574,7 +571,7 @@ function SectionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting} className="gap-2">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
               {isSubmitting ? "Kaydediliyor" : "Kaydet"}
             </Button>
           </DialogFooter>
@@ -652,19 +649,19 @@ function TaskPanel({
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="flex rounded-sm border border-border p-1">
-              <Button
+              <Button size="sm" effect="shine"
                 type="button"
-                variant={view === "list" ? "default" : "ghost"}
-                className="h-8 gap-2 px-3"
+                variant={view === "list" ? "default" : "secondary"}
+                className="gap-2 px-3"
                 onClick={() => setView("list")}
               >
                 <LayoutList className="h-4 w-4" />
                 Liste
               </Button>
-              <Button
+              <Button size="sm" effect="shine"
                 type="button"
-                variant={view === "kanban" ? "default" : "ghost"}
-                className="h-8 gap-2 px-3"
+                variant={view === "kanban" ? "default" : "secondary"}
+                className="gap-2 px-3"
                 onClick={() => setView("kanban")}
               >
                 <KanbanSquare className="h-4 w-4" />
@@ -720,12 +717,12 @@ function TaskPanel({
                   </div>
                   <div className="flex justify-start lg:justify-end">
                     {task.status !== "done" ? (
-                      <Button
+                      <Button effect="shine"
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         disabled={pendingTaskIds.has(task.id)}
                         aria-busy={pendingTaskIds.has(task.id)}
-                        className="h-9 gap-2 px-3"
+                        className="gap-2 px-3"
                         onClick={() => handleTaskStatusChange(task.id, "done")}
                       >
                         {pendingTaskIds.has(task.id) ? (
@@ -830,11 +827,12 @@ function ProjectTaskKanban({
                       <Badge className={priorityClasses[task.priority]}>{task.priority}</Badge>
                       {task.status !== "done" ? (
                         <Button
+                          size="icon-sm"
+                          effect="shine"
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           disabled={pendingTaskIds.has(task.id)}
                           aria-busy={pendingTaskIds.has(task.id)}
-                          className="h-8 w-8 p-0"
                           title="Tamamla"
                           aria-label="Tamamla"
                           onClick={() => onTaskStatusChange(task.id, "done")}
@@ -881,7 +879,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-9 gap-2 px-3">
+        <Button effect="shine" variant="secondary" className="gap-2 px-3">
           <Settings2 className="h-4 w-4" />
           <span className="hidden sm:inline">Ayarlar</span>
         </Button>
@@ -942,7 +940,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
             </Button>
           </DialogFooter>
@@ -977,7 +975,7 @@ function ProjectTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-9 gap-2 px-3">
+        <Button variant="default" effect="shine" className="gap-2 px-3">
           <Plus className="h-4 w-4" />
           Görev ekle
         </Button>
@@ -1091,7 +1089,7 @@ function ProjectTaskDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting} className="gap-2">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
               <Plus className="h-4 w-4" />
               {isSubmitting ? "Kaydediliyor" : "Görevi ekle"}
             </Button>
@@ -1217,10 +1215,10 @@ function TabButton({
   children: React.ReactNode;
 }) {
   return (
-    <Button
+    <Button effect="shine"
       type="button"
-      variant={active ? "default" : "ghost"}
-      className="h-9 px-4"
+      variant={active ? "default" : "secondary"}
+      className="px-4"
       onClick={onClick}
     >
       {children}

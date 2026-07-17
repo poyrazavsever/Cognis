@@ -102,7 +102,6 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">{client.name}</h1>
-            {client.company_name && <p className="text-muted-foreground mt-1">{client.company_name}</p>}
           </div>
         </div>
         <div className="flex gap-2 items-center">
@@ -113,7 +112,7 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
           {!client.client_auth_id && (
             <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 ml-2 border-dashed">
+                <Button effect="shine" variant="secondary" size="sm" className="gap-2 ml-2 border-dashed">
                   <UserPlus className="h-4 w-4" /> Portal Hesabı Aç
                 </Button>
               </DialogTrigger>
@@ -135,9 +134,9 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                         <Label htmlFor="invitation-url">Davet bağlantısı</Label>
                         <div className="flex gap-2">
                           <Input id="invitation-url" value={invitationUrl} readOnly />
-                          <Button
+                          <Button effect="shine"
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="icon"
                             aria-label="Davet bağlantısını kopyala"
                             onClick={async () => {
@@ -153,8 +152,8 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                     ) : null}
                   </div>
                   <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={() => setCreateUserOpen(false)}>İptal</Button>
-                    <Button type="submit" disabled={isCreatingUser || Boolean(invitationUrl)}>
+                    <Button effect="shine" type="button" variant="secondary" onClick={() => setCreateUserOpen(false)}>İptal</Button>
+                    <Button variant="default" effect="shine" type="submit" disabled={isCreatingUser || Boolean(invitationUrl)}>
                       {isCreatingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Davet Oluştur
                     </Button>
@@ -226,7 +225,7 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                 
                 <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="gap-2">
+                    <Button variant="default" effect="shine" size="sm" className="gap-2">
                       <Plus className="h-4 w-4" /> Aktivite Ekle
                     </Button>
                   </DialogTrigger>
@@ -262,7 +261,7 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button type="submit" disabled={isAddingActivity}>
+                        <Button variant="default" effect="shine" type="submit" disabled={isAddingActivity}>
                           {isAddingActivity ? "Ekleniyor..." : "Ekle"}
                         </Button>
                       </DialogFooter>

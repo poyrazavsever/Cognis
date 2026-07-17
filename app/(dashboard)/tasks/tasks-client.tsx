@@ -184,9 +184,6 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Görevler
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Proje ve müşteri bağlantılı işleri liste veya basit kanban ile takip et.
-          </p>
         </div>
 
         <TaskDialog mode="create" clients={clients} projects={projects} />
@@ -230,19 +227,19 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
                 </SelectContent>
               </Select>
               <div className="flex rounded-sm border border-border p-1">
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "list" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "list" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("list")}
                 >
                   <LayoutList className="h-4 w-4" />
                   Liste
                 </Button>
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "kanban" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "kanban" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("kanban")}
                 >
                   <KanbanSquare className="h-4 w-4" />
@@ -490,12 +487,12 @@ function TaskActions({
     <div className={compact ? "flex justify-end gap-1" : "flex justify-start gap-2 lg:justify-end"}>
       <TaskDialog mode="edit" task={task} clients={clients} projects={projects} />
       {task.status !== "done" ? (
-        <Button
+        <Button effect="shine"
           type="button"
-          variant="outline"
+          variant="secondary"
           disabled={isPending}
           aria-busy={isPending}
-          className="h-9 min-w-24 gap-2 px-3"
+          className="min-w-24 gap-2 px-3"
           onClick={() => onTaskStatusChange(task.id, "done")}
         >
           {isPending ? (
@@ -506,12 +503,12 @@ function TaskActions({
           {!compact ? (isPending ? "Tamamlanıyor" : "Tamamla") : null}
         </Button>
       ) : null}
-      <Button
+      <Button effect="shine"
         type="button"
-        variant="outline"
+        variant="secondary"
         disabled={isPending}
         aria-busy={isPending}
-        className="h-9 gap-2 px-3 text-rose-600"
+        className="gap-2 px-3 text-rose-600"
         onClick={() => onTaskDelete(task.id)}
       >
         {isPending ? (
@@ -560,9 +557,9 @@ function TaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={mode === "create" ? "default" : "outline"}
-          className="h-9 min-w-24 gap-2 px-3"
+        <Button effect="shine"
+          variant={mode === "create" ? "default" : "secondary"}
+          className="min-w-24 gap-2 px-3"
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Görev ekle" : "Düzenle"}
@@ -583,7 +580,7 @@ function TaskDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
                 ? "Kaydediliyor"

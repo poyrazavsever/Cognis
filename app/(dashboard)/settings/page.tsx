@@ -261,9 +261,6 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Ayarlar
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Workspace markanızı, profilinizi, görünümü ve sistem tercihlerinizi yönetin.
-          </p>
         </div>
       </div>
 
@@ -273,18 +270,16 @@ export default function SettingsPage() {
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
-              <button
+              <Button effect="shine"
                 key={tab.name}
+                type="button"
+                variant={activeTab === tab.name ? "default" : "secondary"}
                 onClick={() => setActiveTab(tab.name)}
-                className={`flex shrink-0 items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors text-left ${
-                  activeTab === tab.name 
-                    ? "bg-primary/10 text-primary" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                className="h-auto shrink-0 justify-start gap-3 px-4 py-3 text-left"
               >
                 <Icon className="h-4 w-4" />
                 {tab.name}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -448,7 +443,7 @@ export default function SettingsPage() {
                   </section>
 
                   <div className="flex items-center gap-3 border-t border-border pt-6">
-                    <Button type="submit" loading={isSavingBranding} className="gap-2">
+                    <Button variant="default" effect="shine" type="submit" loading={isSavingBranding} className="gap-2">
                       <Upload className="h-4 w-4" aria-hidden="true" />
                       Genel ayarları kaydet
                     </Button>
@@ -561,7 +556,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="flex items-center gap-4 pt-4">
-                    <Button type="submit" className="gap-2">
+                    <Button variant="default" effect="shine" type="submit" className="gap-2">
                       <Save className="h-4 w-4" /> Profili Kaydet
                     </Button>
                   </div>
@@ -584,7 +579,7 @@ export default function SettingsPage() {
                     <Input id="password" name="password" type="password" minLength={8} placeholder="En az 8 karakter" required />
                   </div>
                   <div className="flex items-center gap-4 pt-4">
-                    <Button type="submit" className="gap-2">
+                    <Button variant="default" effect="shine" type="submit" className="gap-2">
                       <Save className="h-4 w-4" /> Şifreyi Güncelle
                     </Button>
                   </div>
@@ -644,7 +639,7 @@ export default function SettingsPage() {
                   )}
 
                   <div className="flex items-center gap-4 pt-4">
-                    <Button onClick={handleSaveAI} className="gap-2">
+                    <Button variant="default" effect="shine" onClick={handleSaveAI} className="gap-2">
                       <Save className="h-4 w-4" /> Ayarları Kaydet
                     </Button>
                   </div>
@@ -725,9 +720,9 @@ function BrandingAssetField({
           className="cursor-pointer"
         />
         {hasCustomAsset ? (
-          <Button
+          <Button effect="shine"
             type="button"
-            variant="ghost"
+            variant="secondary"
             size="sm"
             disabled={disabled}
             onClick={() => onRemove(asset)}

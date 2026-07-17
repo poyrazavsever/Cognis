@@ -158,7 +158,7 @@ export default function AIChatPage() {
           <MessageSquare className="h-4 w-4" />
           Sohbetler
         </h2>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => {
+        <Button effect="shine" variant="secondary" size="icon-sm"  onClick={() => {
           handleNewChat();
           setIsMobileSessionsOpen(false);
         }}>
@@ -173,31 +173,31 @@ export default function AIChatPage() {
           </div>
         ) : (
           sessions.map((session) => (
-            <button
-              key={session.id}
-              type="button"
-              onClick={() => {
-                setActiveSessionId(session.id);
-                setIsMobileSessionsOpen(false);
-              }}
-              className={`group flex w-full items-center justify-between rounded-sm p-3 text-left transition-colors ${
-                activeSessionId === session.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <span className="truncate pr-2 text-sm font-medium">
-                {session.title || "İsimsiz sohbet"}
-              </span>
-              <span
-                role="button"
-                tabIndex={0}
+            <div key={session.id} className="group flex items-center gap-1">
+              <Button effect="shine"
+                type="button"
+                variant={activeSessionId === session.id ? "default" : "secondary"}
+                onClick={() => {
+                  setActiveSessionId(session.id);
+                  setIsMobileSessionsOpen(false);
+                }}
+                className="min-w-0 flex-1 justify-start px-3"
+              >
+                <span className="truncate text-sm font-medium">
+                  {session.title || "İsimsiz sohbet"}
+                </span>
+              </Button>
+              <Button effect="shine"
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label={`${session.title || "İsimsiz sohbet"} sohbetini sil`}
                 onClick={(event) => void handleDeleteSession(session.id, event)}
-                className="rounded-sm p-1 opacity-0 transition-all hover:bg-rose-50 hover:text-rose-600 lg:group-hover:opacity-100"
+                className="text-destructive opacity-0 transition-opacity lg:group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </span>
-            </button>
+              </Button>
+            </div>
           ))
         )}
       </div>
@@ -236,10 +236,9 @@ export default function AIChatPage() {
             </div>
             <div>
               <h1 className="text-sm font-semibold text-foreground">AI Asistan</h1>
-              <p className="text-xs text-muted-foreground">Kayıtlı verilerin hakkında soru sor.</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="h-8 md:hidden text-xs px-3" onClick={() => setIsMobileSessionsOpen(true)}>
+          <Button effect="shine" variant="secondary" size="sm" className="md:hidden text-xs px-3" onClick={() => setIsMobileSessionsOpen(true)}>
             <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Sohbetler
           </Button>
         </header>
@@ -304,11 +303,11 @@ export default function AIChatPage() {
               disabled={isLoading}
             />
             {isLoading ? (
-              <Button type="button" variant="outline" size="icon" className="shrink-0 h-9 w-9" onClick={() => void stop()}>
+              <Button effect="shine" type="button" variant="secondary" size="icon" className="shrink-0" onClick={() => void stop()}>
                 <span className="h-3 w-3 bg-current" />
               </Button>
             ) : (
-              <Button type="submit" size="icon" className="shrink-0 h-9 w-9" disabled={!input.trim()}>
+              <Button variant="default" effect="shine" type="submit" size="icon" className="shrink-0" disabled={!input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             )}

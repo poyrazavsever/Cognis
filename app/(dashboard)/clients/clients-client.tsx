@@ -167,9 +167,6 @@ export function ClientsClient({
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             CRM & Müşteriler
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Potansiyel müşterilerini pipeline üzerinden takip et ve müşteri ilişkilerini yönet.
-          </p>
         </div>
 
         <ClientDialog mode="create" />
@@ -331,7 +328,7 @@ function DraggableClientCard({
               {client.name}
             </PendingLink>
             <div onPointerDown={(e) => e.stopPropagation()}>
-              <ClientDialog mode="edit" client={client} trigger={<Button variant="ghost" className="h-6 w-6 p-0"><Pencil className="h-3 w-3" /></Button>} />
+              <ClientDialog mode="edit" client={client} trigger={<Button size="icon-sm" effect="shine" variant="secondary" ><Pencil className="h-3 w-3" /></Button>} />
             </div>
           </div>
           {client.company_name && <p className="text-xs text-muted-foreground mb-2 pointer-events-none">{client.company_name}</p>}
@@ -412,11 +409,11 @@ function ClientRow({ client }: { client: ClientListItem }) {
 
       <div className="flex justify-end gap-2">
         <PendingLink href={`/clients/${client.id}`} className="inline-flex" showSpinner>
-          <Button variant="ghost" className="h-9 w-9 p-0">
+          <Button size="icon" effect="shine" variant="secondary" >
             <ArrowRight className="h-4 w-4" />
           </Button>
         </PendingLink>
-        <ClientDialog mode="edit" client={client} trigger={<Button variant="outline" className="h-9 min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> Düzenle</Button>} />
+        <ClientDialog mode="edit" client={client} trigger={<Button effect="shine" variant="secondary" className="min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> Düzenle</Button>} />
       </div>
     </div>
   );
@@ -457,9 +454,9 @@ function ClientDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button
-            variant={mode === "create" ? "default" : "outline"}
-            className="h-9 min-w-24 gap-2 px-3"
+          <Button effect="shine"
+            variant={mode === "create" ? "default" : "secondary"}
+            className="min-w-24 gap-2 px-3"
           >
             {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
             {mode === "create" ? "Müşteri ekle" : "Düzenle"}
@@ -483,7 +480,7 @@ function ClientDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
                 ? "Kaydediliyor"

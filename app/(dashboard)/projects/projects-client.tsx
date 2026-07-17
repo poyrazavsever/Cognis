@@ -119,9 +119,6 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Projeler
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Müşteri işleri ve kişisel side projectleri aynı yerde takip et.
-          </p>
         </div>
 
         <div className="flex gap-2">
@@ -154,19 +151,19 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
                 className="sm:w-80"
               />
               <div className="flex rounded-sm border border-border p-1">
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "grid" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "grid" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("grid")}
                 >
                   <LayoutGrid className="h-4 w-4" />
                   Kart
                 </Button>
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "list" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "list" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("list")}
                 >
                   <List className="h-4 w-4" />
@@ -367,9 +364,10 @@ function ProjectActions({
     >
       {showDetail ? (
         <Button
+          size="icon"
+          effect="shine"
           asChild
-          variant="outline"
-          className="h-9 w-9 p-0"
+          variant="secondary"
           title="Detaya git"
           aria-label="Detaya git"
         >
@@ -383,8 +381,8 @@ function ProjectActions({
         <form action={completeProjectRecord}>
           <input type="hidden" name="id" value={project.id} />
           <PendingSubmitButton
-            variant="outline"
-            className="h-9 w-9 p-0"
+            size="icon"
+            variant="secondary"
             title="Tamamla"
             aria-label="Tamamla"
             idleIcon={<CheckCircle2 className="h-4 w-4" />}
@@ -433,9 +431,10 @@ function ProjectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={mode === "create" ? "default" : "outline"}
-          className={iconOnly ? "h-9 w-9 p-0" : "h-9 min-w-24 gap-2 px-3"}
+        <Button effect="shine"
+          variant={mode === "create" ? "default" : "secondary"}
+          size={iconOnly ? "icon" : "default"}
+          className={iconOnly ? undefined : "min-w-24 gap-2 px-3"}
           title={mode === "create" ? "Proje ekle" : "Düzenle"}
           aria-label={mode === "create" ? "Proje ekle" : "Düzenle"}
         >
@@ -463,7 +462,7 @@ function ProjectDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
                 ? "Kaydediliyor"
@@ -787,7 +786,7 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-800">
+        <Button effect="shine" variant="secondary" className="gap-2">
           <Brain className="h-4 w-4" />
           AI Risk Analizi
         </Button>
@@ -806,7 +805,7 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
         <div className="py-4">
           {!result && !loading && (
             <div className="text-center py-10">
-              <Button onClick={handleAnalyze} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button variant="default" effect="shine" onClick={handleAnalyze} className="gap-2">
                 <Brain className="h-4 w-4" />
                 Raporu Oluştur
               </Button>
@@ -829,8 +828,8 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
 
         {result && (
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Kapat</Button>
-            <Button variant="default" onClick={handleAnalyze} className="gap-2">
+            <Button effect="shine" variant="secondary" onClick={() => setOpen(false)}>Kapat</Button>
+            <Button effect="shine" variant="default" onClick={handleAnalyze} className="gap-2">
               <Brain className="h-4 w-4" />
               Yeniden Oluştur
             </Button>
