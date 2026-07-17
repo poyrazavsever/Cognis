@@ -35,8 +35,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { StatCard } from "@/components/system/stat-card";
 
 export type DailyLogItem = {
   id: string;
@@ -95,25 +95,25 @@ export function JournalClient({ logs }: JournalClientProps) {
         <StatCard
           label="Ortalama mood"
           value={summary.moodAverage ? summary.moodAverage.toFixed(1) : "-"}
-          icon={<Smile className="h-5 w-5" />}
+          icon={Smile}
           tone="primary"
         />
         <StatCard
           label="Ortalama enerji"
           value={summary.energyAverage ? summary.energyAverage.toFixed(1) : "-"}
-          icon={<Battery className="h-5 w-5" />}
+          icon={Battery}
           tone="green"
         />
         <StatCard
           label="Memnuniyet"
           value={summary.satisfactionAverage ? summary.satisfactionAverage.toFixed(1) : "-"}
-          icon={<LineChartIcon className="h-5 w-5" />}
+          icon={LineChartIcon}
           tone="blue"
         />
         <StatCard
           label="Kayıtlı gün"
           value={String(logs.length)}
-          icon={<CalendarDays className="h-5 w-5" />}
+          icon={CalendarDays}
           tone="amber"
         />
       </div>
@@ -397,39 +397,6 @@ function ScoreBadge({ score, tone }: { score: number; tone: "primary" | "green" 
       : "border-primary/20 bg-primary/10 text-primary";
 
   return <Badge className={className}>{score}/5 · {scoreLabels[score]}</Badge>;
-}
-
-function StatCard({
-  label,
-  value,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: ReactNode;
-  tone: "primary" | "green" | "blue" | "amber";
-}) {
-  const toneClass = {
-    primary: "bg-primary/10 text-primary",
-    green: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    amber: "bg-amber-50 text-amber-700",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          {icon}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 function EmptyState() {

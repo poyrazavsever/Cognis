@@ -40,7 +40,6 @@ import {
   Wallet,
   Clock,
   ArrowRight,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -48,6 +47,7 @@ import { format, isPast, isToday } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { StatCard } from "@/components/system/stat-card";
 
 export type ClientListItem = {
   id: string;
@@ -180,26 +180,26 @@ export function ClientsClient({
           label="Potansiyel (Lead)"
           value={clients.filter(c => c.pipeline_stage === 'lead' || c.pipeline_stage === 'contacted').length.toString()}
           icon={Users}
-          iconClassName="bg-blue-50 text-blue-700"
+          tone="blue"
         />
         <StatCard
           label="Aktif Müşteri"
           value={activeCount.toString()}
           icon={UserCheck}
-          iconClassName="bg-emerald-50 text-emerald-700"
+          tone="green"
         />
         <StatCard
           label="Bekleyen Follow-up"
           value={clients.filter(c => c.next_follow_up_date && (isPast(new Date(c.next_follow_up_date)) || isToday(new Date(c.next_follow_up_date)))).length.toString()}
           icon={Clock}
-          iconClassName="bg-rose-50 text-rose-700"
+          tone="rose"
         />
         <StatCard
           label="Kayıtlı Gelir"
           value={formatCurrency(totalRevenue)}
           description="Ödenmiş gelir işlemleri"
           icon={Wallet}
-          iconClassName="bg-primary/10 text-primary"
+          tone="primary"
         />
       </div>
 
@@ -610,25 +610,6 @@ function PhoneInput({ id, name, defaultValue }: { id: string; name: string; defa
       placeholder="+90 (5xx) xxx xx xx"
       onChange={(event) => setValue(formatPhone(event.target.value))}
     />
-  );
-}
-
-function StatCard({ label, value, description, icon: Icon, iconClassName }: { label: string; value: string; description?: string; icon: LucideIcon; iconClassName: string; }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-            {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
-          </div>
-          <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${iconClassName}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

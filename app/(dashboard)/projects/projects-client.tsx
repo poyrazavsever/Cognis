@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ChangeEvent } from "react";
+import { StatCard } from "@/components/system/stat-card";
 
 export type ProjectClientOption = {
   id: string;
@@ -719,39 +720,6 @@ function ProgressBar({ progress, compact = false }: { progress: number; compact?
         />
       </div>
     </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: typeof FolderKanban;
-  tone: "green" | "blue" | "amber" | "red";
-}) {
-  const toneClass = {
-    green: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    amber: "bg-amber-50 text-amber-700",
-    red: "bg-primary/10 text-primary",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

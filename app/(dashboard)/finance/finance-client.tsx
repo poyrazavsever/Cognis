@@ -24,6 +24,8 @@ import {
 import {
   ArrowDownRight,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
   Pencil,
   Plus,
   Trash2,
@@ -31,7 +33,8 @@ import {
   Brain,
   Loader2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { StatCard } from "@/components/system/stat-card";
 
 export type FinanceRelationOption = {
   id: string;
@@ -82,6 +85,17 @@ const currencyOptions = [
   { value: "AUD", label: "Avustralya doları (AUD)" },
 ];
 
+// Dizilim ve featured alanı, özet şeridinde hangi metriklerin önce
+// gösterileceğini tek bir yerden değiştirmeyi sağlar.
+const financeSummaryCardConfig = [
+  { key: "afterTax", label: "Vergi Sonrası Net", tone: "green", icon: Wallet, featured: true },
+  { key: "net", label: "Brüt kazanç", tone: "primary", icon: Wallet, featured: true },
+  { key: "income", label: "Aylık gelir", tone: "green", icon: ArrowUpRight, featured: false },
+  { key: "expense", label: "Aylık gider", tone: "rose", icon: ArrowDownRight, featured: false },
+  { key: "pending", label: "Bekleyen", tone: "amber", icon: Wallet, featured: false },
+  { key: "tax", label: "KDV Tahmini (%20)", tone: "amber", icon: Wallet, featured: false },
+] as const;
+
 type FinanceClientProps = {
   transactions: FinanceTransactionItem[];
   clients: FinanceRelationOption[];
@@ -91,6 +105,7 @@ type FinanceClientProps = {
 export function FinanceClient({ transactions, clients, projects }: FinanceClientProps) {
   const [query, setQuery] = useState("");
   const [monthFilter, setMonthFilter] = useState(() => new Date().toISOString().slice(0, 7));
+  const summaryTrackRef = useRef<HTMLDivElement>(null);
   const normalizedQuery = query.trim().toLowerCase();
   const filteredByMonth = transactions.filter((transaction) =>
     transaction.transaction_date.startsWith(monthFilter),
@@ -111,6 +126,20 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
 
   const summary = useMemo(() => calculateSummary(filteredByMonth), [filteredByMonth]);
   const categoryBreakdown = useMemo(() => calculateExpenseCategories(filteredByMonth), [filteredByMonth]);
+  const summaryCards = financeSummaryCardConfig.map((card) => ({
+    ...card,
+    value: formatCurrency(summary[card.key]),
+  }));
+
+  const scrollSummary = (direction: -1 | 1) => {
+    const track = summaryTrackRef.current;
+    if (!track) return;
+
+    track.scrollBy({
+      left: direction * Math.max(track.clientWidth * 0.72, 260),
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
@@ -129,14 +158,70 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard label="Aylık gelir" value={formatCurrency(summary.income)} tone="green" />
-        <StatCard label="Aylık gider" value={formatCurrency(summary.expense)} tone="rose" />
-        <StatCard label="Brüt kazanç" value={formatCurrency(summary.net)} tone="primary" />
-        <StatCard label="KDV Tahmini (%20)" value={formatCurrency(summary.tax)} tone="amber" />
-        <StatCard label="Vergi Sonrası Net" value={formatCurrency(summary.afterTax)} tone="green" />
-        <StatCard label="Bekleyen" value={formatCurrency(summary.pending)} tone="amber" />
-      </div>
+      <section aria-labelledby="finance-summary-title" className="space-y-3">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 id="finance-summary-title" className="text-base font-semibold text-foreground">
+              Finans özeti
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Öne çıkan metrikler önce gösterilir; diğer kartlar arasında kaydırarak ilerleyebilirsin.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              aria-label="Önceki finans özet kartları"
+              onClick={() => scrollSummary(-1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              aria-label="Sonraki finans özet kartları"
+              onClick={() => scrollSummary(1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div
+          ref={summaryTrackRef}
+          role="region"
+          aria-label="Kaydırılabilir finans özeti"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              scrollSummary(-1);
+            }
+            if (event.key === "ArrowRight") {
+              event.preventDefault();
+              scrollSummary(1);
+            }
+          }}
+          className="tiny-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          {summaryCards.map((card) => (
+            <StatCard
+              key={card.key}
+              label={card.label}
+              value={card.value}
+              icon={card.icon}
+              tone={card.tone}
+              featured={card.featured}
+              className="w-[250px] shrink-0 snap-start"
+            />
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card>
@@ -484,29 +569,6 @@ function SelectField({ name, label, defaultValue, children }: { name: string; la
         <SelectContent>{children}</SelectContent>
       </Select>
     </div>
-  );
-}
-
-function StatCard({ label, value, tone }: { label: string; value: string; tone: "green" | "rose" | "primary" | "amber" }) {
-  const toneClass = {
-    green: "bg-emerald-50 text-emerald-700",
-    rose: "bg-rose-50 text-rose-700",
-    primary: "bg-primary/10 text-primary",
-    amber: "bg-amber-50 text-amber-700",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          <Wallet className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
