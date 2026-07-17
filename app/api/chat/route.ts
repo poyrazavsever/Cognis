@@ -17,7 +17,10 @@ export const maxDuration = 120;
 const requestSchema = z.object({
   sessionId: z.string().trim().min(1).max(160),
   messages: z.array(z.unknown()).min(1).max(100),
-}).strict();
+  id: z.string().trim().min(1).max(160).optional(),
+  trigger: z.enum(["submit-message", "regenerate-message"]).optional(),
+  messageId: z.string().trim().min(1).max(160).optional(),
+});
 
 export async function POST(request: Request) {
   try {
@@ -34,16 +37,29 @@ export async function POST(request: Request) {
       throw new DomainError("FORBIDDEN", "Bu işlem yalnızca freelancer hesabına açıktır.");
     }
 
-    const parsed = requestSchema.safeParse(await request.json());
+    const requestBody = await readJsonBody(request);
+    const parsed = requestSchema.safeParse(requestBody);
     if (!parsed.success) {
-      throw new DomainError("VALIDATION_ERROR", "Sohbet isteği geçersiz.");
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        `Sohbet isteği geçersiz: ${describeRequestIssues(parsed.error.issues)}`,
+        {
+          issues: parsed.error.issues.map((issue) => ({
+            code: issue.code,
+            path: issue.path.join(".") || "body",
+          })),
+        },
+      );
     }
 
     const validated = await safeValidateUIMessages<UIMessage>({
       messages: parsed.data.messages,
     });
     if (!validated.success) {
-      throw new DomainError("VALIDATION_ERROR", "Mesaj biçimi geçersiz.");
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        "Mesaj biçimi geçersiz: her mesaj id, role ve parts alanlarını içermelidir.",
+      );
     }
 
     const latestMessage = validated.data.at(-1);
@@ -97,18 +113,54 @@ ${userContext}`,
           });
         }
       },
-      onError: ({ error }) => {
-        normalizeAiError(error);
-      },
     });
 
     return result.toUIMessageStreamResponse({
-      onError: () => "AI sağlayıcısı yanıt üretirken bir hata oluştu.",
+      onError: (error) => normalizeAiError(error).message,
     });
   } catch (error) {
     const normalized = normalizeAiError(error);
-    return new Response(normalized.message, { status: normalized.status });
+    return new Response(normalized.message, {
+      status: normalized.status,
+      headers: {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-neta-error-code": normalized.code,
+      },
+    });
   }
+}
+
+async function readJsonBody(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    throw new DomainError(
+      "VALIDATION_ERROR",
+      "Sohbet isteği geçerli bir JSON gövdesi içermiyor.",
+    );
+  }
+}
+
+function describeRequestIssues(issues: z.core.$ZodIssue[]): string {
+  return issues
+    .slice(0, 3)
+    .map((issue) => {
+      const field = issue.path.join(".") || "body";
+      switch (issue.code) {
+        case "invalid_type":
+          return `"${field}" alanı eksik veya beklenen türde değil`;
+        case "too_small":
+          return `"${field}" alanı boş olamaz`;
+        case "too_big":
+          return `"${field}" alanı izin verilen sınırı aşıyor`;
+        case "invalid_value":
+          return `"${field}" desteklenmeyen bir değer içeriyor`;
+        default:
+          return `"${field}" alanı doğrulanamadı`;
+      }
+    })
+    .join("; ");
 }
 
 function toUiMessage(message: {

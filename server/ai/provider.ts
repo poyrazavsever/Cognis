@@ -3,7 +3,7 @@ import "server-only";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
-import type { LanguageModel } from "ai";
+import { APICallError, NoSuchModelError, type LanguageModel } from "ai";
 import { getServerConfig } from "../config";
 import type { DomainActor } from "../domain/actor";
 import { DomainError } from "../domain/errors";
@@ -70,6 +70,40 @@ export function normalizeAiError(error: unknown): DomainError {
       "UPSTREAM_TIMEOUT",
       "AI sağlayıcısı zamanında yanıt vermedi. Lütfen tekrar deneyin.",
     );
+  }
+
+  if (NoSuchModelError.isInstance(error)) {
+    return new DomainError(
+      "VALIDATION_ERROR",
+      "Seçili AI modeli kullanılamıyor. Ayarlardaki model adını kontrol edin.",
+    );
+  }
+
+  if (APICallError.isInstance(error)) {
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      return new DomainError(
+        "VALIDATION_ERROR",
+        "AI sağlayıcısı API anahtarını reddetti. Ayarlardaki anahtarı kontrol edin.",
+      );
+    }
+    if (error.statusCode === 404) {
+      return new DomainError(
+        "VALIDATION_ERROR",
+        "Seçili AI modeli sağlayıcıda bulunamadı. Model adını kontrol edin.",
+      );
+    }
+    if (error.statusCode === 429) {
+      return new DomainError(
+        "SERVICE_UNAVAILABLE",
+        "AI sağlayıcısının kullanım limiti aşıldı. Kısa süre sonra tekrar deneyin.",
+      );
+    }
+    if (error.statusCode && error.statusCode >= 500) {
+      return new DomainError(
+        "UPSTREAM_ERROR",
+        "AI sağlayıcısı geçici bir sunucu hatası döndürdü. Biraz sonra tekrar deneyin.",
+      );
+    }
   }
 
   console.error("AI provider request failed", error);

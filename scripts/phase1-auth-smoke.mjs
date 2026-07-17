@@ -302,7 +302,10 @@ try {
       assert.equal(missingAiSettings.response.status, 400, `Missing AI key must fail: ${pathname}`);
     }
     const chatBody = {
+      id: "phase7-client-chat",
       sessionId: "phase7-chat",
+      trigger: "submit-message",
+      messageId: "phase7-user-message",
       messages: [{
         id: "phase7-user-message",
         role: "user",
@@ -315,6 +318,29 @@ try {
       body: JSON.stringify(chatBody),
     });
     assert.equal(anonymousChat.status, 401, "Anonymous chat request must fail");
+
+    const invalidChatRequest = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: ownerCookie,
+        origin: baseUrl,
+      },
+      body: JSON.stringify({
+        id: "phase7-invalid-chat",
+        sessionId: "phase7-chat",
+        trigger: "submit-message",
+        messages: [],
+      }),
+    });
+    assert.equal(invalidChatRequest.status, 400);
+    assert.equal(invalidChatRequest.headers.get("x-neta-error-code"), "VALIDATION_ERROR");
+    assert.match(
+      await invalidChatRequest.text(),
+      /"messages" alanı boş olamaz/,
+      "Chat validation errors must identify the invalid request field",
+    );
+
     const missingChatSettings = await fetch(`${baseUrl}/api/chat`, {
       method: "POST",
       headers: {
@@ -325,6 +351,11 @@ try {
       body: JSON.stringify(chatBody),
     });
     assert.equal(missingChatSettings.status, 400, "Missing AI key must fail: /api/chat");
+    assert.match(
+      await missingChatSettings.text(),
+      /AI sağlayıcısı ve API anahtarı/,
+      "The AI SDK v6 transport envelope must pass request validation and reach provider settings",
+    );
     assert.equal(
       db.prepare("select count(*) as value from chat_messages where session_id = ?")
         .get("phase7-chat").value,

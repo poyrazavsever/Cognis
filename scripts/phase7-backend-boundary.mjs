@@ -46,6 +46,44 @@ if (/\bapiKey\b|\bprovider\b/.test(chatPage)) {
   violations.push("app/(dashboard)/chat/page.tsx: AI secret/provider leaked to browser code");
 }
 
+const chatRoute = fs.readFileSync(
+  path.join(process.cwd(), "app/api/chat/route.ts"),
+  "utf8",
+);
+for (const transportField of ['id:', 'trigger:', 'messageId:']) {
+  assert.ok(
+    chatRoute.includes(transportField),
+    `Chat request schema must accept AI SDK v6 transport field ${transportField}`,
+  );
+}
+for (const diagnosticMarker of [
+  "describeRequestIssues",
+  "x-neta-error-code",
+  "geçerli bir JSON gövdesi",
+  "her mesaj id, role ve parts",
+]) {
+  assert.ok(
+    chatRoute.includes(diagnosticMarker),
+    `Chat route is missing diagnostic marker: ${diagnosticMarker}`,
+  );
+}
+
+const aiProvider = fs.readFileSync(
+  path.join(process.cwd(), "server/ai/provider.ts"),
+  "utf8",
+);
+for (const providerDiagnostic of [
+  "APICallError",
+  "API anahtarını reddetti",
+  "kullanım limiti aşıldı",
+  "modeli sağlayıcıda bulunamadı",
+]) {
+  assert.ok(
+    aiProvider.includes(providerDiagnostic),
+    `AI provider diagnostics are missing: ${providerDiagnostic}`,
+  );
+}
+
 assert.deepEqual(
   violations,
   [],
