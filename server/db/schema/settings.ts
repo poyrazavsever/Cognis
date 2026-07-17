@@ -4,6 +4,13 @@ import { user } from "./auth";
 
 export type AiProvider = "gemini" | "openai" | "groq" | "ollama";
 
+export const instanceSettings = sqliteTable("instance_settings", {
+  key: text("key").primaryKey(),
+  instanceId: text("instance_id").notNull().unique(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const userAiSettings = sqliteTable(
   "user_ai_settings",
   {

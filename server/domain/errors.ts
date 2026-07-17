@@ -6,7 +6,8 @@ export type DomainErrorCode =
   | "CONFLICT"
   | "INVARIANT_VIOLATION"
   | "UPSTREAM_ERROR"
-  | "UPSTREAM_TIMEOUT";
+  | "UPSTREAM_TIMEOUT"
+  | "SERVICE_UNAVAILABLE";
 
 const statusByCode: Record<DomainErrorCode, number> = {
   VALIDATION_ERROR: 400,
@@ -17,6 +18,7 @@ const statusByCode: Record<DomainErrorCode, number> = {
   INVARIANT_VIOLATION: 422,
   UPSTREAM_ERROR: 502,
   UPSTREAM_TIMEOUT: 504,
+  SERVICE_UNAVAILABLE: 503,
 };
 
 export class DomainError extends Error {

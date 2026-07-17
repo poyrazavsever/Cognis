@@ -50,6 +50,13 @@
       "when": 1784266217938,
       "tag": "0006_moaning_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1784268984532,
+      "tag": "0007_flaky_kinsey_walden",
+      "breakpoints": true
     }
   ]
 }

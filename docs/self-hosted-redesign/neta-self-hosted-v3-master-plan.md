@@ -2,7 +2,7 @@
 title: Neta Self-Hosted v3 Ana Dönüşüm Planı
 description: Supabase çıkışı, SQLite tabanlı backend, Better Auth, Poyraz UI v3 ve instance özelleştirmesi için ana yol haritası.
 status: active
-current_phase: "9 — Mobil API hazırlığı"
+current_phase: "10 — Kullanıcı yönlendirmeli sayfa tasarımları"
 last_updated: 2026-07-17
 ---
 
@@ -527,7 +527,7 @@ Faz 5'in başlangıç noktası freelancer runtime'ındaki Supabase erişimleridi
 - [x] Portal backend'i Faz 6 sözleşmesine göre tamamlandı.
 - [x] AI/chat ve business backend'i Faz 7 sözleşmesine göre tamamlandı.
 - [x] Import ve runtime Supabase temizliği Faz 8'de tamamlandı.
-- [ ] Mobil API sınırı Faz 9'da tamamlandı.
+- [x] Mobil API sınırı Faz 9'da tamamlandı.
 
 ## 15. Revizyon güvenliği ve kota işlemi
 
@@ -580,13 +580,13 @@ Mobil hazırlık checklist'i:
 
 - [x] API response envelope standardı tanımlandı.
 - [x] API hata kodları tanımlandı.
-- [ ] API sürümleme stratejisi tanımlandı.
-- [ ] Instance metadata sözleşmesi tanımlandı.
-- [ ] Minimum desteklenen client sürümü alanı düşünüldü.
-- [ ] Capability listesi sözleşmesi düşünüldü.
+- [x] API sürümleme stratejisi tanımlandı.
+- [x] Instance metadata sözleşmesi tanımlandı.
+- [x] Minimum desteklenen client sürümü alanı düşünüldü.
+- [x] Capability listesi sözleşmesi düşünüldü.
 - [x] Service katmanı cookie/Next.js objelerine bağımlı değil.
-- [ ] Mobil pairing ilk release kapsamı dışında tutuldu.
-- [ ] Gelecekte HTTPS zorunluluğu belgelendi.
+- [x] Mobil pairing ilk release kapsamı dışında tutuldu.
+- [x] Gelecekte HTTPS zorunluluğu belgelendi.
 
 ## 17. Supabase veri import ve cutover planı
 
@@ -744,7 +744,7 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [x] Branding ayarları belgelendi.
 - [x] Backup/restore belgelendi.
 - [x] Upgrade/migration akışı belgelendi.
-- [ ] Mobil API sınırı belgelendi.
+- [x] Mobil API sınırı belgelendi.
 - [x] Eski ve çelişkili Supabase belgeleri archive veya kaldırıldı.
 - [x] ADR-0006 Poyraz UI v3 kararıyla güncellendi.
 - [x] ADR-0007 ile PWA runtime durumu uyumlu hale getirildi.
@@ -984,11 +984,24 @@ Faz 8 tamamlanma notu (2026-07-17):
 
 Amaç: React Native geliştirmesine başlamadan önce instance keşif ve stabil API sınırını tamamlamak.
 
-- [ ] `/api/v1` sözleşmesi yayınlandı.
-- [ ] `/.well-known/neta` sözleşmesi yayınlandı.
-- [ ] Instance metadata ve capability modeli tamamlandı.
-- [ ] Pairing güvenlik tasarımı ayrı ADR olarak yazıldı.
-- [ ] Device token lifecycle tasarlandı.
+- [x] `/api/v1` sözleşmesi yayınlandı.
+- [x] `/.well-known/neta` sözleşmesi yayınlandı.
+- [x] Instance metadata ve capability modeli tamamlandı.
+- [x] Pairing güvenlik tasarımı ayrı ADR olarak yazıldı.
+- [x] Device token lifecycle tasarlandı.
+
+Faz 9 tamamlanma notu (2026-07-17):
+
+- `/.well-known/neta`; protocol/discovery sürümü, kalıcı instance kimliği, application adı, mutlak API/meta/health URL'leri ve HTTPS politikasını public discovery belgesi olarak yayınlar.
+- `/api/v1/meta`; server/API sürümü, instance/organization kimliği, absolute branding asset URL'leri, SemVer minimum mobil sürümü, platformlar, auth yöntemi, capability durumları ve navigasyon linklerini standart success envelope içinde döndürür.
+- `/api/v1/health` SQLite/migration readiness'i v1 envelope ve `SERVICE_UNAVAILABLE` hata koduyla sunar. `/api/v1/me` yalnızca geçerli Better Auth session'ıyla güvenli user/role/client bağı ve session expiry döndürür; token/password/secret içermez.
+- `instance_settings` ve migration `0007`; ilk discovery isteğinde concurrency-safe oluşturulan UUID'yi backup/restore ile korunacak kalıcı instance kimliği yapar. Domain veya marka adı kimlik olarak kullanılmaz.
+- API major sürümü URL'de `/api/v1` olarak kilitlendi. Additive alan/capability değişiklikleri v1 içinde; alan silme, tip/anlam/auth kırılması yeni major içinde yapılacaktır. Tüm v1 yanıtları `X-Neta-API-Version: 1` taşır.
+- `NETA_MINIMUM_MOBILE_VERSION` opsiyonel SemVer alt sınırı olarak eklendi. Bilinmeyen capability/alanları yok sayma ve `planned` capability'yi kullanmama kuralı belgelendi.
+- Pairing runtime'a sahte/eksik endpoint olarak eklenmedi; `auth.device-pairing` capability'si `planned` durumundadır. Ayrı ADR-0018; tek kullanımlık challenge, rate limit, hash-only secret, opaque access/refresh token rotation, reuse detection, scope, revoke/expire/compromised lifecycle, secure storage ve restore sonrası token epoch invalidation gereksinimlerini kilitler.
+- Mobil URL bağlantı algoritması; origin normalizasyonu, HTTPS, redirect/downgrade koruması, discovery/meta instance ID eşlemesi ve kimlik değişiminde credential'ı sessizce kullanmama kurallarıyla `phase-9-mobile-api.md` belgesinde yayınlandı.
+- `phase9:api-boundary` pairing route'larının tasarım uygulanmadan açılmadığını ve API/service sınırını doğrular. `phase9:smoke`; eşzamanlı discovery, metadata, minimum sürüm, capabilities, health, anonymous/owner/client `/me`, disabled client reddi ve absolute branding URL akışlarını gerçek Next.js + Better Auth üzerinde doğrular.
+- Typecheck, hedefli ESLint, migration drift kontrolü, production build, Faz 8 source/build artifact sınırı ve `git diff --check` başarılıdır.
 
 Çıkış kriteri: Mobil istemci backend'in iç uygulama detaylarına bağımlı olmadan entegrasyona başlayabilir.
 
@@ -1002,8 +1015,8 @@ Başlangıç koşulları:
 - [x] Faz 6 portal backend geçişi tamamlandı.
 - [x] Faz 7 kapsamındaki runtime modülleri tamamlandı veya açıkça ertelendi.
 - [x] Faz 8 Supabase runtime temizliği ve release hardening tamamlandı.
-- [ ] Faz 9 mobil API hazırlığı tamamlandı.
-- [ ] Tasarım sırasında kullanılacak backend veri sözleşmeleri stabil.
+- [x] Faz 9 mobil API hazırlığı tamamlandı.
+- [x] Tasarım sırasında kullanılacak backend veri sözleşmeleri stabil.
 
 Sayfa grupları:
 
@@ -1051,7 +1064,7 @@ Her sayfa için tasarım kabul checklist'i:
 - [x] Hedef schema tamamlandı.
 - [x] Service/repository sınırı tamamlandı.
 - [x] Server-side authorization tamamlandı.
-- [ ] API v1 sınırı hazırlandı.
+- [x] API v1 sınırı hazırlandı.
 
 ### Supabase çıkışı
 

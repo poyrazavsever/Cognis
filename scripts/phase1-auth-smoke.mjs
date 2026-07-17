@@ -21,6 +21,7 @@ const env = {
   NEXT_PUBLIC_SITE_URL: baseUrl,
   BETTER_AUTH_SECRET: "phase1-auth-smoke-secret-is-longer-than-32-characters",
   TRUSTED_ORIGINS: baseUrl,
+  NETA_MINIMUM_MOBILE_VERSION: "1.2.3-smoke.1",
   NEXT_TELEMETRY_DISABLED: "1",
 };
 
@@ -53,6 +54,79 @@ server.stderr.on("data", (chunk) => {
 try {
   await waitForServer();
 
+  const discoveryResponses = await Promise.all(
+    Array.from({ length: 4 }, () => fetch(`${baseUrl}/.well-known/neta`)),
+  );
+  const discoveryDocuments = await Promise.all(
+    discoveryResponses.map(async (response) => {
+      assert.equal(response.status, 200, "Neta discovery must be public");
+      assert.match(
+        response.headers.get("cache-control") ?? "",
+        /public/,
+        "Discovery must declare its public cache policy",
+      );
+      assert.equal(response.headers.get("set-cookie"), null, "Discovery must not create a session");
+      return response.json();
+    }),
+  );
+  const discovery = discoveryDocuments[0];
+  assert.equal(discovery.protocol, "neta");
+  assert.equal(discovery.discoveryVersion, 1);
+  assert.match(discovery.instanceId, /^[0-9a-f-]{36}$/i);
+  assert.equal(discovery.api.version, "1");
+  assert.equal(discovery.api.baseUrl, `${baseUrl}/api/v1`);
+  assert.equal(discovery.api.metaUrl, `${baseUrl}/api/v1/meta`);
+  assert.equal(discovery.security.httpsRequired, true);
+  assert.deepEqual(
+    new Set(discoveryDocuments.map((document) => document.instanceId)),
+    new Set([discovery.instanceId]),
+    "Concurrent discovery must return one stable instance id",
+  );
+
+  const publicMeta = await jsonRequest("/api/v1/meta");
+  assert.equal(publicMeta.response.status, 200);
+  assert.equal(publicMeta.response.headers.get("x-neta-api-version"), "1");
+  assert.equal(publicMeta.payload.ok, true);
+  assert.equal(publicMeta.payload.data.instance.id, discovery.instanceId);
+  assert.match(
+    publicMeta.payload.data.instance.createdAt,
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+    "Instance timestamps must use UTC ISO-8601",
+  );
+  assert.equal(publicMeta.payload.data.client.minimumSupportedVersion, "1.2.3-smoke.1");
+  assert.equal(publicMeta.payload.data.links.me, `${baseUrl}/api/v1/me`);
+  assert.deepEqual(publicMeta.payload.data.client.platforms, ["ios", "android"]);
+  assert.deepEqual(
+    publicMeta.payload.data.capabilities.find(
+      (capability) => capability.id === "auth.device-pairing",
+    ),
+    {
+      id: "auth.device-pairing",
+      version: 1,
+      status: "planned",
+      access: "freelancer",
+    },
+  );
+
+  const publicV1Health = await jsonRequest("/api/v1/health");
+  assert.equal(publicV1Health.response.status, 200);
+  assert.deepEqual(
+    {
+      ok: publicV1Health.payload.ok,
+      status: publicV1Health.payload.data.status,
+      migrationsApplied: publicV1Health.payload.data.checks.migrationsApplied,
+    },
+    { ok: true, status: "ok", migrationsApplied: true },
+  );
+
+  const anonymousMe = await jsonRequest("/api/v1/me");
+  assert.equal(anonymousMe.response.status, 401);
+  assert.equal(anonymousMe.response.headers.get("x-neta-api-version"), "1");
+  assert.deepEqual(
+    { ok: anonymousMe.payload.ok, code: anonymousMe.payload.error.code },
+    { ok: false, code: "UNAUTHENTICATED" },
+  );
+
   const setupAttempts = await Promise.all([
     authPost("/api/auth/sign-up/email", {
       name: "Owner One",
@@ -83,6 +157,32 @@ try {
     const ownerUserId = db
       .prepare("select auth_user_id as authUserId from app_profiles where role = 'freelancer'")
       .get().authUserId;
+    assert.deepEqual(
+      db.prepare("select instance_id as instanceId from instance_settings").all(),
+      [{ instanceId: discovery.instanceId }],
+      "Discovery identity must be persisted exactly once",
+    );
+    const ownerMe = await jsonRequest("/api/v1/me", { cookie: ownerCookie });
+    assert.equal(ownerMe.response.status, 200);
+    assert.deepEqual(
+      {
+        id: ownerMe.payload.data.user.id,
+        email: ownerMe.payload.data.user.email,
+        role: ownerMe.payload.data.user.role,
+        clientId: ownerMe.payload.data.user.clientId,
+      },
+      {
+        id: ownerUserId,
+        email: ownerEmail,
+        role: "freelancer",
+        clientId: null,
+      },
+    );
+    assert.doesNotMatch(
+      JSON.stringify(ownerMe.payload),
+      /token|password/i,
+      "The me contract must not expose session tokens or password material",
+    );
     const insertClient = db.prepare(
       "insert into clients (id, owner_user_id, name) values (?, ?, ?)",
     );
@@ -257,6 +357,13 @@ try {
     assert.match(brandedLoginHtml, /--poyraz-primary:#336699/, "Brand tokens must be present in first HTML response");
     const dynamicManifest = await (await fetch(`${baseUrl}/manifest.webmanifest`)).json();
     assert.equal(dynamicManifest.name, "Neta Smoke Studio", "Manifest must use instance branding");
+    const brandedMeta = await jsonRequest("/api/v1/meta");
+    assert.equal(brandedMeta.payload.data.instance.applicationName, "Neta Smoke Studio");
+    assert.equal(
+      brandedMeta.payload.data.branding.lightLogoUrl,
+      `${baseUrl}/api/branding/assets/${logoFileId}`,
+      "Mobile metadata must expose absolute branding asset URLs",
+    );
     const publicLogo = await fetch(`${baseUrl}/api/branding/assets/${logoFileId}`);
     assert.equal(publicLogo.status, 200, "Referenced branding asset must be publicly readable");
     assert.equal(publicLogo.headers.get("x-content-type-options"), "nosniff");
@@ -371,6 +478,15 @@ try {
     });
     assert.equal(clientSignIn.response.ok, true, JSON.stringify(clientSignIn.payload));
     const clientCookie = cookieHeader(clientSignIn.response);
+    const clientMe = await jsonRequest("/api/v1/me", { cookie: clientCookie });
+    assert.equal(clientMe.response.status, 200);
+    assert.deepEqual(
+      {
+        role: clientMe.payload.data.user.role,
+        clientId: clientMe.payload.data.user.clientId,
+      },
+      { role: "client", clientId: "client-alpha" },
+    );
 
     for (const [pathname, body] of [
       ["/api/finance-analysis", undefined],
@@ -477,6 +593,8 @@ try {
       headers: { cookie: clientCookie },
     });
     assert.equal((await revokedSession.json()), null, "Disabling a client must revoke active sessions");
+    const revokedClientMe = await jsonRequest("/api/v1/me", { cookie: clientCookie });
+    assert.equal(revokedClientMe.response.status, 401, "Disabled client API session must be rejected");
 
     const disabledSignIn = await authPost("/api/auth/sign-in/email", {
       email: "client@example.com",

@@ -73,6 +73,7 @@ Opsiyonel alanlar:
 - `DATABASE_PATH`: Varsayılan `DATA_DIR/neta.db` yerine özel SQLite yolu.
 - `OLLAMA_BASE_URL`: Varsayılan `http://127.0.0.1:11434/v1`.
 - `AI_REQUEST_TIMEOUT_MS`: AI istek timeout'u; varsayılan `30000`.
+- `NETA_MINIMUM_MOBILE_VERSION`: Mobil istemcilere ilan edilen opsiyonel SemVer alt sınırı.
 
 AI provider API key'leri environment'a yazılmaz; owner ayarından girilir, server-side şifreli saklanır ve browser'a geri dönmez.
 
@@ -160,12 +161,28 @@ pnpm db:import:supabase -- \
 
 Raporu doğruladıktan ve backup aldıktan sonra aynı komutu `--dry-run` olmadan çalıştırın. Bundle formatı, normalization kararları, dosya yapısı ve production cutover/rollback adımları [Faz 8 rehberinde](docs/self-hosted-redesign/phase-8-import-release.md) tanımlıdır.
 
+## Mobil istemci ve instance discovery
+
+React Native istemcileri bir Neta kurulumunu şu public endpoint'lerle tanıyabilir:
+
+```text
+GET /.well-known/neta
+GET /api/v1/meta
+GET /api/v1/health
+GET /api/v1/me
+```
+
+`/.well-known/neta` kalıcı instance kimliğini ve API URL'sini, `/api/v1/meta` marka/sürüm/capability sözleşmesini döndürür. `/api/v1/me` Better Auth session gerektirir ve token veya secret döndürmez.
+
+Device pairing henüz runtime'a açılmamıştır; capability `planned` durumundadır. Mobil bağlantı algoritması ve API version kuralları [Faz 9 rehberinde](docs/self-hosted-redesign/phase-9-mobile-api.md), gelecek pairing/token güvenliği [ADR-0018](docs/self-hosted-redesign/adr-0018-device-pairing.md) belgesinde tanımlıdır.
+
 ## Kalite kontrolleri
 
 ```bash
 pnpm typecheck
 pnpm phase8:release-boundary
 pnpm phase8:import-smoke
+pnpm phase9:smoke
 pnpm build
 ```
 

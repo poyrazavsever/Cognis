@@ -16,6 +16,11 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().trim().optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).optional(),
+  NETA_MINIMUM_MOBILE_VERSION: z
+    .string()
+    .trim()
+    .regex(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/)
+    .optional(),
 });
 
 export type ServerConfig = {
@@ -31,6 +36,7 @@ export type ServerConfig = {
   betterAuthSecret?: string;
   ollamaBaseUrl: string;
   aiRequestTimeoutMs: number;
+  minimumMobileClientVersion: string | null;
 };
 
 let cachedConfig: ServerConfig | undefined;
@@ -82,6 +88,7 @@ export function getServerConfig(): ServerConfig {
     betterAuthSecret,
     ollamaBaseUrl: parsed.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434/v1",
     aiRequestTimeoutMs: parsed.AI_REQUEST_TIMEOUT_MS ?? 30_000,
+    minimumMobileClientVersion: parsed.NETA_MINIMUM_MOBILE_VERSION ?? null,
   };
 
   return cachedConfig;
