@@ -79,7 +79,6 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
       <div className="flex flex-col gap-4 md:flex-row md:items-start justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
-          {project.description && <p className="text-muted-foreground">{project.description}</p>}
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <div className="flex gap-2">
@@ -87,7 +86,7 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
             {hasRevisionQuota ? (
               <Dialog open={openRevision} onOpenChange={setOpenRevision}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 shrink-0">
+                  <Button variant="default" effect="shine" className="gap-2 shrink-0">
                     <RefreshCw className="h-4 w-4" /> Revizyon Talep Et
                   </Button>
                 </DialogTrigger>
@@ -108,8 +107,8 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="button" variant="ghost" onClick={() => setOpenRevision(false)}>İptal</Button>
-                      <Button type="submit" disabled={isSubmitting}>
+                      <Button effect="shine" type="button" variant="secondary" onClick={() => setOpenRevision(false)}>İptal</Button>
+                      <Button variant="default" effect="shine" type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Talebi Gönder
                       </Button>
@@ -118,7 +117,7 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
                 </DialogContent>
               </Dialog>
             ) : (
-              <Button disabled className="gap-2 shrink-0 opacity-50">
+              <Button variant="default" effect="shine" disabled className="gap-2 shrink-0 opacity-50">
                 <RefreshCw className="h-4 w-4" /> Revizyon Hakkı Bitti
               </Button>
             )}
@@ -239,7 +238,7 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
               <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
               <p>Henüz bir revizyon talebi oluşturmadınız.</p>
               {hasRevisionQuota && (
-                <Button variant="outline" size="sm" onClick={() => setOpenRevision(true)}>Yeni Talep Oluştur</Button>
+                <Button effect="shine" variant="secondary" size="sm" onClick={() => setOpenRevision(true)}>Yeni Talep Oluştur</Button>
               )}
             </div>
           ) : (

@@ -52,9 +52,8 @@ export function ProposalsClient({ proposals }: { proposals: ProposalRow[] }) {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Teklifler</h1>
-          <p className="text-muted-foreground mt-1">Müşterilerinize sunduğunuz teklifleri yönetin.</p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
+        <Button variant="default" effect="shine" onClick={() => setIsAddModalOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" /> Yeni Teklif
         </Button>
       </div>
@@ -106,7 +105,7 @@ export function ProposalsClient({ proposals }: { proposals: ProposalRow[] }) {
                         <td className="p-4 align-middle text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
+                              <Button size="icon-sm" effect="shine" variant="secondary" >
                                 <span className="sr-only">Menüyü aç</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -148,7 +147,7 @@ export function ProposalsClient({ proposals }: { proposals: ProposalRow[] }) {
               <h3 className="text-lg font-bold mb-4 text-foreground">Yeni Teklif Ekle</h3>
               <p className="text-sm text-muted-foreground mb-6">Bu özellik şu an geliştirme aşamasındadır.</p>
               <div className="flex justify-end">
-                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Kapat</Button>
+                <Button effect="shine" variant="secondary" onClick={() => setIsAddModalOpen(false)}>Kapat</Button>
               </div>
             </CardContent>
           </Card>

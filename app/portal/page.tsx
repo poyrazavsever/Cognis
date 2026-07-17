@@ -6,8 +6,7 @@ import { tr } from "date-fns/locale";
 import { requirePortalBackend } from "@/server/web/portal";
 
 export default async function PortalDashboardPage() {
-  const { context, actor, service } = await requirePortalBackend();
-  const client = service.getClient(actor, context.profile.clientId!);
+  const { actor, service } = await requirePortalBackend();
   const projects = service.listProjects(actor);
   const activeProjects = projects.filter((project) => project.status !== "completed" && project.status !== "cancelled");
   const completedProjects = projects.filter((project) => project.status === "completed");
@@ -20,9 +19,6 @@ export default async function PortalDashboardPage() {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">Müşteri Paneli</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Hoş geldiniz, {client.name}. Aktif projelerinizi ve ilerlemeleri buradan takip edin.
-          </p>
         </div>
       </div>
 
