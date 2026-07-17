@@ -7,7 +7,6 @@ import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
   PieChart, Pie, Cell, Legend
 } from "recharts";
-import { BarChart3, Filter } from "lucide-react";
 
 export type AnalyticsData = {
   metrics: {
@@ -45,19 +44,13 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BarChart3 className="h-4 w-4" />
-            Analizler
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Performans ve Finans Analizi
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Müşteri bazlı gelirler, görev tamamlama oranları ve proje ilerleme grafikleri.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Performans ve Finans Analizi
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Müşteri bazlı gelirler, görev tamamlama oranları ve proje ilerleme grafikleri.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">

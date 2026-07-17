@@ -1,5 +1,6 @@
 import { PortalShell } from "@/components/layout/portal-shell";
 import { getPublicBranding } from "@/server/branding/runtime";
+import { getUserPreferences } from "@/server/settings/preferences";
 import { requirePortalBackend } from "@/server/web/portal";
 
 export default async function PortalLayout({
@@ -10,6 +11,7 @@ export default async function PortalLayout({
   const { context, actor, service } = await requirePortalBackend();
   const { user, profile } = context;
   const branding = getPublicBranding();
+  const preferences = getUserPreferences(actor);
   const projects = service.listProjects(actor);
   const progress = projects.length
     ? Math.round(projects.reduce((sum, project) => sum + project.progress, 0) / projects.length)
@@ -33,6 +35,7 @@ export default async function PortalLayout({
         lightLogoUrl: branding.lightLogoUrl,
         darkLogoUrl: branding.darkLogoUrl,
       }}
+      colorMode={preferences.colorMode}
       user={{
         email: user.email,
         displayName,

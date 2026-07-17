@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import {
+  COLOR_MODE_COOKIE,
+  isColorMode,
+} from "@/lib/color-mode";
 import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
 
@@ -12,7 +17,7 @@ const colorModeScript = `(() => {
   const media = window.matchMedia("(prefers-color-scheme: dark)");
   const apply = () => root.classList.toggle("dark", root.dataset.colorMode === "dark" || (root.dataset.colorMode === "system" && media.matches));
   apply();
-  if (root.dataset.colorMode === "system") media.addEventListener("change", apply);
+  media.addEventListener("change", apply);
 })();`;
 
 export function generateMetadata(): Metadata {
@@ -34,17 +39,22 @@ export function generateViewport(): Viewport {
   return { themeColor: getPublicBranding().primaryColor };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const branding = getPublicBranding();
+  const cookieColorMode = (await cookies()).get(COLOR_MODE_COOKIE)?.value;
+  const colorMode = isColorMode(cookieColorMode)
+    ? cookieColorMode
+    : branding.defaultColorMode;
+
   return (
     <html
       lang="tr"
-      className={cn("font-sans", geist.variable, branding.defaultColorMode === "dark" && "dark")}
-      data-color-mode={branding.defaultColorMode}
+      className={cn("font-sans", geist.variable, colorMode === "dark" && "dark")}
+      data-color-mode={colorMode}
       style={branding.cssVariables as CSSProperties}
       suppressHydrationWarning
     >

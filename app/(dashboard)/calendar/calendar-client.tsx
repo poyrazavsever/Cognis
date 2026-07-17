@@ -21,7 +21,7 @@ import {
   SelectValue,
   toast,
 } from "poyraz-ui/molecules";
-import { CalendarDays, Clock, Pencil, Plus, Trash2 } from "lucide-react";
+import { Clock, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export type CalendarRelationOption = {
@@ -89,17 +89,11 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CalendarDays className="h-4 w-4" />
-            Planlama
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">Takvim</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Toplantı, odak bloğu, deadline, kişisel ve finans etkinliklerini yönet.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">Takvim</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Toplantı, odak bloğu, deadline, kişisel ve finans etkinliklerini yönet.
+          </p>
         </div>
 
         <CalendarEventDialog

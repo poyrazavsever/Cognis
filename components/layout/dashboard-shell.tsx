@@ -2,10 +2,12 @@
 
 import { AppShell, type AppShellBranding } from "@/components/layout/app-shell";
 import { sidebarData } from "@/config/sidebar";
+import type { ColorMode } from "@/lib/color-mode";
 
 type DashboardShellProps = {
   branding: AppShellBranding;
   children: React.ReactNode;
+  colorMode: ColorMode;
   user: {
     email: string;
     displayName: string;
@@ -14,9 +16,16 @@ type DashboardShellProps = {
   };
 };
 
-export function DashboardShell({ branding, children, user }: DashboardShellProps) {
+export function DashboardShell({ branding, children, colorMode, user }: DashboardShellProps) {
   return (
-    <AppShell branding={branding} homeHref="/" navGroups={sidebarData} settingsHref="/settings" user={user}>
+    <AppShell
+      branding={branding}
+      colorMode={colorMode}
+      homeHref="/"
+      navGroups={sidebarData}
+      settingsHref="/settings"
+      user={user}
+    >
       {children}
     </AppShell>
   );

@@ -128,15 +128,20 @@ export class BrandingService {
       throw new DomainError("FORBIDDEN", "Instance marka ayarları başka bir owner'a ait.");
     }
 
+    const update = { ...parsed.data };
+    if (parsed.data.primaryColor && parsed.data.accentColor === undefined) {
+      update.accentColor = deriveAccentColor(parsed.data.primaryColor);
+    }
+
     if (existing) {
-      this.repository.update({ ...parsed.data, updatedByUserId: scope.ownerUserId });
+      this.repository.update({ ...update, updatedByUserId: scope.ownerUserId });
     } else {
       this.repository.create({
         id: "default",
         ownerUserId: scope.ownerUserId,
         updatedByUserId: scope.ownerUserId,
         ...DEFAULT_BRANDING,
-        ...parsed.data,
+        ...update,
       });
     }
     return this.getPublic();
@@ -200,6 +205,10 @@ export function contrastRatio(first: string, second: string): number {
   const firstLuminance = luminance(first);
   const secondLuminance = luminance(second);
   return (Math.max(firstLuminance, secondLuminance) + 0.05) / (Math.min(firstLuminance, secondLuminance) + 0.05);
+}
+
+export function deriveAccentColor(primary: string): string {
+  return mixHex(primary, "#FFFFFF", 0.88);
 }
 
 function readableForeground(background: string): "#000000" | "#FFFFFF" {

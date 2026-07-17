@@ -1,6 +1,8 @@
 "use client";
 
 import { signOut } from "@/app/login/actions";
+import { ColorModeSync } from "@/components/theme/color-mode-sync";
+import type { ColorMode } from "@/lib/color-mode";
 import {
   Card,
   CardContent,
@@ -10,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Tooltip,
@@ -18,7 +21,6 @@ import {
   TooltipTrigger,
 } from "poyraz-ui/molecules";
 import {
-  SidebarBranding,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -28,7 +30,6 @@ import {
   SidebarMenuItem,
   SidebarPanel,
   SidebarProvider,
-  SidebarRail,
   SidebarTrigger,
   SidebarUserProfile,
   useSidebar,
@@ -72,6 +73,7 @@ type AppShellProps = {
   settingsHref: string;
   user: ShellUser;
   progress?: number;
+  colorMode?: ColorMode;
 };
 
 export function AppShell({
@@ -82,12 +84,14 @@ export function AppShell({
   settingsHref,
   user,
   progress,
+  colorMode,
 }: AppShellProps) {
   const pathname = usePathname();
   const sidebarProps = { branding, homeHref, navGroups, pathname, progress, settingsHref, user };
 
   return (
     <TooltipProvider>
+      {colorMode ? <ColorModeSync colorMode={colorMode} /> : null}
       <div className="min-h-screen bg-background text-foreground">
         <a
           href="#main-content"
@@ -123,10 +127,9 @@ type SidebarCompositionProps = {
 
 function DesktopSidebar(props: SidebarCompositionProps) {
   return (
-    <SidebarProvider variant="collapsible">
+    <SidebarProvider variant="default">
       <SidebarPanel className="sticky top-0 hidden h-screen shrink-0 self-stretch lg:flex">
         <SidebarComposition {...props} />
-        <SidebarRail aria-label="Kenar çubuğunu daralt veya genişlet" />
       </SidebarPanel>
     </SidebarProvider>
   );
@@ -136,8 +139,12 @@ function MobileSidebar(props: SidebarCompositionProps) {
   return (
     <SidebarProvider variant="floating">
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur lg:hidden">
-        <Link href={props.homeHref} className="min-w-0">
-          <MobileBrand branding={props.branding} />
+        <Link
+          href={props.homeHref}
+          className="flex min-w-0 max-w-40 items-center"
+          aria-label={`${props.branding.applicationName} ana sayfa`}
+        >
+          <WorkspaceLogo branding={props.branding} compact />
         </Link>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -165,23 +172,14 @@ function SidebarComposition({
 }: SidebarCompositionProps) {
   return (
     <>
-      <SidebarHeader>
-        <Link href={homeHref} className="min-w-0 flex-1" aria-label={`${branding.applicationName} ana sayfa`}>
-          <SidebarBranding
-            logo={<BrandMark branding={branding} />}
-            title={branding.applicationName}
-            subtitle={branding.organizationName ?? "Freelancer portalı"}
-          />
+      <SidebarHeader className="justify-center px-4 py-3">
+        <Link
+          href={homeHref}
+          className="flex min-h-12 w-full items-center justify-center"
+          aria-label={`${branding.applicationName} ana sayfa`}
+        >
+          <WorkspaceLogo branding={branding} />
         </Link>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <SidebarTrigger
-              className="hidden lg:inline-flex"
-              aria-label="Kenar çubuğunu daralt veya genişlet"
-            />
-          </TooltipTrigger>
-          <TooltipContent>Kenar çubuğunu daralt</TooltipContent>
-        </Tooltip>
       </SidebarHeader>
 
       <SidebarContent scrollMode="fade">
@@ -239,51 +237,38 @@ function SidebarNavigation({
   ));
 }
 
-function BrandMark({ branding }: { branding: AppShellBranding }) {
-  const logoUrl = branding.lightLogoUrl ?? branding.darkLogoUrl;
-
-  if (!logoUrl) {
-    return (
-      <span className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
-        {branding.applicationName.slice(0, 1).toLocaleUpperCase("tr-TR")}
-      </span>
-    );
-  }
+function WorkspaceLogo({
+  branding,
+  compact = false,
+}: {
+  branding: AppShellBranding;
+  compact?: boolean;
+}) {
+  const lightLogoUrl = branding.lightLogoUrl ?? branding.darkLogoUrl ?? "/logo/blackLogoLong.png";
+  const darkLogoUrl = branding.darkLogoUrl ?? branding.lightLogoUrl ?? "/logo/lightLogoLong.png";
+  const imageClassName = compact
+    ? "max-h-8 w-auto max-w-full object-contain"
+    : "max-h-12 w-auto max-w-full object-contain";
 
   return (
-    <span className="flex h-full w-full items-center justify-center">
+    <span className="flex h-full w-full items-center justify-center overflow-hidden">
       <Image
-        src={logoUrl}
-        alt=""
-        width={32}
-        height={32}
+        src={lightLogoUrl}
+        alt={`${branding.applicationName} logosu`}
+        width={180}
+        height={56}
         unoptimized
-        className={branding.darkLogoUrl ? "h-full w-full object-contain dark:hidden" : "h-full w-full object-contain"}
+        className={`${imageClassName} dark:hidden`}
       />
-      {branding.darkLogoUrl ? (
-        <Image
-          src={branding.darkLogoUrl}
-          alt=""
-          width={32}
-          height={32}
-          unoptimized
-          className="hidden h-full w-full object-contain dark:block"
-        />
-      ) : null}
+      <Image
+        src={darkLogoUrl}
+        alt={`${branding.applicationName} logosu`}
+        width={180}
+        height={56}
+        unoptimized
+        className={`hidden ${imageClassName} dark:block`}
+      />
     </span>
-  );
-}
-
-function MobileBrand({ branding }: { branding: AppShellBranding }) {
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-muted">
-        <BrandMark branding={branding} />
-      </span>
-      <Typography component="span" variant="small" className="truncate font-semibold">
-        {branding.applicationName}
-      </Typography>
-    </div>
   );
 }
 
@@ -325,8 +310,8 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Hesap menüsünü aç"
-          className="flex w-full items-center gap-2 rounded-sm p-1 text-left outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-focus-ring"
+          aria-label={`${user.displayName} için hesap menüsünü aç`}
+          className="group flex w-full items-center gap-2 rounded-md border border-transparent p-1.5 text-left outline-none transition-[color,background-color,border-color] hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=open]:border-border data-[state=open]:bg-accent"
         >
           <SidebarUserProfile
             className="min-w-0 flex-1"
@@ -335,22 +320,44 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
             avatarUrl={user.avatarUrl ?? undefined}
             initials={user.shortName}
           />
-          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <ChevronUp
+            className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
+            aria-hidden="true"
+          />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="top" className="min-w-52">
-        <DropdownMenuItem asChild media={<Settings className="h-4 w-4" aria-hidden="true" />}>
-          <Link href={settingsHref}>Ayarlar</Link>
+      <DropdownMenuContent
+        align="start"
+        side="top"
+        sideOffset={8}
+        collisionPadding={12}
+        surface="solid"
+        radius="md"
+        itemRadius="sm"
+        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56"
+      >
+        <DropdownMenuLabel className="space-y-0.5 px-2.5 py-2">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {user.displayName}
+          </span>
+          <span className="block truncate font-normal text-muted-foreground">{user.email}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={settingsHref} className="gap-2">
+            <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span>Ayarlar</span>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={signOut}>
           <DropdownMenuItem
             asChild
-            media={<LogOut className="h-4 w-4" aria-hidden="true" />}
-            className="text-destructive"
+            className="text-destructive focus:text-destructive data-[highlighted]:text-destructive"
           >
-            <button type="submit" className="w-full">
-              Çıkış yap
+            <button type="submit" className="w-full gap-2 text-left">
+              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Çıkış yap</span>
             </button>
           </DropdownMenuItem>
         </form>

@@ -163,19 +163,13 @@ export function ClientsClient({
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            CRM & Operasyon
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              CRM & Müşteriler
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Potansiyel müşterilerini pipeline üzerinden takip et ve müşteri ilişkilerini yönet.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            CRM & Müşteriler
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Potansiyel müşterilerini pipeline üzerinden takip et ve müşteri ilişkilerini yönet.
+          </p>
         </div>
 
         <ClientDialog mode="create" />

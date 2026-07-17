@@ -1,5 +1,5 @@
 import { Card, CardContent, Badge } from "poyraz-ui/atoms";
-import { FolderKanban, CheckCircle2, Clock, Activity, BarChart, type LucideIcon } from "lucide-react";
+import { FolderKanban, CheckCircle2, Clock, BarChart, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -18,17 +18,11 @@ export default async function PortalDashboardPage() {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="h-4 w-4" />
-            Genel Bakış
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">Müşteri Paneli</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Hoş geldiniz, {client.name}. Aktif projelerinizi ve ilerlemeleri buradan takip edin.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">Müşteri Paneli</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Hoş geldiniz, {client.name}. Aktif projelerinizi ve ilerlemeleri buradan takip edin.
+          </p>
         </div>
       </div>
 

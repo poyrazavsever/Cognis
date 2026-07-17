@@ -5,7 +5,7 @@ import Database from "better-sqlite3";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../server/db/schema";
-import { BrandingService, contrastRatio } from "../server/branding/service";
+import { BrandingService, contrastRatio, deriveAccentColor } from "../server/branding/service";
 import type { DomainActor } from "../server/domain/actor";
 import { DomainError } from "../server/domain/errors";
 import { resolveStoragePath } from "../server/files/paths";
@@ -76,7 +76,6 @@ try {
     applicationName: "Studio Portal",
     shortName: "Studio",
     primaryColor: "#336699",
-    accentColor: "#f0cc22",
     lightLogoFileId: logo.id,
     iconFileId: icon.id,
     defaultColorMode: "dark",
@@ -84,6 +83,7 @@ try {
   });
   assert.equal(branding.applicationName, "Studio Portal");
   assert.equal(branding.primaryColor, "#336699");
+  assert.equal(branding.accentColor, deriveAccentColor("#336699"), "Accent palette must derive from the single primary color");
   assert.equal(branding.darkLogoUrl, branding.lightLogoUrl, "Missing dark logo must fall back to light logo");
   assert.equal(fileService.readPublicBranding(logo.id).metadata.id, logo.id);
   assert.ok(contrastRatio(branding.primaryColor, branding.cssVariables["--poyraz-primary-foreground"]) >= 4.5);

@@ -2,15 +2,74 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Blocks, Brain, Key, Save, Shield, User } from "lucide-react";
-import { loadSettings, saveAiSettings, updatePassword, updateProfile } from "./actions";
-import { Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
+import {
+  Blocks,
+  Brain,
+  Building2,
+  ImageIcon,
+  Key,
+  Monitor,
+  Moon,
+  Palette,
+  Save,
+  Shield,
+  Sun,
+  Trash2,
+  Upload,
+  User,
+} from "lucide-react";
+import {
+  loadSettings,
+  removeWorkspaceLogo,
+  saveAiSettings,
+  saveColorMode,
+  saveWorkspaceBranding,
+  updatePassword,
+  updateProfile,
+} from "./actions";
+import {
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+  RadioGroup,
+  RadioGroupItem,
+} from "poyraz-ui/atoms";
 import { toast } from "poyraz-ui/molecules";
+import { applyColorMode } from "@/components/theme/color-mode-sync";
+import { isColorMode, type ColorMode } from "@/lib/color-mode";
 
 type AiProvider = "groq" | "ollama" | "openai" | "gemini";
 
+const colorModeOptions = [
+  {
+    value: "light",
+    label: "Açık",
+    description: "Her zaman aydınlık renk paletini kullanır.",
+    icon: Sun,
+  },
+  {
+    value: "dark",
+    label: "Koyu",
+    description: "Her zaman koyu renk paletini kullanır.",
+    icon: Moon,
+  },
+  {
+    value: "system",
+    label: "Sistem",
+    description: "Cihazınızın görünüm tercihini otomatik takip eder.",
+    icon: Monitor,
+  },
+] satisfies Array<{
+  value: ColorMode;
+  label: string;
+  description: string;
+  icon: typeof Sun;
+}>;
+
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("AI Preferences");
+  const [activeTab, setActiveTab] = useState("Workspace");
 
   // Profile States
   const [firstName, setFirstName] = useState("");
@@ -24,9 +83,20 @@ export default function SettingsPage() {
   const [aiProvider, setAiProvider] = useState<AiProvider>("gemini");
   const [apiKey, setApiKey] = useState("");
   const [hasApiKey, setHasApiKey] = useState(false);
+  const [colorMode, setColorMode] = useState<ColorMode>("system");
+  const [isSavingColorMode, setIsSavingColorMode] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState("Neta");
+  const [primaryColor, setPrimaryColor] = useState("#C81E1E");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [pendingLogoUrl, setPendingLogoUrl] = useState("");
+  const [hasCustomLogo, setHasCustomLogo] = useState(false);
+  const [isSavingBranding, setIsSavingBranding] = useState(false);
+  const logoObjectUrlRef = useRef<string | null>(null);
 
   const tabs = [
+    { name: "Workspace", icon: Building2 },
     { name: "Profile & Account", icon: User },
+    { name: "Görünüm", icon: Palette },
     { name: "AI Preferences", icon: Brain },
     { name: "Security", icon: Shield },
   ];
@@ -42,10 +112,21 @@ export default function SettingsPage() {
       setAvatarUrl(settings.avatarUrl);
       setAiProvider(settings.aiProvider);
       setHasApiKey(settings.hasApiKey);
+      setColorMode(settings.colorMode);
+      setWorkspaceName(settings.workspaceName);
+      setPrimaryColor(settings.primaryColor);
+      setLogoUrl(settings.logoUrl);
+      setHasCustomLogo(settings.hasCustomLogo);
     };
 
     void fetchData();
     return () => { isActive = false; };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (logoObjectUrlRef.current) URL.revokeObjectURL(logoObjectUrlRef.current);
+    };
   }, []);
 
   const handleProfileAction = async (formData: FormData) => {
@@ -80,21 +161,82 @@ export default function SettingsPage() {
     toast.success("Yapay Zeka ayarları kaydedildi!");
   };
 
+  const handleColorModeChange = async (value: string) => {
+    if (!isColorMode(value) || value === colorMode || isSavingColorMode) return;
+
+    const previousColorMode = colorMode;
+    setColorMode(value);
+    applyColorMode(value);
+    setIsSavingColorMode(true);
+
+    try {
+      const response = await saveColorMode(value);
+      if (response.error) {
+        setColorMode(previousColorMode);
+        applyColorMode(previousColorMode);
+        toast.error(response.error);
+        return;
+      }
+
+      toast.success("Görünüm tercihi kaydedildi.");
+    } finally {
+      setIsSavingColorMode(false);
+    }
+  };
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (logoObjectUrlRef.current) URL.revokeObjectURL(logoObjectUrlRef.current);
+    const file = event.target.files?.[0];
+    const objectUrl = file ? URL.createObjectURL(file) : "";
+    logoObjectUrlRef.current = objectUrl || null;
+    setPendingLogoUrl(objectUrl);
+  };
+
+  const handleWorkspaceBrandingAction = async (formData: FormData) => {
+    setIsSavingBranding(true);
+    try {
+      const response = await saveWorkspaceBranding(formData);
+      if (response.error) {
+        toast.error(response.error);
+        return;
+      }
+
+      toast.success("Workspace görünümü güncellendi.");
+      window.location.reload();
+    } finally {
+      setIsSavingBranding(false);
+    }
+  };
+
+  const handleRemoveWorkspaceLogo = async () => {
+    setIsSavingBranding(true);
+    try {
+      const response = await removeWorkspaceLogo();
+      if (response.error) {
+        toast.error(response.error);
+        return;
+      }
+
+      setLogoUrl("");
+      setPendingLogoUrl("");
+      setHasCustomLogo(false);
+      toast.success("Workspace logosu kaldırıldı.");
+      window.location.reload();
+    } finally {
+      setIsSavingBranding(false);
+    }
+  };
+
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="text-foreground">Settings</span> / {activeTab}
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Ayarlar
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Profilinizi, güvenlik ayarlarınızı ve yapay zeka tercihlerinizi yönetin.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Ayarlar
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Workspace markanızı, profilinizi, görünümü ve sistem tercihlerinizi yönetin.
+          </p>
         </div>
       </div>
 
@@ -122,6 +264,134 @@ export default function SettingsPage() {
 
         {/* Settings Content Area */}
         <div className="flex-1">
+          {activeTab === "Workspace" && (
+            <Card className="animate-in fade-in duration-300">
+              <CardContent className="p-6 sm:p-8">
+                <div className="mb-7 space-y-1.5">
+                  <h2 className="text-xl font-bold text-foreground">Workspace görünümü</h2>
+                  <p className="max-w-2xl text-sm text-muted-foreground">
+                    Müşterilerinizin ve sizin gördüğünüz workspace adını, logoyu ve ana rengi yönetin.
+                  </p>
+                </div>
+
+                <form action={handleWorkspaceBrandingAction} className="max-w-3xl space-y-8">
+                  <section className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="workspaceName">Workspace adı</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Firma, freelance marka veya çalışma alanı adınız.
+                      </p>
+                    </div>
+                    <Input
+                      id="workspaceName"
+                      name="workspaceName"
+                      value={workspaceName}
+                      onChange={(event) => setWorkspaceName(event.target.value)}
+                      minLength={1}
+                      maxLength={80}
+                      required
+                    />
+                  </section>
+
+                  <section className="space-y-4 border-t border-border pt-7">
+                    <div className="space-y-1">
+                      <Label htmlFor="workspaceLogo">Workspace logosu</Label>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPEG, WebP veya GIF; en fazla 5 MB. Şeffaf arka planlı yatay logo önerilir.
+                      </p>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)]">
+                      <div className="space-y-3">
+                        <Input
+                          id="workspaceLogo"
+                          name="logo"
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
+                          onChange={handleLogoChange}
+                          className="cursor-pointer"
+                        />
+                        {hasCustomLogo ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={isSavingBranding}
+                            onClick={handleRemoveWorkspaceLogo}
+                            className="gap-2 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                            Logoyu kaldır
+                          </Button>
+                        ) : null}
+                      </div>
+
+                      <div className="flex min-h-28 items-center justify-center overflow-hidden rounded-md border border-border bg-muted/40 p-4">
+                        {pendingLogoUrl || logoUrl ? (
+                          <Image
+                            src={pendingLogoUrl || logoUrl}
+                            alt="Workspace logo önizlemesi"
+                            width={220}
+                            height={80}
+                            unoptimized
+                            className="max-h-20 w-auto max-w-full object-contain"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <ImageIcon className="h-7 w-7" aria-hidden="true" />
+                            <span className="text-xs">Henüz özel logo yüklenmedi</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4 border-t border-border pt-7">
+                    <div className="space-y-1">
+                      <Label htmlFor="primaryColor">Ana renk</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Bir renk seçin; vurgu, focus ve yumuşak yüzey tonları otomatik türetilir.
+                      </p>
+                    </div>
+
+                    <div className="flex max-w-sm items-center gap-3">
+                      <Input
+                        type="color"
+                        value={primaryColor}
+                        onChange={(event) => setPrimaryColor(event.target.value.toUpperCase())}
+                        aria-label="Ana renk seçici"
+                        className="h-11 w-16 shrink-0 cursor-pointer p-1"
+                      />
+                      <Input
+                        id="primaryColor"
+                        name="primaryColor"
+                        value={primaryColor}
+                        onChange={(event) => setPrimaryColor(event.target.value.toUpperCase())}
+                        pattern="^#[0-9A-Fa-f]{6}$"
+                        maxLength={7}
+                        placeholder="#C81E1E"
+                        required
+                        className="font-mono uppercase"
+                      />
+                      <span
+                        className="h-10 w-10 shrink-0 rounded-md border border-border"
+                        style={{ backgroundColor: /^#[0-9A-Fa-f]{6}$/.test(primaryColor) ? primaryColor : "transparent" }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </section>
+
+                  <div className="flex items-center gap-3 border-t border-border pt-6">
+                    <Button type="submit" loading={isSavingBranding} className="gap-2">
+                      <Upload className="h-4 w-4" aria-hidden="true" />
+                      Workspace görünümünü kaydet
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
           {activeTab === "Profile & Account" && (
             <Card className="animate-in fade-in duration-300">
               <CardContent className="p-6 sm:p-8">
@@ -188,6 +458,75 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "Görünüm" && (
+            <Card className="animate-in fade-in duration-300">
+              <CardContent className="p-6 sm:p-8">
+                <div className="mb-6 space-y-1.5">
+                  <h2 className="text-xl font-bold text-foreground">Tema görünümü</h2>
+                  <p className="max-w-2xl text-sm text-muted-foreground">
+                    Neta arayüzünün açık, koyu veya cihazınızla uyumlu görünmesini seçin.
+                  </p>
+                </div>
+
+                <RadioGroup
+                  value={colorMode}
+                  onValueChange={handleColorModeChange}
+                  disabled={isSavingColorMode}
+                  aria-label="Tema görünümü"
+                  className="grid max-w-3xl gap-3 sm:grid-cols-3"
+                >
+                  {colorModeOptions.map((option) => {
+                    const Icon = option.icon;
+                    const selected = colorMode === option.value;
+
+                    return (
+                      <Label
+                        key={option.value}
+                        htmlFor={`color-mode-${option.value}`}
+                        className={`relative flex min-h-40 cursor-pointer flex-col justify-between gap-5 rounded-md border p-4 transition-[color,background-color,border-color,box-shadow] ${
+                          selected
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border bg-card hover:border-primary/50 hover:bg-muted/40"
+                        } ${isSavingColorMode ? "cursor-wait opacity-70" : ""}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <span
+                            className={`flex h-10 w-10 items-center justify-center rounded-md border ${
+                              selected
+                                ? "border-primary/30 bg-primary/10 text-primary"
+                                : "border-border bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            <Icon className="h-5 w-5" aria-hidden="true" />
+                          </span>
+                          <RadioGroupItem
+                            id={`color-mode-${option.value}`}
+                            value={option.value}
+                            aria-label={option.label}
+                          />
+                        </div>
+                        <span className="space-y-1">
+                          <span className="block text-sm font-semibold text-foreground">
+                            {option.label}
+                          </span>
+                          <span className="block text-xs font-normal leading-relaxed text-muted-foreground">
+                            {option.description}
+                          </span>
+                        </span>
+                      </Label>
+                    );
+                  })}
+                </RadioGroup>
+
+                <p className="mt-4 text-xs text-muted-foreground" aria-live="polite">
+                  {isSavingColorMode
+                    ? "Görünüm tercihi kaydediliyor…"
+                    : "Değişiklik tüm Neta sayfalarına anında uygulanır."}
+                </p>
               </CardContent>
             </Card>
           )}
