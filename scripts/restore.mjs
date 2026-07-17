@@ -12,7 +12,7 @@ if (!args.from) {
 const targetEnv = {
   ...process.env,
   DATA_DIR: args.target || process.env.DATA_DIR,
-  DATABASE_PATH: undefined,
+  DATABASE_PATH: args.target ? undefined : process.env.DATABASE_PATH,
 };
 
 const config = ensureDataLayout(getDataConfig(targetEnv));
@@ -31,12 +31,61 @@ if (fs.existsSync(config.databasePath) && !args.force) {
   throw new Error(`Target database exists: ${config.databasePath}. Pass --force to overwrite.`);
 }
 
-fs.copyFileSync(backupDbPath, config.databasePath);
+const restoreId = `${process.pid}-${Date.now()}`;
+const stagedDatabasePath = `${config.databasePath}.restore-stage-${restoreId}`;
+const rollbackDatabasePath = `${config.databasePath}.restore-rollback-${restoreId}`;
+const stagedUploadsDir = `${config.uploadsDir}.restore-stage-${restoreId}`;
+const rollbackUploadsDir = `${config.uploadsDir}.restore-rollback-${restoreId}`;
 
-if (fs.existsSync(backupUploadsDir)) {
-  fs.rmSync(config.uploadsDir, { recursive: true, force: true });
-  copyDirectory(backupUploadsDir, config.uploadsDir);
+let databaseMovedToRollback = false;
+let uploadsMovedToRollback = false;
+let stagedDatabaseInstalled = false;
+let stagedUploadsInstalled = false;
+
+try {
+  fs.copyFileSync(backupDbPath, stagedDatabasePath, fs.constants.COPYFILE_EXCL);
+  if (hashFile(stagedDatabasePath) !== hashFile(backupDbPath)) {
+    throw new Error("Staged database checksum does not match the verified backup.");
+  }
+  fs.mkdirSync(stagedUploadsDir);
+  if (fs.existsSync(backupUploadsDir)) {
+    copyDirectory(backupUploadsDir, stagedUploadsDir);
+  }
+
+  if (fs.existsSync(config.databasePath)) {
+    fs.renameSync(config.databasePath, rollbackDatabasePath);
+    databaseMovedToRollback = true;
+  }
+  if (fs.existsSync(config.uploadsDir)) {
+    fs.renameSync(config.uploadsDir, rollbackUploadsDir);
+    uploadsMovedToRollback = true;
+  }
+
+  fs.renameSync(stagedDatabasePath, config.databasePath);
+  stagedDatabaseInstalled = true;
+  fs.renameSync(stagedUploadsDir, config.uploadsDir);
+  stagedUploadsInstalled = true;
+} catch (error) {
+  if (stagedDatabaseInstalled && fs.existsSync(config.databasePath)) {
+    fs.rmSync(config.databasePath, { force: true });
+  }
+  if (stagedUploadsInstalled && fs.existsSync(config.uploadsDir)) {
+    fs.rmSync(config.uploadsDir, { recursive: true, force: true });
+  }
+  if (databaseMovedToRollback && fs.existsSync(rollbackDatabasePath)) {
+    fs.renameSync(rollbackDatabasePath, config.databasePath);
+  }
+  if (uploadsMovedToRollback && fs.existsSync(rollbackUploadsDir)) {
+    fs.renameSync(rollbackUploadsDir, config.uploadsDir);
+  }
+  throw error;
+} finally {
+  fs.rmSync(stagedDatabasePath, { force: true });
+  fs.rmSync(stagedUploadsDir, { recursive: true, force: true });
 }
+
+fs.rmSync(rollbackDatabasePath, { force: true });
+fs.rmSync(rollbackUploadsDir, { recursive: true, force: true });
 
 console.log(`Backup restored from ${backupDir} to ${config.dataDir}`);
 
@@ -67,10 +116,14 @@ function copyDirectory(sourceDir, targetDir) {
     const sourcePath = path.join(sourceDir, entry.name);
     const targetPath = path.join(targetDir, entry.name);
 
-    if (entry.isDirectory()) {
+    if (entry.isSymbolicLink()) {
+      throw new Error(`Backup contains a symbolic link: ${sourcePath}`);
+    } else if (entry.isDirectory()) {
       copyDirectory(sourcePath, targetPath);
     } else if (entry.isFile()) {
       fs.copyFileSync(sourcePath, targetPath);
+    } else {
+      throw new Error(`Backup contains an unsupported filesystem entry: ${sourcePath}`);
     }
   }
 }
@@ -81,6 +134,12 @@ function verifyManifest(rootDir, manifestFile) {
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  if (
+    (manifest.format !== undefined && manifest.format !== "neta-backup") ||
+    (manifest.version !== undefined && manifest.version !== 1)
+  ) {
+    throw new Error("Backup manifest format or version is not supported.");
+  }
   if (!Array.isArray(manifest.files) || manifest.files.length === 0) {
     throw new Error("Backup manifest has no file entries.");
   }
@@ -134,4 +193,8 @@ function collectBackupFiles(rootDir, currentDir) {
     }
   }
   return files;
+}
+
+function hashFile(filePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }

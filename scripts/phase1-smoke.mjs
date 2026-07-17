@@ -58,6 +58,20 @@ execFileSync(process.execPath, ["scripts/backup.mjs"], {
   env,
   stdio: "inherit",
 });
+for (let index = 0; index < 2; index += 1) {
+  execFileSync(
+    process.execPath,
+    ["scripts/backup.mjs", "--retention-count", "2"],
+    { cwd: process.cwd(), env, stdio: "inherit" },
+  );
+}
+
+const retainedBackups = fs
+  .readdirSync(path.join(smokeRoot, "backups"))
+  .filter((name) => name.startsWith("neta-"));
+if (retainedBackups.length !== 2) {
+  throw new Error(`Backup retention smoke check failed: expected 2, received ${retainedBackups.length}.`);
+}
 
 const backupDir = fs
   .readdirSync(path.join(smokeRoot, "backups"))
@@ -68,6 +82,14 @@ const backupDir = fs
 if (!backupDir) {
   throw new Error("Backup smoke check failed: no backup directory produced.");
 }
+
+execFileSync(process.execPath, ["scripts/migrate.mjs"], {
+  cwd: process.cwd(),
+  env: { ...process.env, DATA_DIR: restoreRoot, DATABASE_PATH: "" },
+  stdio: "inherit",
+});
+const staleUploadPath = path.join(restoreRoot, "uploads", "stale.txt");
+fs.writeFileSync(staleUploadPath, "must-be-replaced");
 
 execFileSync(process.execPath, ["scripts/restore.mjs", "--from", backupDir, "--target", restoreRoot, "--force"], {
   cwd: process.cwd(),
@@ -95,6 +117,9 @@ const restoredUploadFixture = path.join(
 );
 if (fs.readFileSync(restoredUploadFixture, "utf8") !== "neta-upload-backup-fixture") {
   throw new Error("Restore smoke check failed: upload fixture missing or corrupted.");
+}
+if (fs.existsSync(staleUploadPath)) {
+  throw new Error("Atomic restore smoke check failed: stale upload tree was not replaced.");
 }
 
 fs.appendFileSync(path.join(backupDir, "uploads", "project-assets", "backup-fixture.txt"), "-tampered");

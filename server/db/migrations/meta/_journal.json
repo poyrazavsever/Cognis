@@ -43,6 +43,13 @@
       "when": 1784234752708,
       "tag": "0005_brief_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1784266217938,
+      "tag": "0006_moaning_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }
