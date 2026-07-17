@@ -36,10 +36,16 @@ export async function loadSettings() {
     aiProvider: ai.provider,
     hasApiKey: ai.hasApiKey,
     colorMode: preferences.colorMode,
-    workspaceName: branding.applicationName,
+    workspaceName: branding.organizationName ?? branding.applicationName,
+    metaTitle: branding.applicationName,
+    shortName: branding.shortName,
     primaryColor: branding.primaryColor,
-    logoUrl: branding.lightLogoUrl ?? branding.darkLogoUrl ?? "",
-    hasCustomLogo: Boolean(branding.lightLogoFileId || branding.darkLogoFileId),
+    lightLogoUrl: branding.lightLogoUrl ?? "",
+    darkLogoUrl: branding.darkLogoUrl ?? "",
+    faviconUrl: branding.iconUrl ?? "",
+    hasCustomLightLogo: Boolean(branding.lightLogoFileId),
+    hasCustomDarkLogo: Boolean(branding.darkLogoFileId),
+    hasCustomFavicon: Boolean(branding.iconFileId),
   };
 }
 
@@ -137,8 +143,8 @@ export async function saveColorMode(colorMode: string) {
   }
 }
 
-export async function saveWorkspaceBranding(formData: FormData) {
-  let uploadedLogoId: string | null = null;
+export async function saveGeneralSettings(formData: FormData) {
+  const uploadedFileIds: string[] = [];
   let brandingCommitted = false;
   let actorForCleanup: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"] | null = null;
 
@@ -147,97 +153,144 @@ export async function saveWorkspaceBranding(formData: FormData) {
     actorForCleanup = actor;
 
     const workspaceName = cleanText(formData.get("workspaceName"));
+    const metaTitle = cleanText(formData.get("metaTitle"));
+    const shortName = cleanText(formData.get("shortName"));
     const primaryColor = cleanText(formData.get("primaryColor"))?.toUpperCase() ?? "";
-    if (!workspaceName || workspaceName.length > 80) {
-      return { error: "Workspace adı 1-80 karakter arasında olmalıdır." };
+    if (!workspaceName || workspaceName.length > 120) {
+      return { error: "Workspace adı 1-120 karakter arasında olmalıdır." };
+    }
+    if (!metaTitle || metaTitle.length > 80) {
+      return { error: "Tarayıcı başlığı 1-80 karakter arasında olmalıdır." };
+    }
+    if (!shortName || shortName.length > 24) {
+      return { error: "Kısa uygulama adı 1-24 karakter arasında olmalıdır." };
     }
     if (!/^#[0-9A-F]{6}$/.test(primaryColor)) {
       return { error: "Ana renk #RRGGBB formatında olmalıdır." };
     }
 
     const brandingService = getBrandingService();
-    const fileService = getFileService();
     const current = brandingService.getPublic();
-    const logo = formData.get("logo");
-
-    if (logo instanceof File && logo.size > 0) {
-      uploadedLogoId = fileService.upload(actor, {
-        kind: "branding_logo",
-        originalName: logo.name,
-        claimedMimeType: logo.type,
-        bytes: new Uint8Array(await logo.arrayBuffer()),
-      }).id;
-    }
+    const lightLogoFileId = await uploadBrandingFile(formData, "lightLogo", "branding_logo", actor);
+    if (lightLogoFileId) uploadedFileIds.push(lightLogoFileId);
+    const darkLogoFileId = await uploadBrandingFile(formData, "darkLogo", "branding_logo", actor);
+    if (darkLogoFileId) uploadedFileIds.push(darkLogoFileId);
+    const iconFileId = await uploadBrandingFile(formData, "favicon", "branding_icon", actor);
+    if (iconFileId) uploadedFileIds.push(iconFileId);
 
     const updated = brandingService.update(actor, {
-      applicationName: workspaceName,
-      shortName: Array.from(workspaceName).slice(0, 24).join(""),
+      applicationName: metaTitle,
+      shortName,
       organizationName: workspaceName,
       primaryColor,
-      ...(uploadedLogoId
-        ? {
-            lightLogoFileId: uploadedLogoId,
-            darkLogoFileId: uploadedLogoId,
-          }
-        : {}),
+      ...(lightLogoFileId ? { lightLogoFileId } : {}),
+      ...(darkLogoFileId ? { darkLogoFileId } : {}),
+      ...(iconFileId ? { iconFileId } : {}),
     });
     brandingCommitted = true;
 
-    if (uploadedLogoId) {
-      deleteBrandingFilesBestEffort(
-        actor,
-        [current.lightLogoFileId, current.darkLogoFileId],
-        uploadedLogoId,
-      );
-    }
+    deleteSupersededBrandingFiles(actor, current, updated);
 
     revalidateBrandingPaths();
     return {
       success: true,
-      workspaceName: updated.applicationName,
+      workspaceName: updated.organizationName ?? updated.applicationName,
+      metaTitle: updated.applicationName,
+      shortName: updated.shortName,
       primaryColor: updated.primaryColor,
-      logoUrl: updated.lightLogoUrl ?? updated.darkLogoUrl ?? "",
-      hasCustomLogo: Boolean(updated.lightLogoFileId || updated.darkLogoFileId),
+      lightLogoUrl: updated.lightLogoUrl ?? "",
+      darkLogoUrl: updated.darkLogoUrl ?? "",
+      faviconUrl: updated.iconUrl ?? "",
+      hasCustomLightLogo: Boolean(updated.lightLogoFileId),
+      hasCustomDarkLogo: Boolean(updated.darkLogoFileId),
+      hasCustomFavicon: Boolean(updated.iconFileId),
     };
   } catch (error) {
-    if (uploadedLogoId && actorForCleanup && !brandingCommitted) {
-      deleteBrandingFilesBestEffort(actorForCleanup, [uploadedLogoId]);
+    if (actorForCleanup && !brandingCommitted) {
+      deleteBrandingFilesBestEffort(actorForCleanup, uploadedFileIds);
     }
-    return { error: error instanceof Error ? error.message : "Workspace görünümü kaydedilemedi." };
+    return { error: error instanceof Error ? error.message : "Genel ayarlar kaydedilemedi." };
   }
 }
 
-export async function removeWorkspaceLogo() {
+type BrandingAsset = "lightLogo" | "darkLogo" | "favicon";
+
+export async function removeBrandingAsset(asset: BrandingAsset) {
   try {
     const { actor } = await requireFreelancerBackend();
     const brandingService = getBrandingService();
     const current = brandingService.getPublic();
-    const updated = brandingService.update(actor, {
-      lightLogoFileId: null,
-      darkLogoFileId: null,
-    });
+    const fieldByAsset = {
+      lightLogo: "lightLogoFileId",
+      darkLogo: "darkLogoFileId",
+      favicon: "iconFileId",
+    } as const;
+    if (!(asset in fieldByAsset)) {
+      return { error: "Geçersiz marka görseli." };
+    }
+    const updated = brandingService.update(actor, { [fieldByAsset[asset]]: null });
 
-    deleteBrandingFilesBestEffort(actor, [
-      current.lightLogoFileId,
-      current.darkLogoFileId,
-    ]);
+    deleteSupersededBrandingFiles(actor, current, updated);
     revalidateBrandingPaths();
     return {
       success: true,
-      logoUrl: updated.lightLogoUrl ?? updated.darkLogoUrl ?? "",
-      hasCustomLogo: false,
+      lightLogoUrl: updated.lightLogoUrl ?? "",
+      darkLogoUrl: updated.darkLogoUrl ?? "",
+      faviconUrl: updated.iconUrl ?? "",
+      hasCustomLightLogo: Boolean(updated.lightLogoFileId),
+      hasCustomDarkLogo: Boolean(updated.darkLogoFileId),
+      hasCustomFavicon: Boolean(updated.iconFileId),
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Logo kaldırılamadı." };
+    return { error: error instanceof Error ? error.message : "Marka görseli kaldırılamadı." };
   }
+}
+
+async function uploadBrandingFile(
+  formData: FormData,
+  field: "lightLogo" | "darkLogo" | "favicon",
+  kind: "branding_logo" | "branding_icon",
+  actor: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"],
+): Promise<string | null> {
+  const file = formData.get(field);
+  if (!(file instanceof File) || file.size === 0) return null;
+
+  return getFileService().upload(actor, {
+    kind,
+    originalName: file.name,
+    claimedMimeType: file.type,
+    bytes: new Uint8Array(await file.arrayBuffer()),
+  }).id;
+}
+
+function deleteSupersededBrandingFiles(
+  actor: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"],
+  previous: ReturnType<ReturnType<typeof getBrandingService>["getPublic"]>,
+  next: ReturnType<ReturnType<typeof getBrandingService>["getPublic"]>,
+): void {
+  const activeFileIds = new Set([
+    next.lightLogoFileId,
+    next.darkLogoFileId,
+    next.iconFileId,
+  ].filter((id): id is string => Boolean(id)));
+
+  deleteBrandingFilesBestEffort(
+    actor,
+    [
+      previous.lightLogoFileId,
+      previous.darkLogoFileId,
+      previous.iconFileId,
+    ],
+    activeFileIds,
+  );
 }
 
 function deleteBrandingFilesBestEffort(
   actor: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"],
   fileIds: Array<string | null>,
-  exceptId?: string,
+  exceptIds: ReadonlySet<string> = new Set(),
 ): void {
-  const uniqueFileIds = new Set(fileIds.filter((id): id is string => Boolean(id && id !== exceptId)));
+  const uniqueFileIds = new Set(fileIds.filter((id): id is string => Boolean(id && !exceptIds.has(id))));
   for (const fileId of uniqueFileIds) {
     try {
       getFileService().delete(actor, fileId);

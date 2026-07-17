@@ -78,7 +78,7 @@ Primary/accent değerleri yalnızca altı haneli hex olarak kabul edilir ve norm
 
 Root layout her request'te branding'i SQLite'tan okur ve semantic CSS custom property'lerini doğrudan `<html style>` üzerinde üretir. `data-color-mode` ve dark class ilk HTML'de bulunur; system dark tercihi CSS media query ile uygulanır. Bu nedenle token veya color mode için hydration sonrası browser düzeltmesi ve ilk render parlaması gerekmez.
 
-Metadata title, Apple web app adı, theme color ve icon da branding'den üretilir. `manifest.webmanifest` dinamik olarak application name, short name, primary color ve icon referansını kullanır. Light/dark logo alanlarından biri boşsa diğeri fallback olur; file silmek foreign key `set null` ile varsayılan asset durumuna döner. Dashboard ve client portal aynı root layout tokenlarını kullanır.
+Metadata title, Apple web app adı, theme color ve favicon da branding'den üretilir. `organizationName` görünür workspace adını, `applicationName` meta title'ı, `shortName` PWA/mobil kısa adını taşır. `manifest.webmanifest` bu alanları, primary rengi ve favicon referansını dinamik kullanır. Light/dark logo alanlarından biri boşsa diğeri fallback olur; ayarlar arayüzü iki tema için ayrı upload ister. File silmek foreign key `set null` ile varsayılan asset durumuna döner. Dashboard ve client portal aynı root layout tokenlarını kullanır.
 
 ## Backup ve restore
 

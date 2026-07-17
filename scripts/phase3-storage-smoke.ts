@@ -69,23 +69,29 @@ try {
   assertDomainError(() => fileService.read(clientOne, ownerAvatar.id), "NOT_FOUND");
   assertDomainError(() => fileService.read(ownerTwo, ownerAvatar.id), "NOT_FOUND");
 
-  const logo = fileService.upload(ownerOne, imageInput("branding_logo", "logo.png"));
+  const lightLogo = fileService.upload(ownerOne, imageInput("branding_logo", "light-logo.png"));
+  const darkLogo = fileService.upload(ownerOne, imageInput("branding_logo", "dark-logo.png"));
   const icon = fileService.upload(ownerOne, imageInput("branding_icon", "icon.png"));
-  assertDomainError(() => fileService.readPublicBranding(logo.id), "NOT_FOUND");
+  assertDomainError(() => fileService.readPublicBranding(lightLogo.id), "NOT_FOUND");
   const branding = brandingService.update(ownerOne, {
-    applicationName: "Studio Portal",
+    applicationName: "Studio Portal Meta",
     shortName: "Studio",
+    organizationName: "Studio Portal",
     primaryColor: "#336699",
-    lightLogoFileId: logo.id,
+    lightLogoFileId: lightLogo.id,
+    darkLogoFileId: darkLogo.id,
     iconFileId: icon.id,
     defaultColorMode: "dark",
     radiusScale: "soft",
   });
-  assert.equal(branding.applicationName, "Studio Portal");
+  assert.equal(branding.applicationName, "Studio Portal Meta");
+  assert.equal(branding.organizationName, "Studio Portal");
   assert.equal(branding.primaryColor, "#336699");
   assert.equal(branding.accentColor, deriveAccentColor("#336699"), "Accent palette must derive from the single primary color");
-  assert.equal(branding.darkLogoUrl, branding.lightLogoUrl, "Missing dark logo must fall back to light logo");
-  assert.equal(fileService.readPublicBranding(logo.id).metadata.id, logo.id);
+  assert.notEqual(branding.darkLogoUrl, branding.lightLogoUrl, "Light and dark logos must remain distinct");
+  assert.equal(fileService.readPublicBranding(lightLogo.id).metadata.id, lightLogo.id);
+  assert.equal(fileService.readPublicBranding(darkLogo.id).metadata.id, darkLogo.id);
+  assert.equal(fileService.readPublicBranding(icon.id).metadata.id, icon.id);
   assert.ok(contrastRatio(branding.primaryColor, branding.cssVariables["--poyraz-primary-foreground"]) >= 4.5);
   assert.ok(contrastRatio(branding.accentColor, branding.cssVariables["--poyraz-accent-foreground"]) >= 4.5);
   assertDomainError(() => brandingService.update(clientOne, { applicationName: "Attack" }), "FORBIDDEN");
@@ -156,10 +162,15 @@ try {
   assert.equal(fs.existsSync(avatarPath), false);
   assert.equal(db.select({ image: schema.user.image }).from(schema.user).where(eq(schema.user.id, ownerOne.authUserId)).get()?.image, null);
 
-  const logoPath = resolveStoragePath(uploadsDir, logo.storagePath);
-  fileService.delete(ownerOne, logo.id);
+  const logoPath = resolveStoragePath(uploadsDir, lightLogo.storagePath);
+  fileService.delete(ownerOne, lightLogo.id);
   assert.equal(fs.existsSync(logoPath), false);
   assert.equal(brandingService.getPublic().lightLogoFileId, null, "Deleting a logo must clear branding reference");
+  assert.equal(
+    brandingService.getPublic().lightLogoUrl,
+    brandingService.getPublic().darkLogoUrl,
+    "Missing light logo must safely fall back to the configured dark logo",
+  );
 
   console.log("Phase 3 storage smoke passed: uploads, authorization, path safety, branding and deletion verified.");
 } finally {

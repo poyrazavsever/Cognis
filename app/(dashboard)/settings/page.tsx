@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   Blocks,
   Brain,
-  Building2,
   ImageIcon,
   Key,
   Monitor,
@@ -20,10 +19,10 @@ import {
 } from "lucide-react";
 import {
   loadSettings,
-  removeWorkspaceLogo,
+  removeBrandingAsset,
   saveAiSettings,
   saveColorMode,
-  saveWorkspaceBranding,
+  saveGeneralSettings,
   updatePassword,
   updateProfile,
 } from "./actions";
@@ -41,6 +40,7 @@ import { applyColorMode } from "@/components/theme/color-mode-sync";
 import { isColorMode, type ColorMode } from "@/lib/color-mode";
 
 type AiProvider = "groq" | "ollama" | "openai" | "gemini";
+type BrandingAsset = "lightLogo" | "darkLogo" | "favicon";
 
 const colorModeOptions = [
   {
@@ -69,7 +69,7 @@ const colorModeOptions = [
 }>;
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("Workspace");
+  const [activeTab, setActiveTab] = useState("Genel");
 
   // Profile States
   const [firstName, setFirstName] = useState("");
@@ -86,17 +86,30 @@ export default function SettingsPage() {
   const [colorMode, setColorMode] = useState<ColorMode>("system");
   const [isSavingColorMode, setIsSavingColorMode] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Neta");
+  const [metaTitle, setMetaTitle] = useState("Neta");
+  const [shortName, setShortName] = useState("Neta");
   const [primaryColor, setPrimaryColor] = useState("#C81E1E");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [pendingLogoUrl, setPendingLogoUrl] = useState("");
-  const [hasCustomLogo, setHasCustomLogo] = useState(false);
+  const [assetUrls, setAssetUrls] = useState<Record<BrandingAsset, string>>({
+    lightLogo: "",
+    darkLogo: "",
+    favicon: "",
+  });
+  const [pendingAssetUrls, setPendingAssetUrls] = useState<Record<BrandingAsset, string>>({
+    lightLogo: "",
+    darkLogo: "",
+    favicon: "",
+  });
+  const [customAssets, setCustomAssets] = useState<Record<BrandingAsset, boolean>>({
+    lightLogo: false,
+    darkLogo: false,
+    favicon: false,
+  });
   const [isSavingBranding, setIsSavingBranding] = useState(false);
-  const logoObjectUrlRef = useRef<string | null>(null);
+  const assetObjectUrlRefs = useRef<Partial<Record<BrandingAsset, string>>>({});
 
   const tabs = [
-    { name: "Workspace", icon: Building2 },
+    { name: "Genel", icon: Palette },
     { name: "Profile & Account", icon: User },
-    { name: "Görünüm", icon: Palette },
     { name: "AI Preferences", icon: Brain },
     { name: "Security", icon: Shield },
   ];
@@ -114,9 +127,19 @@ export default function SettingsPage() {
       setHasApiKey(settings.hasApiKey);
       setColorMode(settings.colorMode);
       setWorkspaceName(settings.workspaceName);
+      setMetaTitle(settings.metaTitle);
+      setShortName(settings.shortName);
       setPrimaryColor(settings.primaryColor);
-      setLogoUrl(settings.logoUrl);
-      setHasCustomLogo(settings.hasCustomLogo);
+      setAssetUrls({
+        lightLogo: settings.lightLogoUrl,
+        darkLogo: settings.darkLogoUrl,
+        favicon: settings.faviconUrl,
+      });
+      setCustomAssets({
+        lightLogo: settings.hasCustomLightLogo,
+        darkLogo: settings.hasCustomDarkLogo,
+        favicon: settings.hasCustomFavicon,
+      });
     };
 
     void fetchData();
@@ -124,8 +147,11 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    const objectUrls = assetObjectUrlRefs.current;
     return () => {
-      if (logoObjectUrlRef.current) URL.revokeObjectURL(logoObjectUrlRef.current);
+      for (const objectUrl of Object.values(objectUrls)) {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      }
     };
   }, []);
 
@@ -184,43 +210,44 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (logoObjectUrlRef.current) URL.revokeObjectURL(logoObjectUrlRef.current);
+  const handleBrandingAssetChange = (
+    asset: BrandingAsset,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const previousObjectUrl = assetObjectUrlRefs.current[asset];
+    if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl);
     const file = event.target.files?.[0];
     const objectUrl = file ? URL.createObjectURL(file) : "";
-    logoObjectUrlRef.current = objectUrl || null;
-    setPendingLogoUrl(objectUrl);
+    assetObjectUrlRefs.current[asset] = objectUrl || undefined;
+    setPendingAssetUrls((current) => ({ ...current, [asset]: objectUrl }));
   };
 
-  const handleWorkspaceBrandingAction = async (formData: FormData) => {
+  const handleGeneralSettingsAction = async (formData: FormData) => {
     setIsSavingBranding(true);
     try {
-      const response = await saveWorkspaceBranding(formData);
+      const response = await saveGeneralSettings(formData);
       if (response.error) {
         toast.error(response.error);
         return;
       }
 
-      toast.success("Workspace görünümü güncellendi.");
+      toast.success("Genel görünüm ve marka ayarları güncellendi.");
       window.location.reload();
     } finally {
       setIsSavingBranding(false);
     }
   };
 
-  const handleRemoveWorkspaceLogo = async () => {
+  const handleRemoveBrandingAsset = async (asset: BrandingAsset) => {
     setIsSavingBranding(true);
     try {
-      const response = await removeWorkspaceLogo();
+      const response = await removeBrandingAsset(asset);
       if (response.error) {
         toast.error(response.error);
         return;
       }
 
-      setLogoUrl("");
-      setPendingLogoUrl("");
-      setHasCustomLogo(false);
-      toast.success("Workspace logosu kaldırıldı.");
+      toast.success("Marka görseli kaldırıldı.");
       window.location.reload();
     } finally {
       setIsSavingBranding(false);
@@ -240,9 +267,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8 flex-1 min-h-0 pb-12">
+      <div className="flex flex-col gap-8 pb-12 md:flex-row md:items-start">
         {/* Settings Sidebar */}
-        <div className="w-full md:w-64 flex overflow-x-auto md:flex-col gap-2 shrink-0 pb-2 md:pb-0 tiny-scrollbar">
+        <div className="tiny-scrollbar flex w-full shrink-0 gap-2 overflow-x-auto pb-2 md:sticky md:top-8 md:max-h-[calc(100vh-4rem)] md:w-64 md:self-start md:flex-col md:overflow-y-auto md:pb-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -264,86 +291,125 @@ export default function SettingsPage() {
 
         {/* Settings Content Area */}
         <div className="flex-1">
-          {activeTab === "Workspace" && (
+          {activeTab === "Genel" && (
             <Card className="animate-in fade-in duration-300">
               <CardContent className="p-6 sm:p-8">
                 <div className="mb-7 space-y-1.5">
-                  <h2 className="text-xl font-bold text-foreground">Workspace görünümü</h2>
+                  <h2 className="text-xl font-bold text-foreground">Genel görünüm ve marka</h2>
                   <p className="max-w-2xl text-sm text-muted-foreground">
-                    Müşterilerinizin ve sizin gördüğünüz workspace adını, logoyu ve ana rengi yönetin.
+                    Web ve mobil istemcilerde kullanılan workspace kimliğini, marka görsellerini ve tema tercihlerini yönetin.
                   </p>
                 </div>
 
-                <form action={handleWorkspaceBrandingAction} className="max-w-3xl space-y-8">
-                  <section className="space-y-3">
-                    <div className="space-y-1">
-                      <Label htmlFor="workspaceName">Workspace adı</Label>
+                <form action={handleGeneralSettingsAction} className="max-w-4xl space-y-8">
+                  <section className="space-y-5">
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="workspaceName">Workspace adı</Label>
+                        <Input
+                          id="workspaceName"
+                          name="workspaceName"
+                          value={workspaceName}
+                          onChange={(event) => setWorkspaceName(event.target.value)}
+                          minLength={1}
+                          maxLength={120}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Firma, freelance marka veya çalışma alanı adınız.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="metaTitle">Tarayıcı başlığı</Label>
+                        <Input
+                          id="metaTitle"
+                          name="metaTitle"
+                          value={metaTitle}
+                          onChange={(event) => setMetaTitle(event.target.value)}
+                          minLength={1}
+                          maxLength={80}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Sekme başlıklarında ve uygulama metadata bilgisinde kullanılır.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="max-w-md space-y-2">
+                      <Label htmlFor="shortName">Kısa uygulama adı</Label>
+                      <Input
+                        id="shortName"
+                        name="shortName"
+                        value={shortName}
+                        onChange={(event) => setShortName(event.target.value)}
+                        minLength={1}
+                        maxLength={24}
+                        required
+                      />
                       <p className="text-xs text-muted-foreground">
-                        Firma, freelance marka veya çalışma alanı adınız.
+                        Mobil uygulama ve ana ekrana ekleme alanlarında kullanılan kısa ad.
                       </p>
                     </div>
-                    <Input
-                      id="workspaceName"
-                      name="workspaceName"
-                      value={workspaceName}
-                      onChange={(event) => setWorkspaceName(event.target.value)}
-                      minLength={1}
-                      maxLength={80}
-                      required
-                    />
+                  </section>
+
+                  <section className="border-t border-border pt-7">
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <BrandingAssetField
+                        asset="lightLogo"
+                        inputId="lightLogo"
+                        name="lightLogo"
+                        title="Light logo"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        currentUrl={assetUrls.lightLogo}
+                        pendingUrl={pendingAssetUrls.lightLogo}
+                        hasCustomAsset={customAssets.lightLogo}
+                        previewTone="light"
+                        disabled={isSavingBranding}
+                        onChange={handleBrandingAssetChange}
+                        onRemove={handleRemoveBrandingAsset}
+                      />
+                      <BrandingAssetField
+                        asset="darkLogo"
+                        inputId="darkLogo"
+                        name="darkLogo"
+                        title="Dark logo"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        currentUrl={assetUrls.darkLogo}
+                        pendingUrl={pendingAssetUrls.darkLogo}
+                        hasCustomAsset={customAssets.darkLogo}
+                        previewTone="dark"
+                        disabled={isSavingBranding}
+                        onChange={handleBrandingAssetChange}
+                        onRemove={handleRemoveBrandingAsset}
+                      />
+                    </div>
                   </section>
 
                   <section className="space-y-4 border-t border-border pt-7">
                     <div className="space-y-1">
-                      <Label htmlFor="workspaceLogo">Workspace logosu</Label>
+                      <h3 className="text-sm font-semibold text-foreground">Tarayıcı ikonu</h3>
                       <p className="text-xs text-muted-foreground">
-                        PNG, JPEG, WebP veya GIF; en fazla 5 MB. Şeffaf arka planlı yatay logo önerilir.
+                        Favicon, web manifest ve mobil instance metadata alanlarında kullanılır.
                       </p>
                     </div>
-
-                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)]">
-                      <div className="space-y-3">
-                        <Input
-                          id="workspaceLogo"
-                          name="logo"
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/gif"
-                          onChange={handleLogoChange}
-                          className="cursor-pointer"
-                        />
-                        {hasCustomLogo ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={isSavingBranding}
-                            onClick={handleRemoveWorkspaceLogo}
-                            className="gap-2 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            Logoyu kaldır
-                          </Button>
-                        ) : null}
-                      </div>
-
-                      <div className="flex min-h-28 items-center justify-center overflow-hidden rounded-md border border-border bg-muted/40 p-4">
-                        {pendingLogoUrl || logoUrl ? (
-                          <Image
-                            src={pendingLogoUrl || logoUrl}
-                            alt="Workspace logo önizlemesi"
-                            width={220}
-                            height={80}
-                            unoptimized
-                            className="max-h-20 w-auto max-w-full object-contain"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <ImageIcon className="h-7 w-7" aria-hidden="true" />
-                            <span className="text-xs">Henüz özel logo yüklenmedi</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <BrandingAssetField
+                      asset="favicon"
+                      inputId="favicon"
+                      name="favicon"
+                      title="Favicon"
+                      description="Kare PNG önerilir; en fazla 5 MB."
+                      accept="image/png"
+                      currentUrl={assetUrls.favicon}
+                      pendingUrl={pendingAssetUrls.favicon}
+                      hasCustomAsset={customAssets.favicon}
+                      previewTone="neutral"
+                      compact
+                      disabled={isSavingBranding}
+                      onChange={handleBrandingAssetChange}
+                      onRemove={handleRemoveBrandingAsset}
+                    />
                   </section>
 
                   <section className="space-y-4 border-t border-border pt-7">
@@ -384,10 +450,75 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-3 border-t border-border pt-6">
                     <Button type="submit" loading={isSavingBranding} className="gap-2">
                       <Upload className="h-4 w-4" aria-hidden="true" />
-                      Workspace görünümünü kaydet
+                      Genel ayarları kaydet
                     </Button>
                   </div>
                 </form>
+
+                <section className="mt-10 space-y-5 border-t border-border pt-8">
+                  <div className="space-y-1.5">
+                    <h3 className="text-sm font-semibold text-foreground">Tema görünümü</h3>
+                    <p className="max-w-2xl text-sm text-muted-foreground">
+                      Arayüzün açık, koyu veya cihazınızla uyumlu görünmesini seçin.
+                    </p>
+                  </div>
+
+                  <RadioGroup
+                    value={colorMode}
+                    onValueChange={handleColorModeChange}
+                    disabled={isSavingColorMode}
+                    aria-label="Tema görünümü"
+                    className="grid max-w-3xl gap-3 sm:grid-cols-3"
+                  >
+                    {colorModeOptions.map((option) => {
+                      const Icon = option.icon;
+                      const selected = colorMode === option.value;
+
+                      return (
+                        <Label
+                          key={option.value}
+                          htmlFor={`color-mode-${option.value}`}
+                          className={`relative flex min-h-40 cursor-pointer flex-col justify-between gap-5 rounded-md border p-4 transition-[color,background-color,border-color,box-shadow] ${
+                            selected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "border-border bg-card hover:border-primary/50 hover:bg-muted/40"
+                          } ${isSavingColorMode ? "cursor-wait opacity-70" : ""}`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <span
+                              className={`flex h-10 w-10 items-center justify-center rounded-md border ${
+                                selected
+                                  ? "border-primary/30 bg-primary/10 text-primary"
+                                  : "border-border bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              <Icon className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                            <RadioGroupItem
+                              id={`color-mode-${option.value}`}
+                              value={option.value}
+                              aria-label={option.label}
+                            />
+                          </div>
+                          <span className="space-y-1">
+                            <span className="block text-sm font-semibold text-foreground">
+                              {option.label}
+                            </span>
+                            <span className="block text-xs font-normal leading-relaxed text-muted-foreground">
+                              {option.description}
+                            </span>
+                          </span>
+                        </Label>
+                      );
+                    })}
+                  </RadioGroup>
+
+                  <p className="text-xs text-muted-foreground" aria-live="polite">
+                    {isSavingColorMode
+                      ? "Görünüm tercihi kaydediliyor…"
+                      : "Değişiklik tüm sayfalara anında uygulanır."}
+                  </p>
+                </section>
               </CardContent>
             </Card>
           )}
@@ -458,75 +589,6 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {activeTab === "Görünüm" && (
-            <Card className="animate-in fade-in duration-300">
-              <CardContent className="p-6 sm:p-8">
-                <div className="mb-6 space-y-1.5">
-                  <h2 className="text-xl font-bold text-foreground">Tema görünümü</h2>
-                  <p className="max-w-2xl text-sm text-muted-foreground">
-                    Neta arayüzünün açık, koyu veya cihazınızla uyumlu görünmesini seçin.
-                  </p>
-                </div>
-
-                <RadioGroup
-                  value={colorMode}
-                  onValueChange={handleColorModeChange}
-                  disabled={isSavingColorMode}
-                  aria-label="Tema görünümü"
-                  className="grid max-w-3xl gap-3 sm:grid-cols-3"
-                >
-                  {colorModeOptions.map((option) => {
-                    const Icon = option.icon;
-                    const selected = colorMode === option.value;
-
-                    return (
-                      <Label
-                        key={option.value}
-                        htmlFor={`color-mode-${option.value}`}
-                        className={`relative flex min-h-40 cursor-pointer flex-col justify-between gap-5 rounded-md border p-4 transition-[color,background-color,border-color,box-shadow] ${
-                          selected
-                            ? "border-primary bg-primary/5 ring-1 ring-primary"
-                            : "border-border bg-card hover:border-primary/50 hover:bg-muted/40"
-                        } ${isSavingColorMode ? "cursor-wait opacity-70" : ""}`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-md border ${
-                              selected
-                                ? "border-primary/30 bg-primary/10 text-primary"
-                                : "border-border bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            <Icon className="h-5 w-5" aria-hidden="true" />
-                          </span>
-                          <RadioGroupItem
-                            id={`color-mode-${option.value}`}
-                            value={option.value}
-                            aria-label={option.label}
-                          />
-                        </div>
-                        <span className="space-y-1">
-                          <span className="block text-sm font-semibold text-foreground">
-                            {option.label}
-                          </span>
-                          <span className="block text-xs font-normal leading-relaxed text-muted-foreground">
-                            {option.description}
-                          </span>
-                        </span>
-                      </Label>
-                    );
-                  })}
-                </RadioGroup>
-
-                <p className="mt-4 text-xs text-muted-foreground" aria-live="polite">
-                  {isSavingColorMode
-                    ? "Görünüm tercihi kaydediliyor…"
-                    : "Değişiklik tüm Neta sayfalarına anında uygulanır."}
-                </p>
               </CardContent>
             </Card>
           )}
@@ -602,6 +664,96 @@ export default function SettingsPage() {
           )}
 
         </div>
+      </div>
+    </div>
+  );
+}
+
+type BrandingAssetFieldProps = {
+  asset: BrandingAsset;
+  inputId: string;
+  name: string;
+  title: string;
+  description?: string;
+  accept: string;
+  currentUrl: string;
+  pendingUrl: string;
+  hasCustomAsset: boolean;
+  previewTone: "light" | "dark" | "neutral";
+  compact?: boolean;
+  disabled: boolean;
+  onChange: (asset: BrandingAsset, event: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: (asset: BrandingAsset) => void;
+};
+
+function BrandingAssetField({
+  asset,
+  inputId,
+  name,
+  title,
+  description,
+  accept,
+  currentUrl,
+  pendingUrl,
+  hasCustomAsset,
+  previewTone,
+  compact = false,
+  disabled,
+  onChange,
+  onRemove,
+}: BrandingAssetFieldProps) {
+  const previewUrl = pendingUrl || (hasCustomAsset ? currentUrl : "");
+  const previewClassName = {
+    light: "bg-white",
+    dark: "bg-neutral-950",
+    neutral: "bg-muted/40",
+  }[previewTone];
+
+  return (
+    <div className={`grid gap-4 rounded-md border border-border p-4 ${compact ? "max-w-2xl sm:grid-cols-[minmax(0,1fr)_160px]" : ""}`}>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label htmlFor={inputId}>{title}</Label>
+          {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+        </div>
+        <Input
+          id={inputId}
+          name={name}
+          type="file"
+          accept={accept}
+          onChange={(event) => onChange(asset, event)}
+          className="cursor-pointer"
+        />
+        {hasCustomAsset ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled}
+            onClick={() => onRemove(asset)}
+            className="gap-2 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Kaldır
+          </Button>
+        ) : null}
+      </div>
+
+      <div className={`flex min-h-28 items-center justify-center overflow-hidden rounded-md border border-border p-4 ${previewClassName}`}>
+        {previewUrl ? (
+          <Image
+            src={previewUrl}
+            alt={`${title} önizlemesi`}
+            width={compact ? 72 : 220}
+            height={compact ? 72 : 80}
+            unoptimized
+            className={compact ? "h-16 w-16 object-contain" : "max-h-20 w-auto max-w-full object-contain"}
+          />
+        ) : (
+          <div className={previewTone === "dark" ? "text-neutral-400" : "text-muted-foreground"}>
+            <ImageIcon className="h-7 w-7" aria-hidden="true" />
+          </div>
+        )}
       </div>
     </div>
   );
