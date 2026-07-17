@@ -43,7 +43,7 @@ export default async function InvitationPage({
       {query.error && query.message ? <ErrorToaster message={query.message} /> : null}
       <AuthPageShell
         branding={{
-          applicationName: branding.applicationName,
+          applicationName: branding.organizationName ?? branding.applicationName,
           lightLogoUrl: branding.lightLogoUrl,
           darkLogoUrl: branding.darkLogoUrl,
         }}

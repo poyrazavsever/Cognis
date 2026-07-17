@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default function manifest(): MetadataRoute.Manifest {
   const branding = getPublicBranding();
   return {
-    name: branding.applicationName,
+    name: branding.organizationName ?? branding.applicationName,
     short_name: branding.shortName,
     description: "Self-hosted freelancer operating dashboard",
     start_url: "/",
@@ -15,9 +15,6 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: branding.primaryColor,
     icons: branding.iconUrl
       ? [{ src: branding.iconUrl, sizes: "any", type: "image/png" }]
-      : [
-          { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
-        ],
+      : [{ src: "/logo/iconLogo.png", sizes: "any", type: "image/png" }],
   };
 }

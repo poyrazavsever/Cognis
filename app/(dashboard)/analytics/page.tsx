@@ -2,7 +2,7 @@ import { AnalyticsClient, type AnalyticsData } from "./analytics-client";
 import { parseDashboardRange, resolveDashboardRange } from "@/server/services/analytics-range";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
-export const metadata = { title: "Analizler - Neta" };
+export const metadata = { title: "Analizler" };
 
 export default async function AnalyticsPage({
   searchParams,

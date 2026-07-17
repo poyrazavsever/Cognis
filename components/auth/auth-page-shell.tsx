@@ -147,11 +147,20 @@ export function AuthPageShell({
           >
             <div className="mb-8 flex justify-center lg:hidden">
               <Image
-                src={branding.lightLogoUrl ?? "/logo/blackLogoLong.png"}
+                src={branding.lightLogoUrl ?? branding.darkLogoUrl ?? "/logo/blackLogoLong.png"}
                 alt={`${branding.applicationName} logo`}
                 width={180}
                 height={56}
-                className="h-14 w-auto object-contain"
+                className="h-14 w-auto object-contain dark:hidden"
+                style={{ width: "auto" }}
+                priority
+              />
+              <Image
+                src={branding.darkLogoUrl ?? branding.lightLogoUrl ?? "/logo/lightLogoLong.png"}
+                alt={`${branding.applicationName} logo`}
+                width={180}
+                height={56}
+                className="hidden h-14 w-auto object-contain dark:block"
                 style={{ width: "auto" }}
                 priority
               />

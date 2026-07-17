@@ -27,7 +27,7 @@ export default async function DashboardLayout({
   return (
     <DashboardShell
       branding={{
-        applicationName: branding.applicationName,
+        applicationName: branding.organizationName ?? branding.applicationName,
         organizationName: branding.organizationName,
         lightLogoUrl: branding.lightLogoUrl,
         darkLogoUrl: branding.darkLogoUrl,

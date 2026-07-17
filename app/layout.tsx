@@ -22,11 +22,16 @@ const colorModeScript = `(() => {
 
 export function generateMetadata(): Metadata {
   const branding = getPublicBranding();
+  const faviconUrl = branding.iconUrl ?? "/logo/iconLogo.png";
   return {
     title: { default: branding.applicationName, template: `%s · ${branding.applicationName}` },
     description: "Self-hosted freelancer operating dashboard",
     manifest: "/manifest.webmanifest",
-    icons: branding.iconUrl ? { icon: branding.iconUrl, apple: branding.iconUrl } : undefined,
+    icons: {
+      icon: [{ url: faviconUrl, type: "image/png" }],
+      shortcut: [{ url: faviconUrl, type: "image/png" }],
+      apple: [{ url: faviconUrl, type: "image/png" }],
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",

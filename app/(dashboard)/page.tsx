@@ -2,7 +2,7 @@ import { DashboardClient, type DashboardData } from "./dashboard-client";
 import { parseDashboardRange, resolveDashboardRange } from "@/server/services/analytics-range";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
-export const metadata = { title: "Dashboard - Neta" };
+export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage({
   searchParams,
