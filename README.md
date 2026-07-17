@@ -47,9 +47,10 @@ openssl rand -base64 32
 Üretilen secret'ı `.env.local` içindeki `BETTER_AUTH_SECRET` alanına koyun, ardından:
 
 ```bash
-pnpm db:migrate
 pnpm dev
 ```
+
+`pnpm dev` ve `pnpm start`, Next.js başlamadan önce bekleyen SQLite migration'larını otomatik ve idempotent olarak uygular. Migration'ı uygulamadan bağımsız çalıştırmak için `pnpm db:migrate` kullanılabilir.
 
 `http://localhost:3000/register` adresinden ilk owner hesabını oluşturun. İlk başarılı kurulumdan sonra public kayıt atomik olarak kapanır.
 

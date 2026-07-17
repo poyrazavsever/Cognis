@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/migrate.mjs",
     "dev": "next dev",
     "build": "next build",
+    "prestart": "node scripts/migrate.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

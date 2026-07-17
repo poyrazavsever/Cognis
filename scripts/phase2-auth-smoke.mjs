@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import { ensureDataLayout } from "./lib/data-dir.mjs";
 import { runMigrations } from "./migrate.mjs";
@@ -24,6 +25,20 @@ const requiredIndexes = [
 
 async function main() {
   const paths = ensureDataLayout();
+  const packageJson = JSON.parse(
+    readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  );
+
+  assert.equal(
+    packageJson.scripts?.predev,
+    "node scripts/migrate.mjs",
+    "pnpm dev must apply migrations before starting Next.js",
+  );
+  assert.equal(
+    packageJson.scripts?.prestart,
+    "node scripts/migrate.mjs",
+    "pnpm start must apply migrations before starting Next.js",
+  );
 
   runMigrations(paths.databasePath);
 
