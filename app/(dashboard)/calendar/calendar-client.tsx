@@ -91,9 +91,6 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">Takvim</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Toplantı, odak bloğu, deadline, kişisel ve finans etkinliklerini yönet.
-          </p>
         </div>
 
         <CalendarEventDialog
@@ -116,13 +113,13 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                 <p className="text-sm text-muted-foreground">{events.length} etkinlik</p>
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => shiftMonth(-1)}>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(-1)}>
                   Önceki
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setMonthDate(new Date())}>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => setMonthDate(new Date())}>
                   Bugün
                 </Button>
-                <Button type="button" variant="outline" onClick={() => shiftMonth(1)}>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(1)}>
                   Sonraki
                 </Button>
               </div>
@@ -143,13 +140,15 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                 const isSelected = selectedDate === day.key;
 
                 return (
-                  <button
+                  <Button effect="shine"
                     key={day.key}
                     type="button"
+                    variant={isSelected ? "default" : "secondary"}
                     onClick={() => setSelectedDate(day.key)}
-                    className={`min-h-28 border-b border-r border-border p-2 text-left transition-colors last:border-r-0 hover:bg-muted/40 ${
-                      !day.inMonth ? "bg-muted/20 text-muted-foreground" : "bg-background"
-                    } ${isSelected ? "ring-2 ring-inset ring-primary" : ""}`}
+                    radius="none"
+                    className={`min-h-28 w-full justify-start whitespace-normal border-b border-r p-2 text-left last:border-r-0 ${
+                      !day.inMonth ? "opacity-60" : ""
+                    }`}
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium">{day.date.getDate()}</span>
@@ -167,7 +166,7 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                         <div className="text-xs text-muted-foreground">+{dayEvents.length - 3}</div>
                       ) : null}
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
                 </div>
@@ -251,7 +250,7 @@ function EventList({
               <CalendarEventDialog mode="edit" event={event} clients={clients} projects={projects} tasks={tasks} />
               <form action={deleteCalendarEventRecord}>
                 <input type="hidden" name="id" value={event.id} />
-                <Button type="submit" variant="outline" className="h-9 gap-2 text-rose-600">
+                <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
                   <Trash2 className="h-4 w-4" />
                   Sil
                 </Button>
@@ -303,7 +302,7 @@ function CalendarEventDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-9 gap-2" variant={mode === "create" ? "default" : "outline"}>
+        <Button effect="shine" className="gap-2" variant={mode === "create" ? "default" : "secondary"}>
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Etkinlik ekle" : "Düzenle"}
         </Button>
@@ -321,7 +320,7 @@ function CalendarEventDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Etkinliği ekle" : "Değişiklikleri kaydet"}
             </Button>

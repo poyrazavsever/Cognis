@@ -69,9 +69,6 @@ export function DashboardClient({ data }: DashboardClientProps) {
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Dashboard
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            İş performansını, gelirlerini ve günlük durumunu takip et.
-          </p>
         </div>
 
         <div className="flex items-center gap-3">

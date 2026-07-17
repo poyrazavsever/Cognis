@@ -148,9 +148,6 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Finans işlemleri
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Gelir, gider, ödeme durumu ve proje/müşteri bağlantılarını takip et.
-          </p>
         </div>
         <div className="flex gap-2">
           <AIFinanceDialog />
@@ -170,20 +167,20 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
           </div>
           <div className="flex shrink-0 gap-2">
             <Button
+              effect="shine"
               type="button"
-              variant="outline"
+              variant="secondary"
               size="icon"
-              className="h-9 w-9"
               aria-label="Önceki finans özet kartları"
               onClick={() => scrollSummary(-1)}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
+              effect="shine"
               type="button"
-              variant="outline"
+              variant="secondary"
               size="icon"
-              className="h-9 w-9"
               aria-label="Sonraki finans özet kartları"
               onClick={() => scrollSummary(1)}
             >
@@ -207,7 +204,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
               scrollSummary(1);
             }
           }}
-          className="tiny-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&::-webkit-scrollbar]:hidden"
         >
           {summaryCards.map((card) => (
             <StatCard
@@ -350,7 +347,7 @@ function TransactionRow({
         <FinanceDialog mode="edit" transaction={transaction} clients={clients} projects={projects} />
         <form action={deleteFinanceTransactionRecord}>
           <input type="hidden" name="id" value={transaction.id} />
-          <Button type="submit" variant="outline" className="h-9 gap-2 text-rose-600">
+          <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
             <Trash2 className="h-4 w-4" />
             Sil
           </Button>
@@ -395,7 +392,7 @@ function FinanceDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={mode === "create" ? "default" : "outline"} className="h-9 gap-2">
+        <Button effect="shine" variant={mode === "create" ? "default" : "secondary"} className="gap-2">
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "İşlem ekle" : "Düzenle"}
         </Button>
@@ -411,7 +408,7 @@ function FinanceDialog({
             <FinanceFormFields transaction={transaction} clients={clients} projects={projects} />
           </div>
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting ? "Kaydediliyor" : mode === "create" ? "İşlemi ekle" : "Değişiklikleri kaydet"}
             </Button>
@@ -657,7 +654,7 @@ function AIFinanceDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-800">
+        <Button effect="shine" variant="secondary" className="gap-2">
           <Brain className="h-4 w-4" />
           AI Analizi
         </Button>
@@ -676,7 +673,7 @@ function AIFinanceDialog() {
         <div className="py-4">
           {!result && !loading && (
             <div className="text-center py-10">
-              <Button onClick={handleAnalyze} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button variant="default" effect="shine" onClick={handleAnalyze} className="gap-2">
                 <Brain className="h-4 w-4" />
                 Raporu Oluştur
               </Button>
@@ -699,8 +696,8 @@ function AIFinanceDialog() {
 
         {result && (
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setOpen(false)}>Kapat</Button>
-            <Button variant="default" onClick={handleAnalyze} className="gap-2">
+            <Button effect="shine" variant="secondary" onClick={() => setOpen(false)}>Kapat</Button>
+            <Button effect="shine" variant="default" onClick={handleAnalyze} className="gap-2">
               <Brain className="h-4 w-4" />
               Yeniden Oluştur
             </Button>

@@ -81,9 +81,6 @@ export function JournalClient({ logs }: JournalClientProps) {
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
             Mood ve enerji
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Günlük ruh hali, enerji ve çalışma memnuniyetini takip ederek kişisel kapasite trendini gör.
-          </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -233,7 +230,7 @@ function DailyLogRow({ log }: { log: DailyLogItem }) {
         <DailyLogDialog mode="edit" log={log} />
         <form action={deleteDailyLogRecord}>
           <input type="hidden" name="id" value={log.id} />
-          <Button type="submit" variant="outline" className="h-9 gap-2 text-rose-600">
+          <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
             <Trash2 className="h-4 w-4" />
             Sil
           </Button>
@@ -269,7 +266,7 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={mode === "create" ? "default" : "outline"} className="h-9 gap-2">
+        <Button effect="shine" variant={mode === "create" ? "default" : "secondary"} className="gap-2">
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Günlük ekle" : "Düzenle"}
         </Button>
@@ -289,7 +286,7 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Kaydı ekle" : "Değişiklikleri kaydet"}
             </Button>
           </DialogFooter>
@@ -320,21 +317,18 @@ function DailyLogFormFields({ log }: { log?: DailyLogItem }) {
         label="Mood skoru"
         value={moodScore}
         onChange={setMoodScore}
-        tone="primary"
       />
       <ScorePicker
         name="energy_score"
         label="Enerji skoru"
         value={energyScore}
         onChange={setEnergyScore}
-        tone="green"
       />
       <ScorePicker
         name="work_satisfaction_score"
         label="Çalışma memnuniyeti"
         value={satisfactionScore}
         onChange={setSatisfactionScore}
-        tone="blue"
       />
 
       <div className="grid gap-2">
@@ -355,13 +349,11 @@ function ScorePicker({
   label,
   value,
   onChange,
-  tone,
 }: {
   name: string;
   label: string;
   value: number;
   onChange: (value: number) => void;
-  tone: "primary" | "green" | "blue";
 }) {
   return (
     <div className="grid gap-2">
@@ -372,18 +364,15 @@ function ScorePicker({
       <input type="hidden" name={name} value={value} />
       <div className="grid grid-cols-5 gap-2">
         {[1, 2, 3, 4, 5].map((score) => (
-          <button
+          <Button
+            effect="shine"
             key={score}
             type="button"
+            variant={value === score ? "default" : "secondary"}
             onClick={() => onChange(score)}
-            className={`h-10 rounded-sm border text-sm font-semibold transition-colors ${
-              value === score
-                ? getScoreActiveClass(tone)
-                : "border-border bg-background text-muted-foreground hover:border-primary/40"
-            }`}
           >
             {score}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -444,12 +433,6 @@ function calculateSummary(logs: DailyLogItem[]) {
 function average(values: number[]) {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function getScoreActiveClass(tone: "primary" | "green" | "blue") {
-  if (tone === "green") return "border-emerald-600 bg-emerald-600 text-white";
-  if (tone === "blue") return "border-blue-600 bg-blue-600 text-white";
-  return "border-primary bg-primary text-primary-foreground";
 }
 
 function formatDate(value: string) {
