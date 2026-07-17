@@ -2,9 +2,12 @@
 title: AI Asistan
 description: Neta'nın AI sohbet ve analiz özelliklerinin nasıl çalıştığı.
 order: 10
+status: legacy-v2-archive
 ---
 
 # AI Asistan
+
+> Arşiv: Bu belge v2 veri erişimini anlatır. v3 AI provider ve context katmanı server-side çalışır; secret browser'a dönmez. Güncel teknik kayıt `docs/self-hosted-redesign/phase-7-ai-business-backend.md` dosyasındadır.
 
 Neta'daki AI asistanı, uygulamanın içindeki veriler hakkında hızlıca soru sorabilmek için ekledim. Bu asistanın amacı genel bir chatbot olmak değil; görevler, projeler, finans kayıtları ve günlük notları üzerinden bana bağlama dayalı cevap verebilmesi.
 

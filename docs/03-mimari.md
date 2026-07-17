@@ -2,9 +2,12 @@
 title: Mimari
 description: Neta'nın teknik mimarisi, frontend/backend ayrımı ve Supabase bağlantısı.
 order: 3
+status: legacy-v2-archive
 ---
 
 # Mimari
+
+> Arşiv: Bu mimari Supabase tabanlı Neta v2'ye aittir. Güncel SQLite/Better Auth mimarisi repository `README.md` dosyasında ve ana dönüşüm planında tanımlıdır.
 
 Neta'yı klasik bir frontend-backend ayrımından çok, Next.js App Router etrafında şekillenen bir uygulama olarak kurguladım. Uygulamanın backend işlerinin büyük bölümü Supabase üzerinde duruyor. Next.js tarafı ise hem arayüzü hem de server action ve API route gibi uygulama mantığını taşıyor.
 

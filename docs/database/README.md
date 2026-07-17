@@ -1,44 +1,14 @@
-# Database Change Process
+# Legacy PostgreSQL database documentation
 
-This directory records every database change that should be run against Supabase/PostgreSQL.
+Bu klasördeki `0001`–`0011`, query log/order ve seed belgeleri Neta v2 Supabase/PostgreSQL geçmişinin arşividir. Güncel runtime veya migration talimatı değildir.
 
-The project currently starts with `supabase/schema.sql` as the first database query file. Future database changes must be added as separate SQL files and registered here before they are run.
+Self-hosted v3'te:
 
-## Rules
+- schema kaynağı `server/db/schema`,
+- migration kaynağı `server/db/migrations`,
+- migration runner `pnpm db:migrate`,
+- veri aktarım runbook'u `docs/self-hosted-redesign/phase-8-import-release.md`
 
-1. Every SQL change must have a stable order number.
-2. Every SQL file must be listed in `query-order.md`.
-3. Every executed query must be recorded in `query-log.md`.
-4. Every meaningful schema addition must have a short documentation file under this directory.
-5. Do not edit an already executed SQL file silently. Add a new ordered SQL file instead.
+olarak kullanılır.
 
-## Current Files
-
-- `supabase/schema.sql`: Initial legacy schema. It creates the current auth/profile, journal, task, chat, and avatar storage structure.
-- `supabase/migrations/0002_add_freelancer_os_core_tables.sql`: Freelancer OS MVP core schema.
-- `supabase/seeds/0001_demo_freelancer_os_data.sql`: Optional local/demo data for the MVP schema.
-- `docs/database/0001-initial-schema.md`: Explanation for the initial schema.
-- `docs/database/0002-freelancer-os-core-tables.md`: Explanation for the MVP schema migration.
-- `docs/database/seed-0001-demo-freelancer-os-data.md`: Explanation for the demo seed file.
-- `docs/database/query-order.md`: Canonical order of SQL files.
-- `docs/database/query-log.md`: Manual execution log for SQL files that were run against an environment.
-
-## Next Migration Naming
-
-Use this pattern for future SQL files:
-
-```text
-supabase/migrations/0002_short_description.sql
-```
-
-Example:
-
-```text
-supabase/migrations/0002_add_freelancer_os_core_tables.sql
-```
-
-Use this pattern for future seed files:
-
-```text
-supabase/seeds/0002_short_description.sql
-```
+Arşiv dosyaları yalnızca eski kolon/policy davranışlarını import sırasında karşılaştırmak için korunur. Yeni migration veya seed bu klasöre eklenmemelidir.

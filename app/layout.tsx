@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
 
@@ -54,7 +53,6 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <OfflineIndicator />
         <Toaster closeButton richColors position="top-right" />
       </body>
     </html>

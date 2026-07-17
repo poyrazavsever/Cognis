@@ -2,9 +2,12 @@
 title: Vercel ile Deploy
 description: Neta'yı Vercel üzerinde yayınlama adımları.
 order: 6
+status: legacy-v2-archive
 ---
 
 # Vercel ile Deploy
+
+> Arşiv: SQLite ve persistent local volume kullanan self-hosted v3 için Vercel hedef runtime değildir. Docker tabanlı güncel kurulum repository `README.md` dosyasındadır.
 
 Neta'yı Vercel üzerinde yayınlamak en sade yollardan biri. Çünkü proje standart bir Next.js uygulaması olarak çalışır. Dockerfile, Compose veya özel installer gerekmez.
 

@@ -2,9 +2,12 @@
 title: Client Portal
 description: Müşteri portalının amacı, erişim modeli ve kullanım akışı.
 order: 11
+status: legacy-v2-archive
 ---
 
 # Client Portal
+
+> Arşiv: Bu belge v2 portalını anlatır. Güncel Better Auth/SQLite portal sözleşmesi `docs/self-hosted-redesign/phase-6-portal-backend.md` dosyasındadır.
 
 Client portal, müşteriye sınırlı ve güvenli bir görünüm sunmak için var. Neta'nın ana dashboard'u freelancer içindir. Müşteriye bu dashboard'u açmak doğru olmaz. Bunun yerine müşteri sadece kendisini ilgilendiren proje, görev ve revizyon bilgilerini görür.
 

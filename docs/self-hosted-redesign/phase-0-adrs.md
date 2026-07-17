@@ -124,7 +124,8 @@ Status: Accepted for redesign baseline.
 Karar:
 
 - İlk self-hosted release'te PWA/offline sync hedeflenmez.
-- `next-pwa` kaldırılacak veya devre dışı bırakılacak.
+- `next-pwa`, Dexie, offline indicator ve üretilmiş service worker runtime'dan kaldırıldı.
+- Web manifest yalnızca install metadata/branding çıktısı olarak server-side dinamik üretilir; offline çalışma vaadi değildir.
 
 Gerekçe:
 

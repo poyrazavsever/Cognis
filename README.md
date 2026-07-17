@@ -1,106 +1,175 @@
-<img src="public/logo/lightLogoLong.png" height="200" alt="Neta Icon" />
+<img src="public/logo/lightLogoLong.png" height="160" alt="Neta" />
 
 # Neta
 
-Neta is a freelancer operating system built with Next.js and Supabase. It manages clients, projects, tasks, finance, daily logs, analytics, AI chat, and a limited client portal.
+Neta; freelancer'ların müşteri, proje, görev, takvim, finans, günlük, AI ve sınırlı müşteri portalı akışlarını kendi sunucularında yönetebildiği bir Next.js uygulamasıdır.
 
-This repository now ships only the web application. It does not bundle Supabase, PostgreSQL, Docker Compose, installers, migration runners, or backup scripts. Bring your own Supabase project and provide the required environment variables in the deploy platform.
+Self-hosted v3 runtime'ı harici bir BaaS istemez:
 
-## Live Demo
+- Next.js App Router ve React
+- Better Auth
+- SQLite (`better-sqlite3`) ve Drizzle ORM
+- Yerel persistent dosya alanı
+- Poyraz UI v3
+- İsteğe bağlı Google, OpenAI, Groq veya Ollama AI sağlayıcısı
 
-You can try the demo here:
+Supabase yalnızca eski bir Neta kurulumundan veri aktarmak için opsiyonel kaynak olabilir. Uygulamanın build veya runtime aşamasında Supabase projesi, paketi ya da environment değişkeni gerekmez.
 
-```txt
-https://demo.takeneta.com
+## Çalışma modeli
+
+Bir Neta instance'ı tek freelancer/owner ve birden fazla davetli müşteri hesabı için tasarlanmıştır. Uygulama tek bir uzun ömürlü Node.js process'i ve tek bir persistent data volume ile çalışır; aynı SQLite dosyasına yazan yatay ölçekli birden fazla replica desteklenmez.
+
+Kalıcı veri ağacı:
+
+```text
+/app/data/
+  neta.db
+  uploads/
+  backups/
+  tmp/
 ```
 
-Demo account:
+## Gereksinimler
 
-```txt
-Email: test@takeneta.com
-Password: 123456
-```
+- Node.js 22
+- pnpm 11 (lokal geliştirme için)
+- Production'da kalıcı disk/volume
+- Localhost dışındaki production kurulumunda HTTPS reverse proxy
 
-## Stack
-
-- Next.js App Router
-- React
-- Tailwind CSS
-- Poyraz UI
-- Supabase Auth, Postgres, Storage, and RLS
-- Vercel AI SDK
-
-## Requirements
-
-1. A Supabase project that already contains Neta's database schema, RLS policies, RPC functions, and storage buckets.
-2. Supabase project credentials:
-   - Project URL
-   - Anon/public key
-   - Service role key
-3. Node.js 20 or newer.
-
-See `docs/04-supabase-kurulumu.md` for the expected Supabase-side resources.
-
-For a fresh Supabase project, run the one-shot setup SQL:
+## Lokal kurulum
 
 ```bash
-psql "postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres" -v ON_ERROR_STOP=1 -f supabase/setup.sql
+pnpm install --frozen-lockfile
+cp .env.example .env.local
+openssl rand -base64 32
 ```
 
-You can also paste the full contents of `supabase/setup.sql` into Supabase SQL Editor and run it once.
+Üretilen secret'ı `.env.local` içindeki `BETTER_AUTH_SECRET` alanına koyun, ardından:
 
-## Environment Variables
+```bash
+pnpm db:migrate
+pnpm dev
+```
 
-Copy `.env.example` to `.env.local` for local development, or add the same values in Vercel, Coolify, Dokploy, or your hosting provider.
+`http://localhost:3000/register` adresinden ilk owner hesabını oluşturun. İlk başarılı kurulumdan sonra public kayıt atomik olarak kapanır.
+
+## Environment sözleşmesi
+
+Minimum production örneği:
 
 ```env
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://neta.example.com
+APP_URL=https://neta.example.com
+BETTER_AUTH_SECRET=openssl-ile-uretilmis-en-az-32-karakter-secret
+DATA_DIR=/app/data
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not expose it with a `NEXT_PUBLIC_` prefix.
+Opsiyonel alanlar:
 
-## Local Development
+- `BETTER_AUTH_URL`: Auth callback base URL override'ı.
+- `TRUSTED_ORIGINS`: Virgülle ayrılmış ek güvenilir origin listesi; wildcard reddedilir.
+- `DATABASE_PATH`: Varsayılan `DATA_DIR/neta.db` yerine özel SQLite yolu.
+- `OLLAMA_BASE_URL`: Varsayılan `http://127.0.0.1:11434/v1`.
+- `AI_REQUEST_TIMEOUT_MS`: AI istek timeout'u; varsayılan `30000`.
+
+AI provider API key'leri environment'a yazılmaz; owner ayarından girilir, server-side şifreli saklanır ve browser'a geri dönmez.
+
+## Docker ile production
 
 ```bash
-npm install
-npm run dev
+export BETTER_AUTH_SECRET="$(openssl rand -base64 32)"
+export APP_URL="https://neta.example.com"
+export NEXT_PUBLIC_SITE_URL="$APP_URL"
+docker compose up -d --build
 ```
 
-Open `http://localhost:3000`.
+Compose; `/app/data` için named volume bağlar, migration'ları uygulamadan önce çalıştırır, non-root user kullanır ve readiness healthcheck tanımlar. Domain/HTTPS sonlandırmasını Caddy, Traefik, Nginx, Coolify veya Dokploy üzerinden yapın.
 
-## Production Build
+Health endpoint'leri:
+
+- `/api/health/live`: Process liveness.
+- `/api/health/ready`: SQLite, data directory ve migration readiness.
+- `/api/health`: Hafif uyumluluk endpoint'i.
+
+Coolify ve Dokploy'da repository'nin `Dockerfile` dosyasını kullanın, internal portu `3000` seçin ve `/app/data` yoluna persistent volume bağlayın. Tek replica kullanın. Ayrıntılı production ve upgrade runbook'u: [Faz 8 import/release rehberi](docs/self-hosted-redesign/phase-8-import-release.md).
+
+## İlk owner ve müşteri daveti
+
+İlk açılışta `/register` üzerinden freelancer hesabı oluşturulur. Sonraki kullanıcılar public kayıt olamaz.
+
+Müşteri erişimi için:
+
+1. Owner müşteri kaydını oluşturur.
+2. Müşteri detayından süreli, tek kullanımlık davet üretir.
+3. Müşteri linki açıp kendi şifresini belirler.
+4. Better Auth hesabı ilgili müşteri kaydına transaction içinde bağlanır.
+
+Davet token'ının yalnızca hash'i saklanır. Eski Supabase Auth şifre/session verileri import edilmez; taşınan müşteriler yeniden davet edilmelidir.
+
+## Marka özelleştirmesi
+
+Instance adı, kısa ad, açık/koyu logo, ikon, primary/accent renk, varsayılan görünüm ve radius yoğunluğu SQLite'ta tutulur ve root layout'a server-side uygulanır. Görseller yerel upload alanında saklanır. Branding mutation'ı yalnızca owner rolüne açıktır; portal aynı güvenli public marka çıktısını kullanır.
+
+## Backup ve restore
+
+Online SQLite snapshot ve upload ağacı:
 
 ```bash
-npm run build
-npm run start
+pnpm db:backup
+pnpm db:backup -- --retention-count 14
 ```
 
-## Deploy
+`BACKUP_RETENTION_COUNT=14` aynı retention politikasını cron ortamından verebilir. Her backup; byte size ve SHA-256 içeren bir manifest üretir.
 
-### Vercel
+Restore sırasında uygulamayı durdurun:
 
-1. Import the GitHub repository.
-2. Add the environment variables from `.env.example`.
-3. Deploy with the default Next.js settings.
+```bash
+pnpm db:restore -- --from /path/to/neta-backup --force
+```
 
-### Coolify or Dokploy
+Farklı bir data directory'ye prova:
 
-1. Create a standard Next.js application from this GitHub repository.
-2. Use the platform's normal install/build/start commands:
-   - Install: `npm install`
-   - Build: `npm run build`
-   - Start: `npm run start`
-3. Add the environment variables from `.env.example`.
+```bash
+pnpm db:restore -- --from /path/to/neta-backup --target /tmp/neta-restore-test --force
+```
 
-No Dockerfile or Compose file is required.
+Restore önce manifest bütünlüğünü doğrular, dosyaları stage eder ve DB/upload ağacını aynı filesystem üzerinde atomik swap ile değiştirir. Hata olursa önceki hedef geri alınır. Backup'ları ayrıca host dışındaki şifreli bir konuma kopyalayın.
 
-## First Admin
+## Upgrade
 
-After deploying against a prepared Supabase project, open `/register` once to create the first freelancer/admin account. Registration is locked after the first admin profile exists.
+1. Mevcut sürümde backup alın ve geri yükleme provasını yapın.
+2. Yeni image/tag'i indirin veya build edin.
+3. Uygulamayı tek replica ile başlatın; container startup migration'ları deterministik uygular.
+4. `/api/health/ready`, login, müşteri, proje ve portal akışlarını kontrol edin.
+5. Sorunda eski image'i ve upgrade öncesi backup'ı kullanarak rollback yapın.
 
-## License
+SQLite şema downgrade'i desteklenmez; yalnızca eski application image'ine dönmek yeterli değildir.
 
-This project is proprietary and intended for personal self-hosting with an external Supabase project.
+## Eski Supabase verisini aktarma
+
+Önce bu instance'ta owner hesabını oluşturun, ardından export bundle üzerinde dry-run çalıştırın:
+
+```bash
+pnpm db:import:supabase -- \
+  --from /secure/path/neta-export \
+  --owner-user-id BETTER_AUTH_OWNER_ID \
+  --dry-run
+```
+
+Raporu doğruladıktan ve backup aldıktan sonra aynı komutu `--dry-run` olmadan çalıştırın. Bundle formatı, normalization kararları, dosya yapısı ve production cutover/rollback adımları [Faz 8 rehberinde](docs/self-hosted-redesign/phase-8-import-release.md) tanımlıdır.
+
+## Kalite kontrolleri
+
+```bash
+pnpm typecheck
+pnpm phase8:release-boundary
+pnpm phase8:import-smoke
+pnpm build
+```
+
+`phase8:release-boundary`; Supabase, PWA ve browser database bağımlılıklarının runtime'a geri dönmesini engeller.
+
+## Lisans
+
+Bu proje kişisel self-hosting amacıyla geliştirilen proprietary bir projedir.

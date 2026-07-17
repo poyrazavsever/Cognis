@@ -2,9 +2,12 @@
 title: Environment Ayarları
 description: Neta'yı çalıştırmak için gereken ortam değişkenleri.
 order: 5
+status: legacy-v2-archive
 ---
 
 # Environment Ayarları
+
+> Arşiv: Aşağıdaki Supabase env sözleşmesi v2'ye aittir. Güncel environment sözleşmesi `.env.example`, repository `README.md` ve Faz 8 runbook'unda tanımlıdır.
 
 Neta'nın çalışması için az sayıda ama kritik ortam değişkeni gerekiyor. Uygulama artık Supabase'i kendi içinde ayağa kaldırmadığı için bütün Supabase bağlantı bilgileri dışarıdan verilir.
 

@@ -2,9 +2,12 @@
 title: Özellikler
 description: Neta'nın freelancerlar için sunduğu temel özellikler.
 order: 2
+status: legacy-v2-archive
 ---
 
 # Özellikler
+
+> Arşiv: Bu belge Supabase tabanlı Neta v2'yi anlatır. Güncel self-hosted v3 kaynağı repository `README.md` dosyası ve `docs/self-hosted-redesign/phase-8-import-release.md` belgesidir.
 
 Neta'yı parça parça özellik eklenmiş bir panel gibi değil, günlük iş akışımı toparlayan bir işletim alanı gibi düşünerek geliştirdim. Her modül tek başına işe yarıyor, ama asıl değer bu modüllerin birbirine bağlanmasında ortaya çıkıyor.
 

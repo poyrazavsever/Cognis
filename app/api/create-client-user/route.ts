@@ -6,9 +6,8 @@ import {
 import { getSessionContextFromHeaders } from "@/server/auth/session";
 
 /**
- * Legacy adapter for the current client detail screen.
- * The old endpoint created a Supabase Auth user with a freelancer-chosen password.
- * It now issues a one-time Better Auth invitation and never accepts a password.
+ * Compatibility adapter for the current client detail screen.
+ * It issues a one-time Better Auth invitation and never accepts a password.
  */
 export async function POST(request: Request) {
   const actor = await getSessionContextFromHeaders(new Headers(request.headers));
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message, code: error.code }, { status });
     }
 
-    console.error("Legacy client invitation adapter failed", error);
+    console.error("Client invitation adapter failed", error);
     return NextResponse.json({ error: "Müşteri daveti oluşturulamadı." }, { status: 500 });
   }
 }

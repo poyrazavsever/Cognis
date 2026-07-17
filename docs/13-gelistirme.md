@@ -2,9 +2,12 @@
 title: Geliştirme
 description: Neta üzerinde lokal geliştirme yapma ve kod yapısını anlama.
 order: 13
+status: legacy-v2-archive
 ---
 
 # Geliştirme
+
+> Arşiv: Aşağıdaki Supabase geliştirme akışı v2'ye aittir. Güncel lokal kurulum ve kalite komutları repository `README.md` dosyasındadır.
 
 Neta'yı geliştirmek için önce standart bir Next.js uygulaması gibi düşünmek yeterli. Uygulama Supabase'e dışarıdan bağlanır; local geliştirme sırasında da aynı şekilde bir Supabase projesine ihtiyaç vardır.
 

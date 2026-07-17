@@ -2,9 +2,12 @@
 title: Coolify ile Deploy
 description: Neta'yı bir VPS üzerinde Coolify kullanarak yayınlama.
 order: 7
+status: legacy-v2-archive
 ---
 
 # Coolify ile Deploy
+
+> Arşiv: Aşağıdaki harici Supabase/Nixpacks akışı v2'ye aittir. v3 için Dockerfile, tek replica ve `/app/data` persistent volume sözleşmesini `docs/self-hosted-redesign/phase-8-import-release.md` belgesinden uygulayın.
 
 Coolify, kendi VPS'im üzerinde uygulama yayınlamak istediğimde pratik bir seçenek. Neta artık Docker Compose ile gelen full-stack bir paket olmadığı için Coolify üzerinde standart bir Next.js uygulaması olarak deploy edilebilir.
 

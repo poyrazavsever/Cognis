@@ -2,9 +2,12 @@
 title: Özelleştirme
 description: Neta'nın marka, arayüz, modül ve iş akışı açısından nasıl özelleştirileceği.
 order: 14
+status: legacy-v2-archive
 ---
 
 # Özelleştirme
+
+> Arşiv: Bu kod tabanlı v2 özelleştirme rehberidir. v3 instance branding'i SQLite/local file service ve server-rendered Poyraz semantic tokenları üzerinden uygular; güncel özet repository `README.md` dosyasındadır.
 
 Neta'yı kendi kullanım şeklime göre geliştirdiğim için özelleştirilebilir kalmasına dikkat ettim. Renkler, logo, menüler, modüller, AI prompt'ları ve portal görünümü ihtiyaçlara göre değiştirilebilir.
 

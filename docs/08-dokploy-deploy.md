@@ -2,9 +2,12 @@
 title: Dokploy ile Deploy
 description: Neta'yı Dokploy üzerinde Docker Compose olmadan yayınlama.
 order: 8
+status: legacy-v2-archive
 ---
 
 # Dokploy ile Deploy
+
+> Arşiv: Aşağıdaki harici Supabase/ephemeral akış v2'ye aittir. v3 için Dockerfile, tek replica ve `/app/data` persistent volume sözleşmesini `docs/self-hosted-redesign/phase-8-import-release.md` belgesinden uygulayın.
 
 Dokploy üzerinde Neta'yı yayınlarken artık özel Dockerfile veya Compose dosyasına ihtiyaç yok. Bu projeyi standart bir Next.js repo deploy'u gibi ele almak yeterli.
 

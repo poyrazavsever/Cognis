@@ -44,7 +44,6 @@ for (const file of requiredSystemCompositions) {
 }
 
 const allowedLocalUiFiles = new Set([
-  "offline-indicator.tsx",
   "pending-link.tsx",
   "pending-submit-button.tsx",
 ]);

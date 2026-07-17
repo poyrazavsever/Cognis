@@ -2,8 +2,8 @@
 title: Neta Self-Hosted v3 Ana Dönüşüm Planı
 description: Supabase çıkışı, SQLite tabanlı backend, Better Auth, Poyraz UI v3 ve instance özelleştirmesi için ana yol haritası.
 status: active
-current_phase: "7 — AI ve gelişmiş modüller backend geçişi"
-last_updated: 2026-07-16
+current_phase: "9 — Mobil API hazırlığı"
+last_updated: 2026-07-17
 ---
 
 # Neta Self-Hosted v3 Ana Dönüşüm Planı
@@ -525,8 +525,8 @@ Faz 5'in başlangıç noktası freelancer runtime'ındaki Supabase erişimleridi
 ### 14.6. Portal, AI ve business devam sırası
 
 - [x] Portal backend'i Faz 6 sözleşmesine göre tamamlandı.
-- [ ] AI/chat ve business backend'i Faz 7 sözleşmesine göre tamamlandı.
-- [ ] Import ve runtime Supabase temizliği Faz 8'de tamamlandı.
+- [x] AI/chat ve business backend'i Faz 7 sözleşmesine göre tamamlandı.
+- [x] Import ve runtime Supabase temizliği Faz 8'de tamamlandı.
 - [ ] Mobil API sınırı Faz 9'da tamamlandı.
 
 ## 15. Revizyon güvenliği ve kota işlemi
@@ -592,20 +592,20 @@ Mobil hazırlık checklist'i:
 
 ### 17.1. Import aracı
 
-- [ ] Supabase tablolarının kaynak mapping'i güncellendi.
-- [ ] Export formatı tanımlandı.
-- [ ] Import dry-run modu var.
-- [ ] Kaynak ve hedef satır sayıları raporlanıyor.
-- [ ] Foreign key tutarsızlıkları raporlanıyor.
-- [ ] Bilinmeyen enum/status değerlerinde import fail ediyor.
-- [ ] `completed` görev status'ü `done` olarak normalize ediliyor.
-- [ ] Para değerleri minor unit'e güvenli dönüştürülüyor.
-- [ ] `journals` ve `daily_logs` merge kuralı uygulanıyor.
-- [ ] AI API key'leri taşınmıyor.
-- [ ] Auth password/session verileri taşınmıyor.
-- [ ] Client kullanıcıları yeniden davet ediliyor.
-- [ ] Storage dosyaları metadata ve checksum ile aktarılıyor.
-- [ ] Import tekrar çalıştırıldığında davranış tanımlı.
+- [x] Supabase tablolarının kaynak mapping'i güncellendi.
+- [x] Export formatı tanımlandı.
+- [x] Import dry-run modu var.
+- [x] Kaynak ve hedef satır sayıları raporlanıyor.
+- [x] Foreign key tutarsızlıkları raporlanıyor.
+- [x] Bilinmeyen enum/status değerlerinde import fail ediyor.
+- [x] `completed` görev status'ü `done` olarak normalize ediliyor.
+- [x] Para değerleri minor unit'e güvenli dönüştürülüyor.
+- [x] `journals` ve `daily_logs` merge kuralı uygulanıyor.
+- [x] AI API key'leri taşınmıyor.
+- [x] Auth password/session verileri taşınmıyor.
+- [x] Client kullanıcıları yeniden davet ediliyor.
+- [x] Storage dosyaları metadata ve checksum ile aktarılıyor.
+- [x] Import tekrar çalıştırıldığında davranış tanımlı.
 
 ### 17.2. Production cutover
 
@@ -617,32 +617,32 @@ Mobil hazırlık checklist'i:
 - [ ] Satır sayısı doğrulandı.
 - [ ] Dosya sayısı ve checksum doğrulandı.
 - [ ] İlk admin Better Auth hesabı hazırlandı.
-- [ ] Client re-invite planı hazırlandı.
+- [x] Client re-invite planı hazırlandı.
 - [ ] Kritik kullanıcı akışları smoke test edildi.
 - [ ] DNS/deploy geçişi yapıldı.
-- [ ] Rollback penceresi ve yöntemi belgelendi.
+- [x] Rollback penceresi ve yöntemi belgelendi.
 - [ ] Supabase hemen silinmedi; tanımlı süre read-only backup olarak tutuldu.
 
 ## 18. Dependency azaltma planı
 
 ### 18.1. Supabase çıkışı tamamlandığında kaldırılacaklar
 
-- [ ] `@supabase/ssr`
-- [ ] `@supabase/supabase-js`
-- [ ] `lib/supabase/*`
-- [ ] Legacy Supabase auth helper'ları
-- [ ] Supabase service-role client kullanımları
-- [ ] Runtime Supabase environment değişkenleri
+- [x] `@supabase/ssr`
+- [x] `@supabase/supabase-js`
+- [x] `lib/supabase/*`
+- [x] Legacy Supabase auth helper'ları
+- [x] Supabase service-role client kullanımları
+- [x] Runtime Supabase environment değişkenleri
 
 ### 18.2. Offline/PWA temizliği
 
-- [ ] `@ducanh2912/next-pwa`
-- [ ] `dexie`
-- [ ] `dexie-react-hooks`
-- [ ] Legacy `lib/db.ts`
-- [ ] Offline indicator, kapsam dışıysa
-- [ ] Service worker çıktıları
-- [ ] PWA manifest kararı güncellendi
+- [x] `@ducanh2912/next-pwa`
+- [x] `dexie`
+- [x] `dexie-react-hooks`
+- [x] Legacy `lib/db.ts`
+- [x] Offline indicator, kapsam dışıysa
+- [x] Service worker çıktıları
+- [x] PWA manifest kararı güncellendi
 
 ### 18.3. Poyraz UI v3 sonrası değerlendirilecekler
 
@@ -651,9 +651,9 @@ Mobil hazırlık checklist'i:
 - [x] `radix-ui`
 - [x] `shadcn`
 - [x] Kullanılmayan local UI primitive'leri
-- [ ] `framer-motion`, kullanım kalmadıysa
+- [x] `framer-motion` değerlendirildi; auth shell'deki reduced-motion uyumlu aktif kullanım nedeniyle korundu.
 - [x] `next-themes`, tema başka şekilde çözüldüyse
-- [ ] Kullanılmayan icon/form/theme yardımcıları
+- [x] Kullanılmayan icon/form/theme yardımcıları
 
 ### 18.4. İşlevsel gerekçeyle korunabilecekler
 
@@ -664,18 +664,17 @@ Mobil hazırlık checklist'i:
 - Drizzle ORM
 - Zod
 - `date-fns`
-- Kanban için `dnd-kit`
 - Grafikler için Recharts
 - Gerçekten kullanılan AI provider paketleri
 
 Dependency kalite kapısı:
 
-- [ ] Her production dependency için aktif import veya açık gerekçe var.
+- [x] Her production dependency için aktif import veya açık gerekçe var.
 - [x] Aynı işi yapan iki UI primitive sistemi yok.
-- [ ] Aynı işi yapan iki auth sistemi yok.
-- [ ] Aynı işi yapan iki runtime database sistemi yok.
-- [ ] Browser database bağımlılığı yok.
-- [ ] Build çıktısında Supabase referansı yok.
+- [x] Aynı işi yapan iki auth sistemi yok.
+- [x] Aynı işi yapan iki runtime database sistemi yok.
+- [x] Browser database bağımlılığı yok.
+- [x] Build çıktısında Supabase referansı yok.
 - [x] Build çıktısında Poyraz UI v2 referansı yok.
 
 ## 19. Test stratejisi
@@ -699,7 +698,7 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [x] Path traversal negatif testi
 - [x] Backup oluşturma testi
 - [x] Restore ve checksum testi
-- [ ] Supabase import fixture testi
+- [x] Supabase import fixture testi
 - [x] API response/error contract testi
 - [x] Kritik sayfalar için SSR smoke testi
 
@@ -728,27 +727,27 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 - [x] Backup SQLite online backup API kullanıyor.
 - [x] Backup upload klasörünü içeriyor.
 - [x] Backup manifest dosya boyutu ve SHA-256 içeriyor.
-- [ ] Restore manifest checksum'larını doğruluyor.
+- [x] Restore manifest checksum'larını doğruluyor.
 - [x] Restore canlı DB üzerine kontrolsüz yazmıyor.
-- [ ] Backup retention politikası belgelendi.
-- [ ] Reverse proxy ve HTTPS kurulumu belgelendi.
+- [x] Backup retention politikası belgelendi.
+- [x] Reverse proxy ve HTTPS kurulumu belgelendi.
 
 ## 21. Dokümantasyon planı
 
-- [ ] README yeni SQLite/Better Auth mimarisini anlatıyor.
-- [ ] Supabase'in artık runtime gereksinimi olmadığı açık.
-- [ ] Docker ile kurulum belgelendi.
-- [ ] Coolify/Dokploy kurulumu belgelendi.
+- [x] README yeni SQLite/Better Auth mimarisini anlatıyor.
+- [x] Supabase'in artık runtime gereksinimi olmadığı açık.
+- [x] Docker ile kurulum belgelendi.
+- [x] Coolify/Dokploy kurulumu belgelendi.
 - [x] Environment değişkenleri güncellendi.
 - [x] İlk admin kurulumu belgelendi.
 - [x] Client invitation akışı belgelendi.
-- [ ] Branding ayarları belgelendi.
+- [x] Branding ayarları belgelendi.
 - [x] Backup/restore belgelendi.
-- [ ] Upgrade/migration akışı belgelendi.
+- [x] Upgrade/migration akışı belgelendi.
 - [ ] Mobil API sınırı belgelendi.
-- [ ] Eski ve çelişkili Supabase belgeleri archive veya kaldırıldı.
+- [x] Eski ve çelişkili Supabase belgeleri archive veya kaldırıldı.
 - [x] ADR-0006 Poyraz UI v3 kararıyla güncellendi.
-- [ ] ADR-0007 ile PWA runtime durumu uyumlu hale getirildi.
+- [x] ADR-0007 ile PWA runtime durumu uyumlu hale getirildi.
 
 ## 22. Uygulama fazları
 
@@ -935,12 +934,21 @@ Faz 6 tamamlanma notu (2026-07-16):
 
 Amaç: AI/chat ve kapsamda kalan business modüllerini yeni backend'e taşımak.
 
-- [ ] Chat session/message verileri SQLite'a taşındı.
-- [ ] AI secrets browser'dan kaldırıldı.
-- [ ] Context builder service katmanına taşındı.
-- [ ] Finans analizi taşındı.
-- [ ] Proje risk analizi taşındı.
-- [ ] Kapsamdaki business modülleri tamamlandı.
+- [x] Chat session/message verileri SQLite'a taşındı.
+- [x] AI secrets browser'dan kaldırıldı.
+- [x] Context builder service katmanına taşındı.
+- [x] Finans analizi taşındı.
+- [x] Proje risk analizi taşındı.
+- [x] Kapsamdaki business modülleri tamamlandı.
+
+Faz 7 tamamlanma notu (2026-07-17):
+
+- Chat sayfasındaki browser Supabase auth/tablo çağrıları owner-scoped Server Action ve domain service sözleşmelerine taşındı. Chat route'u session sahipliğini doğrular, geçmişi istemciden değil SQLite'tan kurar ve başarılı user/assistant mesajlarını kalıcılaştırır.
+- AI provider seçimi ve encrypted API key çözümü `server/ai/provider.ts` altında server-only merkezileştirildi. Browser request'inden key/provider override kaldırıldı; Ollama için key gerektirmeyen ve environment ile ayarlanabilen local endpoint desteği eklendi.
+- Chat, finans ve proje risk context'leri owner-scoped domain service okumaları, kayıt/karakter sınırları ve currency-aware finans toplamlarıyla ortak context builder'a taşındı.
+- Finans analizi ve proje risk route'ları Better Auth freelancer guard, merkezi validation, provider timeout ve secretsız `400/502/504` hata sözleşmesi kullanır.
+- Teklif, sözleşme, fatura ve abonelik için owner-scoped list/get/create/update/delete servisleri tamamlandı. Aktif teklif, fatura ve abonelik sayfaları SQLite SSR okumalarına bağlandı; repo içinde aktif sözleşme sayfası bulunmadığı için yeni tasarım route'u eklenmedi.
+- `phase7:backend-boundary`, temiz SQLite domain smoke ve gerçek Better Auth cookie'li SSR/API smoke başarılıdır. Ayrıntılar `phase-7-ai-business-backend.md` belgesindedir.
 
 Çıkış kriteri: Runtime AI özelliklerinde Supabase bağımlılığı yok.
 
@@ -948,15 +956,27 @@ Amaç: AI/chat ve kapsamda kalan business modüllerini yeni backend'e taşımak.
 
 Amaç: Production geçişini güvenli hale getirmek ve legacy bağımlılıkları kaldırmak.
 
-- [ ] Supabase import aracı tamamlandı.
-- [ ] Import rehearsal tamamlandı.
-- [ ] Supabase runtime paketleri kaldırıldı.
-- [ ] PWA/Dexie legacy kodu kaldırıldı.
-- [ ] Kullanılmayan UI bağımlılıkları kaldırıldı.
-- [ ] Backup/restore doğrulandı.
-- [ ] Docker production smoke tamamlandı.
-- [ ] Dokümantasyon güncellendi.
-- [ ] Cutover ve rollback provası tamamlandı.
+- [x] Supabase import aracı tamamlandı.
+- [x] Import rehearsal tamamlandı.
+- [x] Supabase runtime paketleri kaldırıldı.
+- [x] PWA/Dexie legacy kodu kaldırıldı.
+- [x] Kullanılmayan UI bağımlılıkları kaldırıldı.
+- [x] Backup/restore doğrulandı.
+- [x] Docker production smoke tamamlandı.
+- [x] Dokümantasyon güncellendi.
+- [x] Cutover ve rollback provası tamamlandı.
+
+Faz 8 tamamlanma notu (2026-07-17):
+
+- `neta-supabase-export` v1 offline bundle importer'ı; owner scope, enum, tarih, exact para/basis-point, foreign key, dosya path/magic-byte/size/SHA-256 kontrolleriyle tamamlandı. Dry-run ve `0600` rapor, boş hedef koruması, kontrollü `--allow-existing` upsert ve DB hatasında staged file rollback davranışı eklendi.
+- Görev `completed -> done`, `journals + daily_logs` birleşimi, kanonik journal referansı, business kayıtları, user preference/AI provider ayarları ve storage URL yeniden yazımı fixture üzerinde doğrulandı. AI key, auth password/session, eski client auth bağı ve embeddings runtime'a taşınmıyor.
+- Supabase SDK/helper/env; PWA wrapper, Dexie, offline indicator, legacy browser DB ve service-worker çıktıları kaldırıldı. Kullanılmayan DnD/resolver/UUID paketleri temizlendi; temiz Docker build'in doğruladığı `react-hook-form` ve `mermaid` Poyraz UI runtime peer'i olarak gerekçeli biçimde korundu.
+- Backup'a versioned manifest, symlink reddi ve sayıya dayalı retention eklendi. Restore, manifest completeness/size/SHA-256 kontrolünden sonra DB ve upload ağacını staged atomik swap ile değiştirir ve hata halinde önceki hedefi geri alır.
+- Pre-import backup, final import, idempotent tekrar ve ayrı data directory'ye rollback fixture provası geçti. Bu prova gerçek production maintenance/DNS cutover yerine geçmez; Bölüm 17.2'de dış sistem yetkisi isteyen maddeler açık bırakıldı.
+- README ve Faz 8 runbook; SQLite/Better Auth mimarisi, env, ilk owner/client daveti, branding, Docker/Coolify/Dokploy, HTTPS, backup retention, import, upgrade, cutover ve rollback'i anlatır. Eski numaralı Supabase belgeleri ve PostgreSQL SQL kayıtları `legacy-v2-archive` sınırına alındı.
+- Supabase env'leri unset durumda typecheck, production build, source/build artifact boundary, standalone liveness/readiness ve `/register` SSR başarılıdır. Temiz Docker `npm ci` + build, non-root user, startup migration, persistent volume readiness ve restart smoke geçti.
+- Faz 2–7 boundary/smoke regresyonları ve Faz 8 hedefli ESLint başarılıdır. Repo genel ESLint'i Faz 10'da ele alınacak mevcut client-component borçlarında 14 hata/14 warning üretmeye devam ettiği için genel lint kalite kapısı işaretlenmedi.
+- Production dependency audit'inde high/critical bulgu yoktur; npm altı moderate advisory raporlar. Bunlar Next'in bundled PostCSS'i ve development migration toolchain'inin eski esbuild loader'ı kaynaklıdır; npm'in önerdiği uyumsuz downgrade otomatik uygulanmadı.
 
 Çıkış kriteri: Uygulama Supabase environment değişkenleri olmadan build ve runtime smoke testini geçiyor.
 
@@ -980,8 +1000,8 @@ Başlangıç koşulları:
 
 - [x] Faz 5 freelancer backend geçişi tamamlandı.
 - [x] Faz 6 portal backend geçişi tamamlandı.
-- [ ] Faz 7 kapsamındaki runtime modülleri tamamlandı veya açıkça ertelendi.
-- [ ] Faz 8 Supabase runtime temizliği ve release hardening tamamlandı.
+- [x] Faz 7 kapsamındaki runtime modülleri tamamlandı veya açıkça ertelendi.
+- [x] Faz 8 Supabase runtime temizliği ve release hardening tamamlandı.
 - [ ] Faz 9 mobil API hazırlığı tamamlandı.
 - [ ] Tasarım sırasında kullanılacak backend veri sözleşmeleri stabil.
 
@@ -1028,20 +1048,20 @@ Her sayfa için tasarım kabul checklist'i:
 ### Mimari
 
 - [x] Ürün kararları kilitlendi.
-- [ ] Hedef schema tamamlandı.
-- [ ] Service/repository sınırı tamamlandı.
-- [ ] Server-side authorization tamamlandı.
+- [x] Hedef schema tamamlandı.
+- [x] Service/repository sınırı tamamlandı.
+- [x] Server-side authorization tamamlandı.
 - [ ] API v1 sınırı hazırlandı.
 
 ### Supabase çıkışı
 
-- [ ] Auth taşındı.
-- [ ] Database taşındı.
-- [ ] Storage taşındı.
-- [ ] RLS kuralları server-side testlere çevrildi.
-- [ ] Import aracı tamamlandı.
-- [ ] Supabase paketleri kaldırıldı.
-- [ ] Supabase env değişkenleri kaldırıldı.
+- [x] Auth taşındı.
+- [x] Database taşındı.
+- [x] Storage taşındı.
+- [x] RLS kuralları server-side testlere çevrildi.
+- [x] Import aracı tamamlandı.
+- [x] Supabase paketleri kaldırıldı.
+- [x] Supabase env değişkenleri kaldırıldı.
 
 ### UI
 
@@ -1067,26 +1087,26 @@ Her sayfa için tasarım kabul checklist'i:
 
 ### Operasyon
 
-- [ ] Docker kurulumu çalışıyor.
-- [ ] Persistent volume doğrulandı.
-- [ ] Migration güvenli.
+- [x] Docker kurulumu çalışıyor.
+- [x] Persistent volume doğrulandı.
+- [x] Migration güvenli.
 - [x] Backup çalışıyor.
 - [x] Restore ve checksum doğrulaması çalışıyor.
-- [ ] Health endpoint'leri çalışıyor.
-- [ ] Upgrade dokümantasyonu hazır.
-- [ ] Rollback planı hazır.
+- [x] Health endpoint'leri çalışıyor.
+- [x] Upgrade dokümantasyonu hazır.
+- [x] Rollback planı hazır.
 
 ### Release
 
-- [ ] Typecheck başarılı.
+- [x] Typecheck başarılı.
 - [ ] Lint başarılı.
-- [ ] Build başarılı.
-- [ ] Tüm smoke testler başarılı.
-- [ ] Kritik authorization negatif testleri başarılı.
-- [ ] Import rehearsal başarılı.
-- [ ] Production Docker smoke başarılı.
-- [ ] README güncel.
-- [ ] Supabase runtime referansı kalmadı.
+- [x] Build başarılı.
+- [x] Tüm smoke testler başarılı.
+- [x] Kritik authorization negatif testleri başarılı.
+- [x] Import rehearsal başarılı.
+- [x] Production Docker smoke başarılı.
+- [x] README güncel.
+- [x] Supabase runtime referansı kalmadı.
 - [x] Poyraz UI v2 referansı kalmadı.
 
 ## 24. Definition of Done
@@ -1110,16 +1130,16 @@ Neta Self-Hosted v3 aşağıdaki koşulların tümü sağlandığında tamamlanm
 - Gelecekteki mobil istemci için service ve API sınırları belgelenmiştir.
 - Sayfa tasarımları backend ve runtime Supabase temizliği tamamlandıktan sonra yapılmış, kullanıcı tarafından tek tek kabul edilmiştir.
 
-## 25. Sıradaki çalışma paketi — Faz 7
+## 25. Sıradaki çalışma paketi — Faz 8
 
-Faz 0–6 tamamlandı. Sıradaki çalışma paketi chat, AI analizleri ve kapsamda kalan business modüllerinin backend geçişidir:
+Faz 0–7 tamamlandı. Sıradaki çalışma paketi production import, runtime Supabase temizliği ve release hardening'dir:
 
-1. Chat sayfası, chat route'u, finans analizi, proje risk analizi ve business route'larındaki Supabase erişimlerini envanterlemek.
-2. Chat session/message okuma ve mutation sözleşmelerini domain service'e bağlamak.
-3. AI provider key'lerini browser request/localStorage akışından tamamen kaldırıp Faz 5'teki encrypted server-side settings service'i kullanmak.
-4. AI context builder'ı owner-scoped proje, görev, finans ve günlük service okumalarıyla yeniden kurmak.
-5. Finans analizi ve proje risk route'larını local backend'e taşımak; provider timeout/error sözleşmelerini standartlaştırmak.
-6. Release kapsamında tutulacak business modüllerinin repository/service ve runtime adapter'larını tamamlamak.
-7. Supabase boundary, secret leakage, cross-owner, AI failure ve authenticated SSR/API smoke testlerini çalıştırmak.
+1. Faz 0 schema mapping'ini temel alan tekrar çalıştırılabilir Supabase export/import aracını dry-run, satır sayısı, foreign key ve enum raporlarıyla tamamlamak.
+2. Chat ve business dahil korunacak production verisini fixture ve import rehearsal ile doğrulamak; AI key, auth password/session ve raw invitation token taşımamak.
+3. Kalan runtime Supabase importlarını ve kullanılmayan legacy helper'ları kaldırmak; `@supabase/ssr` ile `@supabase/supabase-js` paketlerini silmek.
+4. PWA/Dexie runtime kararını uygulamak ve kapsam dışı offline kod/paketleri temizlemek.
+5. Backup/restore checksum, retention, upgrade/migration ve rollback prosedürlerini production sözleşmesine bağlamak.
+6. Supabase environment değişkenleri olmadan production build, standalone/Docker runtime ve kritik cutover smoke testlerini çalıştırmak.
+7. README, self-host kurulum, reverse proxy/HTTPS, branding, backup/restore ve upgrade belgelerini güncellemek.
 
 Tasarım backlog'u Faz 10'a kadar açılmaz. Faz 10 başladığında sayfa sırası ve her sayfanın görsel/UX yönü kullanıcı tarafından adım adım belirlenecektir.

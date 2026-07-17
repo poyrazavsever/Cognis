@@ -2,9 +2,12 @@
 title: Supabase Kurulumu
 description: Neta için gerekli Supabase tablo, policy, function ve storage gereksinimleri.
 order: 4
+status: legacy-v2-archive
 ---
 
 # Supabase Kurulumu
+
+> Arşiv: Self-hosted v3 çalışmak için Supabase kurulumu istemez. Bu içerik yalnızca eski bir v2 instance'ını anlamak içindir; güncel aktarım rehberi `docs/self-hosted-redesign/phase-8-import-release.md` dosyasındadır.
 
 Neta'nın çalışması için hazır bir Supabase projesine ihtiyaç var. Bu repo artık Supabase'i beraberinde getirmiyor. Yani uygulama deploy edilirken veritabanı, auth veya storage otomatik kurulmaz. Ben burada web uygulamasını sade tutmayı tercih ettim. Supabase tarafı ayrı bir altyapı olarak yönetilir. 
 

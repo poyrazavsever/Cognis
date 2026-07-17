@@ -2,9 +2,12 @@
 title: Giriş
 description: Neta'nın ne olduğunu, kimler için tasarlandığını ve hangi problemi çözdüğünü anlatır.
 order: 1
+status: legacy-v2-archive
 ---
 
 # Giriş
+
+> Arşiv: Bu belge Supabase tabanlı Neta v2'yi anlatır. Güncel self-hosted v3 kaynağı repository `README.md` dosyası ve `docs/self-hosted-redesign/phase-8-import-release.md` belgesidir.
 
 Neta'yı freelancer olarak çalışan birinin işlerini tek yerden yönetebilmesi için tasarladım. Gün içinde müşteri takibi, proje ilerlemesi, görevler, finansal durum, kişisel performans ve bazen de hızlıca soru sorabileceğim bir AI asistan ihtiyacı birbirinden kopuk araçlara dağılıyordu. Neta'nın çıkış noktası bu dağınıklığı azaltmak.
 

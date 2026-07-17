@@ -2,9 +2,12 @@
 title: İlk Admin Kurulumu
 description: Neta'da ilk yönetici hesabının nasıl oluşturulduğu.
 order: 9
+status: legacy-v2-archive
 ---
 
 # İlk Admin Kurulumu
+
+> Arşiv: Aşağıdaki Supabase Auth kurulumu v2'ye aittir. v3 ilk owner hesabını `/register` üzerinden Better Auth + SQLite transaction'ıyla oluşturur; güncel akış repository `README.md` dosyasındadır.
 
 Neta'yı kişisel bir freelancer çalışma alanı olarak düşündüğüm için sistemde herkesin serbestçe kayıt olmasını istemedim. Bu yüzden ilk admin oluşturulduktan sonra public kayıt akışı kapanır.
 

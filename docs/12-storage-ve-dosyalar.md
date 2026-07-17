@@ -2,9 +2,12 @@
 title: Storage ve Dosyalar
 description: Avatar ve proje görselleri için Supabase Storage kullanımı.
 order: 12
+status: legacy-v2-archive
 ---
 
 # Storage ve Dosyalar
+
+> Arşiv: Aşağıdaki Supabase Storage akışı v2'ye aittir. v3 dosyaları `DATA_DIR/uploads` altında ve checksum'lı metadata ile tutar; güncel kayıt `docs/self-hosted-redesign/phase-3-storage-branding.md` dosyasındadır.
 
 Neta'da dosya saklama için Supabase Storage kullanılır. Şu an iki temel dosya ihtiyacı var: profil fotoğrafları ve proje kapak görselleri.
 

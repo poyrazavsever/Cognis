@@ -2,9 +2,12 @@
 title: Performans ve UX Planı
 description: Neta içindeki yavaş navigasyon, aksiyon geri bildirimi ve sayfa bazlı performans iyileştirmeleri için faz bazlı çalışma planı.
 order: 17
+status: legacy-v2-archive
 ---
 
 # Performans ve UX Planı
+
+> Arşiv: Bu v2 UX planı aktif çalışma planı değildir. Backend-first sıra ve kullanıcı yönlendirmeli Faz 10 tasarım süreci ana dönüşüm planında tanımlıdır.
 
 Bu planı, uygulamada hissedilen iki ana problemi çözmek için hazırladım:
 

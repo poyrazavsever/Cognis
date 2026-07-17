@@ -2,9 +2,12 @@
 title: Güvenlik Notları
 description: Neta'yı güvenli şekilde kullanmak için dikkat edilmesi gerekenler.
 order: 16
+status: legacy-v2-archive
 ---
 
 # Güvenlik Notları
+
+> Arşiv: Bu belgenin Supabase/RLS maddeleri v2'ye aittir. Güncel Better Auth, service authorization, filesystem ve secret kararları ana dönüşüm planında tanımlıdır.
 
 Neta kişisel kullanım ve self-host mantığıyla tasarlandı, ama yine de hassas veriler tutar. Müşteri bilgileri, proje detayları, finans kayıtları, AI API key'leri ve portal erişimleri doğru korunmalıdır.
 

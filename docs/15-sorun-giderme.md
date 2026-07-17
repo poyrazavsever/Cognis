@@ -2,9 +2,12 @@
 title: Sorun Giderme
 description: Kurulum, deploy, Supabase ve giriş problemlerinde kontrol edilmesi gerekenler.
 order: 15
+status: legacy-v2-archive
 ---
 
 # Sorun Giderme
+
+> Arşiv: Aşağıdaki Supabase/RLS sorun giderme akışı v2'ye aittir. v3 operasyon kontrolleri ve health endpoint'leri Faz 8 runbook'unda tanımlıdır.
 
 Neta bir Next.js uygulaması gibi deploy edilse de Supabase, RLS, Auth ve Storage bağlantıları olduğu için sorunları doğru katmanda aramak önemli. Bu sayfada en sık karşılaşılabilecek durumları topladım.
 
