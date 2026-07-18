@@ -1,193 +1,88 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cleanText, optionalDate, requiredText } from "@/server/web/form-data";
+import { requireFreelancerBackend } from "@/server/web/freelancer";
 
 const TASK_STATUSES = ["todo", "in_progress", "done"] as const;
 const TASK_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 
-function cleanText(value: FormDataEntryValue | null) {
-  const text = typeof value === "string" ? value.trim() : "";
-  return text.length > 0 ? text : null;
+function enumValue<T extends readonly string[]>(value: FormDataEntryValue | string | null, values: T, fallback: T[number]): T[number] {
+  return typeof value === "string" && values.includes(value) ? value as T[number] : fallback;
 }
 
-function cleanRelationId(value: FormDataEntryValue | null) {
-  const id = cleanText(value);
-  return id && id !== "__none" ? id : null;
+function minutes(value: FormDataEntryValue | null): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : null;
 }
 
-function readStatus(value: FormDataEntryValue | null) {
-  const status = typeof value === "string" ? value : "todo";
-  return TASK_STATUSES.includes(status as (typeof TASK_STATUSES)[number])
-    ? status
-    : "todo";
-}
-
-function readPriority(value: FormDataEntryValue | null) {
-  const priority = typeof value === "string" ? value : "medium";
-  return TASK_PRIORITIES.includes(priority as (typeof TASK_PRIORITIES)[number])
-    ? priority
-    : "medium";
-}
-
-function readMinutes(value: FormDataEntryValue | null) {
-  const number = Number(value);
-  return Number.isFinite(number) && number >= 0 ? Math.round(number) : null;
-}
-
-async function getCurrentUserId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    throw new Error("Görev işlemi için giriş yapmış kullanıcı bulunamadı.");
-  }
-
-  return { supabase, userId: user.id };
-}
-
-function readPayload(formData: FormData) {
+function payload(formData: FormData) {
+  const dueAt = optionalDate(formData.get("due_at"));
   return {
-    title: cleanText(formData.get("title")),
+    title: requiredText(formData.get("title"), "Görev başlığı zorunludur."),
     description: cleanText(formData.get("description")),
-    status: readStatus(formData.get("status")),
-    priority: readPriority(formData.get("priority")),
-    client_id: cleanRelationId(formData.get("client_id")),
-    project_id: cleanRelationId(formData.get("project_id")),
-    due_at: cleanText(formData.get("due_at")),
-    estimated_minutes: readMinutes(formData.get("estimated_minutes")),
-    actual_minutes: readMinutes(formData.get("actual_minutes")),
-    is_public_to_client: formData.get("is_public_to_client") === "on",
+    status: enumValue(formData.get("status"), TASK_STATUSES, "todo"),
+    priority: enumValue(formData.get("priority"), TASK_PRIORITIES, "medium"),
+    clientId: cleanText(formData.get("client_id")),
+    projectId: cleanText(formData.get("project_id")),
+    scheduledDate: dueAt?.toISOString().slice(0, 10) ?? null,
+    dueAt,
+    estimatedMinutes: minutes(formData.get("estimated_minutes")),
+    actualMinutes: minutes(formData.get("actual_minutes")),
+    isPublicToClient: formData.get("is_public_to_client") === "on",
   };
 }
 
-export async function createTaskRecord(formData: FormData) {
-  const { supabase, userId } = await getCurrentUserId();
-  const payload = readPayload(formData);
+function completeRelations(
+  value: ReturnType<typeof payload>,
+  service: Awaited<ReturnType<typeof requireFreelancerBackend>>["service"],
+  actor: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"],
+) {
+  const project = value.projectId ? service.getProject(actor, value.projectId) : null;
+  return { ...value, clientId: value.clientId ?? project?.clientId ?? null };
+}
 
-  if (!payload.title) {
-    throw new Error("Görev başlığı zorunludur.");
-  }
-
-  const { error } = await supabase.from("tasks").insert({
-    user_id: userId,
-    date: payload.due_at || new Date().toISOString(),
-    ...payload,
-  });
-
-  if (error) {
-    throw new Error(`Görev eklenemedi: ${error.message}`);
-  }
-
+function revalidate(projectId?: string | null) {
   revalidatePath("/tasks");
+  revalidatePath("/projects");
+  if (projectId) revalidatePath(`/projects/${projectId}`);
+}
 
-  if (payload.project_id) {
-    revalidatePath(`/projects/${payload.project_id}`);
-  }
+export async function createTaskRecord(formData: FormData) {
+  const { actor, service } = await requireFreelancerBackend();
+  const value = completeRelations(payload(formData), service, actor);
+  service.createTask(actor, value);
+  revalidate(value.projectId);
 }
 
 export async function updateTaskRecord(formData: FormData) {
-  const { supabase, userId } = await getCurrentUserId();
-  const id = cleanText(formData.get("id"));
-  const payload = readPayload(formData);
-
-  if (!id || !payload.title) {
-    throw new Error("Görev güncellemek için başlık ve kayıt kimliği zorunludur.");
-  }
-
-  const { error } = await supabase
-    .from("tasks")
-    .update(payload)
-    .eq("id", id)
-    .eq("user_id", userId);
-
-  if (error) {
-    throw new Error(`Görev güncellenemedi: ${error.message}`);
-  }
-
-  revalidatePath("/tasks");
-
-  if (payload.project_id) {
-    revalidatePath(`/projects/${payload.project_id}`);
-  }
+  const { actor, service } = await requireFreelancerBackend();
+  const id = requiredText(formData.get("id"), "Görev kaydı bulunamadı.");
+  const value = completeRelations(payload(formData), service, actor);
+  const current = service.listTasks(actor).find((task) => task.id === id);
+  service.updateTask(actor, id, value);
+  revalidate(value.projectId);
+  if (current?.projectId !== value.projectId) revalidate(current?.projectId);
 }
 
 export async function completeTaskRecord(formData: FormData) {
-  const { supabase, userId } = await getCurrentUserId();
-  const id = cleanText(formData.get("id"));
-  const projectId = cleanRelationId(formData.get("project_id"));
-
-  if (!id) {
-    throw new Error("Tamamlanacak görev bulunamadı.");
-  }
-
-  const { error } = await supabase
-    .from("tasks")
-    .update({ status: "done" })
-    .eq("id", id)
-    .eq("user_id", userId);
-
-  if (error) {
-    throw new Error(`Görev tamamlanamadı: ${error.message}`);
-  }
-
-  revalidatePath("/tasks");
-
-  if (projectId) {
-    revalidatePath(`/projects/${projectId}`);
-  }
+  const id = requiredText(formData.get("id"), "Tamamlanacak görev bulunamadı.");
+  const projectId = cleanText(formData.get("project_id"));
+  const { actor, service } = await requireFreelancerBackend();
+  service.updateTask(actor, id, { status: "done" });
+  revalidate(projectId);
 }
 
 export async function updateTaskStatusRecord(taskId: string, status: string, projectId?: string) {
-  const { supabase, userId } = await getCurrentUserId();
-  const nextStatus = readStatus(status);
-
-  if (!taskId) {
-    throw new Error("Durumu güncellenecek görev bulunamadı.");
-  }
-
-  const { error } = await supabase
-    .from("tasks")
-    .update({ status: nextStatus })
-    .eq("id", taskId)
-    .eq("user_id", userId);
-
-  if (error) {
-    throw new Error(`Görev durumu güncellenemedi: ${error.message}`);
-  }
-
-  revalidatePath("/tasks");
-
-  if (projectId) {
-    revalidatePath(`/projects/${projectId}`);
-  }
+  const { actor, service } = await requireFreelancerBackend();
+  service.updateTask(actor, taskId, { status: enumValue(status, TASK_STATUSES, "todo") });
+  revalidate(projectId);
 }
 
 export async function deleteTaskRecord(formData: FormData) {
-  const { supabase, userId } = await getCurrentUserId();
-  const id = cleanText(formData.get("id"));
-  const projectId = cleanRelationId(formData.get("project_id"));
-
-  if (!id) {
-    throw new Error("Silinecek görev bulunamadı.");
-  }
-
-  const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", userId);
-
-  if (error) {
-    throw new Error(`Görev silinemedi: ${error.message}`);
-  }
-
-  revalidatePath("/tasks");
-
-  if (projectId) {
-    revalidatePath(`/projects/${projectId}`);
-  }
+  const id = requiredText(formData.get("id"), "Silinecek görev bulunamadı.");
+  const projectId = cleanText(formData.get("project_id"));
+  const { actor, service } = await requireFreelancerBackend();
+  service.deleteTask(actor, id);
+  revalidate(projectId);
 }

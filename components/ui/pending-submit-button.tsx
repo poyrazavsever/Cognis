@@ -7,10 +7,14 @@ import { useFormStatus } from "react-dom";
 
 import { cn } from "@/lib/utils";
 
-type PendingSubmitButtonProps = ComponentProps<typeof Button> & {
+type PendingSubmitButtonProps = Omit<
+  ComponentProps<typeof Button>,
+  "effect" | "variant"
+> & {
   idleIcon?: ReactNode;
   pendingIcon?: ReactNode;
   pendingChildren?: ReactNode;
+  variant?: "default" | "secondary";
 };
 
 export function PendingSubmitButton({
@@ -21,6 +25,7 @@ export function PendingSubmitButton({
   pendingChildren,
   pendingIcon,
   type = "submit",
+  variant = "default",
   ...props
 }: PendingSubmitButtonProps) {
   const { pending } = useFormStatus();
@@ -34,7 +39,10 @@ export function PendingSubmitButton({
       type={type}
       disabled={disabled || pending}
       aria-busy={pending}
+      loading={pending && !pendingIcon}
       className={cn(className)}
+      variant={variant}
+      effect="shine"
     >
       {icon}
       {pending ? pendingChildren ?? children : children}

@@ -7,7 +7,6 @@ import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
   PieChart, Pie, Cell, Legend
 } from "recharts";
-import { BarChart3, Filter } from "lucide-react";
 
 export type AnalyticsData = {
   metrics: {
@@ -22,7 +21,7 @@ type AnalyticsClientProps = {
   data: AnalyticsData;
 };
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "#eab308", "#3b82f6", "#8b5cf6"];
+const COLORS = ["var(--poyraz-primary)", "var(--poyraz-destructive)", "#eab308", "#3b82f6", "#8b5cf6"];
 
 export function AnalyticsClient({ data }: AnalyticsClientProps) {
   const router = useRouter();
@@ -45,19 +44,10 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BarChart3 className="h-4 w-4" />
-            Analizler
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Performans ve Finans Analizi
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Müşteri bazlı gelirler, görev tamamlama oranları ve proje ilerleme grafikleri.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Performans ve Finans Analizi
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -98,8 +88,8 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                     <Tooltip 
                       formatter={(value) => `₺${Number(value ?? 0)}`}
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
-                        borderColor: 'hsl(var(--border))',
+                        backgroundColor: 'var(--poyraz-background)',
+                        borderColor: 'var(--poyraz-border)',
                         borderRadius: '0.375rem',
                       }}
                     />
@@ -119,9 +109,9 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
             <div className="h-[300px] w-full">
                <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={taskStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dx={-10} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }} dx={-10} />
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
                     content={({ active, payload, label }) => {
@@ -130,7 +120,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                           <div className="bg-background border border-border rounded-xl p-3 shadow-lg shadow-black/5">
                             <p className="font-medium text-foreground mb-2 text-sm">{label}</p>
                             <div className="space-y-1.5">
-                              {payload.map((entry: any, index: number) => (
+                              {payload.map((entry, index) => (
                                 <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                   <div className="flex items-center gap-1.5">
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />

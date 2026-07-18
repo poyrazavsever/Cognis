@@ -1,60 +1,15 @@
 @import "tailwindcss";
 @import "poyraz-ui/preset.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source "../app/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../components/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../config/**/*.{js,ts,jsx,tsx,mdx}";
 
 @layer base {
   :root {
-    --poyraz-background: #ffffff;
-    --poyraz-foreground: #101828;
-    --poyraz-primary: #dc2626;
-    --poyraz-primary-foreground: #ffffff;
-    --poyraz-primary-hover: #b91c1c;
-    --poyraz-primary-active: #991b1b;
-    --poyraz-primary-muted: #fef2f2;
-    --poyraz-primary-muted-foreground: #b91c1c;
-    --poyraz-secondary: #f8fafc;
-    --poyraz-secondary-foreground: #101828;
-    --poyraz-muted: #f8fafc;
-    --poyraz-muted-foreground: #667085;
-    --poyraz-accent: #f1f5f9;
-    --poyraz-accent-hover: #e2e8f0;
-    --poyraz-accent-foreground: #101828;
-    --poyraz-border: #e4e7ec;
-    --poyraz-border-strong: #d0d5dd;
-    --poyraz-input: #98a2b3;
-    --poyraz-ring: #dc2626;
-    --poyraz-card: #ffffff;
-    --poyraz-card-foreground: #101828;
-
-    /* Legacy aliases kept until all prototype pages move to Poyraz UI. */
-    --background: var(--poyraz-background);
-    --background-dark: #f8fafc;
-    --foreground: var(--poyraz-foreground);
-    --card: var(--poyraz-card);
-    --card-foreground: var(--poyraz-card-foreground);
-    --popover: #ffffff;
-    --popover-foreground: var(--poyraz-foreground);
-    --primary: var(--poyraz-primary);
-    --primary-foreground: var(--poyraz-primary-foreground);
-    --primary-hover: var(--poyraz-primary-hover);
-    --primary-pressed: var(--poyraz-primary-active);
-    --secondary: var(--poyraz-secondary);
-    --secondary-foreground: var(--poyraz-secondary-foreground);
-    --muted: var(--poyraz-muted);
-    --muted-foreground: var(--poyraz-muted-foreground);
-    --accent: var(--poyraz-accent);
-    --accent-foreground: var(--poyraz-accent-foreground);
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: var(--poyraz-border);
-    --input: var(--poyraz-input);
-    --input-bg: #ffffff;
-    --overlay: rgba(15, 23, 42, 0.48);
-    --ring: var(--poyraz-ring);
-    --radius: 0.375rem;
+    --poyraz-font-primary: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   * {
@@ -65,16 +20,22 @@
     color-scheme: light;
   }
 
+  :root.dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
+    font-size: 14px;
+    letter-spacing: 0;
   }
 
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
-    -webkit-text-fill-color: var(--foreground) !important;
+    -webkit-box-shadow: 0 0 0 30px var(--poyraz-surface) inset !important;
+    -webkit-text-fill-color: var(--poyraz-foreground) !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 }
@@ -108,5 +69,16 @@
   .tiny-scrollbar::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--poyraz-primary) 58%, transparent);
     background-clip: padding-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 1ms !important;
+    }
   }
 }

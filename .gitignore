@@ -4,6 +4,7 @@ out
 dist
 build
 backups/
+.data/
 .env*
 !.env.example
 !.env.full.example
@@ -11,3 +12,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.pnpm-store/
+*.tsbuildinfo
+.DS_Store
+.artifacts/
+__pycache__/
+*.py[cod]

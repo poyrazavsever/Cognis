@@ -4,7 +4,9 @@ import { ErrorToaster } from "@/components/error-toaster";
 import { LockKeyhole, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
 import { Input, Label } from "poyraz-ui/atoms";
+import { Alert, AlertDescription } from "poyraz-ui/molecules";
 import { SubmitButton } from "@/components/auth/submit-button";
+import { getPublicBranding } from "@/server/branding/runtime";
 
 export default async function LoginPage({
   searchParams,
@@ -14,15 +16,26 @@ export default async function LoginPage({
   const resolvedParams = await searchParams;
   const error = resolvedParams?.error;
   const message = resolvedParams?.message;
+  const branding = getPublicBranding();
 
   return (
     <>
       {error && message && <ErrorToaster message={String(message)} />}
       <AuthPageShell
+        branding={{
+          applicationName: branding.organizationName ?? branding.applicationName,
+          lightLogoUrl: branding.lightLogoUrl,
+          darkLogoUrl: branding.darkLogoUrl,
+        }}
         title="Giriş yap"
         description="Neta çalışma alanına erişmek için hesabına giriş yap."
         form={
           <form className="space-y-6">
+            {!error && message ? (
+              <Alert variant="success" appearance="soft">
+                <AlertDescription>{String(message)}</AlertDescription>
+              </Alert>
+            ) : null}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
@@ -62,7 +75,7 @@ export default async function LoginPage({
               </div>
             </div>
 
-            <SubmitButton formAction={login} className="h-11 w-full gap-2" pendingText="Giriş yapılıyor...">
+            <SubmitButton size="lg" formAction={login} className="w-full gap-2" pendingText="Giriş yapılıyor...">
               <LogIn className="h-4 w-4" />
               Giriş yap
             </SubmitButton>

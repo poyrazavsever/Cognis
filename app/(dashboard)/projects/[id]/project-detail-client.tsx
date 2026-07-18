@@ -46,7 +46,8 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react";
-import { useEffect, useState, useTransition, type DragEvent } from "react";
+import Image from "next/image";
+import { useState, useTransition, type DragEvent } from "react";
 
 export type ProjectDetail = {
   id: string;
@@ -105,12 +106,20 @@ export type ProjectFinanceItem = {
   category: string | null;
 };
 
+export type ProjectRevisionItem = {
+  id: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "rejected";
+  created_at: string;
+  requested_by: string;
+};
+
 type ProjectDetailClientProps = {
   project: ProjectDetail;
   sections: ProjectPlanningSectionItem[];
   tasks: ProjectDetailTaskItem[];
   financeTransactions: ProjectFinanceItem[];
-  revisions: any[];
+  revisions: ProjectRevisionItem[];
 };
 
 const typeLabels = {
@@ -198,7 +207,7 @@ export function ProjectDetailClient({
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
-          <Button asChild variant="ghost" className="h-8 gap-2 px-0 text-muted-foreground">
+          <Button size="sm" effect="shine" asChild variant="secondary" className="gap-2 px-0 text-muted-foreground">
             <PendingLink href="/projects" className="flex items-center gap-2" showSpinner>
               <ArrowLeft className="h-4 w-4" />
               Projelere dön
@@ -213,9 +222,6 @@ export function ProjectDetailClient({
                 {statusLabels[project.status]}
               </Badge>
             </div>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              {project.description || "Bu proje için kısa açıklama eklenmedi."}
-            </p>
           </div>
         </div>
 
@@ -226,7 +232,7 @@ export function ProjectDetailClient({
             <form action={completeProjectRecord}>
               <input type="hidden" name="id" value={project.id} />
               <PendingSubmitButton
-                variant="outline"
+                variant="secondary"
                 className="gap-2"
                 idleIcon={<CheckCircle2 className="h-4 w-4" />}
                 pendingChildren="Tamamlanıyor"
@@ -242,11 +248,14 @@ export function ProjectDetailClient({
         <Card>
           <CardContent className="p-0">
             {project.coverImageUrl ? (
-              <div className="aspect-[16/7] overflow-hidden rounded-t-sm border-b border-border bg-muted">
-                <img
+              <div className="relative aspect-[16/7] overflow-hidden rounded-t-sm border-b border-border bg-muted">
+                <Image
                   src={project.coverImageUrl}
                   alt={project.cover_image_alt || project.name}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
             ) : (
@@ -342,16 +351,29 @@ export function ProjectDetailClient({
   );
 }
 
-function RevisionsPanel({ projectId, revisions }: { projectId: string; revisions: any[] }) {
+function RevisionsPanel({
+  projectId,
+  revisions,
+}: {
+  projectId: string;
+  revisions: ProjectRevisionItem[];
+}) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  async function handleStatusChange(id: string, status: string) {
+  async function handleStatusChange(
+    id: string,
+    status: ProjectRevisionItem["status"],
+  ) {
     setIsUpdating(true);
     try {
       const { updateRevisionStatus } = await import("@/app/(dashboard)/projects/actions");
       await updateRevisionStatus(id, projectId, status);
-    } catch (err: any) {
-      console.error(err);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Revizyon durumu güncellenemedi.",
+      );
     } finally {
       setIsUpdating(false);
     }
@@ -373,7 +395,12 @@ function RevisionsPanel({ projectId, revisions }: { projectId: string; revisions
                   </div>
                   <Select
                     defaultValue={rev.status}
-                    onValueChange={(val) => handleStatusChange(rev.id, val)}
+                    onValueChange={(value) =>
+                      handleStatusChange(
+                        rev.id,
+                        value as ProjectRevisionItem["status"],
+                      )
+                    }
                     disabled={isUpdating}
                   >
                     <SelectTrigger className="w-40 h-8 text-xs">
@@ -457,8 +484,8 @@ function PlanningSectionCard({ section }: { section: ProjectPlanningSectionItem 
               <input type="hidden" name="id" value={section.id} />
               <input type="hidden" name="project_id" value={section.project_id} />
               <PendingSubmitButton
-                variant="outline"
-                className="h-9 px-3 text-rose-600"
+                variant="secondary"
+                className="px-3 text-rose-600"
                 idleIcon={<Trash2 className="h-4 w-4" />}
                 aria-label="Sil"
               />
@@ -505,9 +532,9 @@ function SectionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={mode === "create" ? "default" : "outline"}
-          className="h-9 gap-2 px-3"
+        <Button effect="shine"
+          variant={mode === "create" ? "default" : "secondary"}
+          className="gap-2 px-3"
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Alan ekle" : null}
@@ -574,7 +601,7 @@ function SectionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting} className="gap-2">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
               {isSubmitting ? "Kaydediliyor" : "Kaydet"}
             </Button>
           </DialogFooter>
@@ -594,26 +621,31 @@ function TaskPanel({
   tasks: ProjectDetailTaskItem[];
 }) {
   const [view, setView] = useState<"list" | "kanban">("list");
-  const [localTasks, setLocalTasks] = useState(tasks);
+  const [statusOverrides, setStatusOverrides] = useState<
+    Partial<Record<string, ProjectDetailTaskItem["status"]>>
+  >({});
   const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
+  const localTasks = tasks.map((task) => ({
+    ...task,
+    status: statusOverrides[task.id] ?? task.status,
+  }));
 
   function handleTaskStatusChange(taskId: string, status: ProjectDetailTaskItem["status"]) {
-    const previousTasks = localTasks;
+    const previousStatus = localTasks.find((task) => task.id === taskId)?.status;
 
     setPendingTask(taskId, true);
-    setLocalTasks((currentTasks) =>
-      currentTasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
-    );
+    setStatusOverrides((current) => ({ ...current, [taskId]: status }));
 
     startTransition(() => {
       void updateTaskStatusRecord(taskId, status, projectId)
         .catch((error) => {
-          setLocalTasks(previousTasks);
+          setStatusOverrides((current) => {
+            const next = { ...current };
+            if (previousStatus) next[taskId] = previousStatus;
+            else delete next[taskId];
+            return next;
+          });
           toast.error(
             error instanceof Error
               ? error.message
@@ -652,19 +684,19 @@ function TaskPanel({
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="flex rounded-sm border border-border p-1">
-              <Button
+              <Button size="sm" effect="shine"
                 type="button"
-                variant={view === "list" ? "default" : "ghost"}
-                className="h-8 gap-2 px-3"
+                variant={view === "list" ? "default" : "secondary"}
+                className="gap-2 px-3"
                 onClick={() => setView("list")}
               >
                 <LayoutList className="h-4 w-4" />
                 Liste
               </Button>
-              <Button
+              <Button size="sm" effect="shine"
                 type="button"
-                variant={view === "kanban" ? "default" : "ghost"}
-                className="h-8 gap-2 px-3"
+                variant={view === "kanban" ? "default" : "secondary"}
+                className="gap-2 px-3"
                 onClick={() => setView("kanban")}
               >
                 <KanbanSquare className="h-4 w-4" />
@@ -720,12 +752,12 @@ function TaskPanel({
                   </div>
                   <div className="flex justify-start lg:justify-end">
                     {task.status !== "done" ? (
-                      <Button
+                      <Button effect="shine"
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         disabled={pendingTaskIds.has(task.id)}
                         aria-busy={pendingTaskIds.has(task.id)}
-                        className="h-9 gap-2 px-3"
+                        className="gap-2 px-3"
                         onClick={() => handleTaskStatusChange(task.id, "done")}
                       >
                         {pendingTaskIds.has(task.id) ? (
@@ -830,11 +862,12 @@ function ProjectTaskKanban({
                       <Badge className={priorityClasses[task.priority]}>{task.priority}</Badge>
                       {task.status !== "done" ? (
                         <Button
+                          size="icon-sm"
+                          effect="shine"
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           disabled={pendingTaskIds.has(task.id)}
                           aria-busy={pendingTaskIds.has(task.id)}
-                          className="h-8 w-8 p-0"
                           title="Tamamla"
                           aria-label="Tamamla"
                           onClick={() => onTaskStatusChange(task.id, "done")}
@@ -881,7 +914,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-9 gap-2 px-3">
+        <Button effect="shine" variant="secondary" className="gap-2 px-3">
           <Settings2 className="h-4 w-4" />
           <span className="hidden sm:inline">Ayarlar</span>
         </Button>
@@ -926,7 +959,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
               </div>
             )}
             {progressType === "auto" && (
-              <p className="text-xs text-muted-foreground">İlerleme yüzdesi "Görevler" sekmesindeki görevlerin tamamlanma durumuna göre otomatik hesaplanacaktır.</p>
+              <p className="text-xs text-muted-foreground">İlerleme yüzdesi &quot;Görevler&quot; sekmesindeki görevlerin tamamlanma durumuna göre otomatik hesaplanacaktır.</p>
             )}
 
             <div className="grid gap-2">
@@ -942,7 +975,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
             </Button>
           </DialogFooter>
@@ -977,7 +1010,7 @@ function ProjectTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-9 gap-2 px-3">
+        <Button variant="default" effect="shine" className="gap-2 px-3">
           <Plus className="h-4 w-4" />
           Görev ekle
         </Button>
@@ -1091,7 +1124,7 @@ function ProjectTaskDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting} className="gap-2">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
               <Plus className="h-4 w-4" />
               {isSubmitting ? "Kaydediliyor" : "Görevi ekle"}
             </Button>
@@ -1217,10 +1250,10 @@ function TabButton({
   children: React.ReactNode;
 }) {
   return (
-    <Button
+    <Button effect="shine"
       type="button"
-      variant={active ? "default" : "ghost"}
-      className="h-9 px-4"
+      variant={active ? "default" : "secondary"}
+      className="px-4"
       onClick={onClick}
     >
       {children}

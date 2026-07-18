@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.phase2-smoke.json",
+  "compilerOptions": {
+    "outDir": ".next/phase3-storage-smoke-dist"
+  },
+  "include": [
+    "scripts/phase3-storage-smoke.ts",
+    "server/auth/types.ts",
+    "server/branding/service.ts",
+    "server/db/schema/**/*.ts",
+    "server/domain/**/*.ts",
+    "server/files/paths.ts",
+    "server/files/policy.ts",
+    "server/files/service.ts",
+    "server/repositories/**/*.ts",
+    "server/services/domain.ts"
+  ]
+}

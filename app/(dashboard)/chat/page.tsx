@@ -1,12 +1,17 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { Brain, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
 import { Button } from "poyraz-ui/atoms";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "poyraz-ui/molecules";
+import {
+  createChatSessionAction,
+  deleteChatSessionAction,
+  listChatMessagesAction,
+  listChatSessionsAction,
+} from "./actions";
 
 function formatMessageContent(text: string) {
   if (!text) return null;
@@ -38,7 +43,6 @@ type ChatSession = {
 };
 
 export default function AIChatPage() {
-  const [supabase] = useState(() => createClient());
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -60,26 +64,17 @@ export default function AIChatPage() {
 
   useEffect(() => {
     async function fetchSessions() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("chat_sessions")
-        .select("id, title, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (data) {
+      try {
+        const data = await listChatSessionsAction();
         setSessions(data);
         setActiveSessionId(data[0]?.id || null);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Sohbetler yüklenemedi.");
       }
     }
 
     void fetchSessions();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -88,23 +83,21 @@ export default function AIChatPage() {
         return;
       }
 
-      const { data } = await supabase
-        .from("chat_messages")
-        .select("id, role, content")
-        .eq("session_id", activeSessionId)
-        .order("created_at", { ascending: true });
-
-      const formattedMessages: UIMessage[] = (data || []).map((message) => ({
-        id: message.id,
-        role: message.role as UIMessage["role"],
-        parts: [{ type: "text", text: message.content || "" }],
-      }));
-
-      setMessages(formattedMessages);
+      try {
+        const data = await listChatMessagesAction(activeSessionId);
+        const formattedMessages: UIMessage[] = data.map((message) => ({
+          id: message.id,
+          role: message.role as UIMessage["role"],
+          parts: [{ type: "text", text: message.content }],
+        }));
+        setMessages(formattedMessages);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Mesajlar yüklenemedi.");
+      }
     }
 
     void fetchMessages();
-  }, [activeSessionId, setMessages, supabase]);
+  }, [activeSessionId, setMessages]);
 
   async function handleNewChat() {
     setActiveSessionId(null);
@@ -113,7 +106,12 @@ export default function AIChatPage() {
 
   async function handleDeleteSession(id: string, event: React.MouseEvent) {
     event.stopPropagation();
-    await supabase.from("chat_sessions").delete().eq("id", id);
+    try {
+      await deleteChatSessionAction(id);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sohbet silinemedi.");
+      return;
+    }
 
     const nextSessions = sessions.filter((session) => session.id !== id);
     setSessions(nextSessions);
@@ -134,22 +132,16 @@ export default function AIChatPage() {
     setInput("");
 
     if (!sessionId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const { data: newSession } = await supabase
-        .from("chat_sessions")
-        .insert({
-          user_id: user.id,
-          title: currentInput.length > 32 ? `${currentInput.slice(0, 32)}...` : currentInput,
-        })
-        .select("id, title, created_at")
-        .single();
-
-      if (!newSession) return;
+      let newSession: ChatSession;
+      try {
+        newSession = await createChatSessionAction(
+          currentInput.length > 32 ? `${currentInput.slice(0, 32)}...` : currentInput,
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Sohbet oluşturulamadı.");
+        setInput(currentInput);
+        return;
+      }
 
       sessionId = newSession.id;
       setActiveSessionId(sessionId);
@@ -166,7 +158,7 @@ export default function AIChatPage() {
           <MessageSquare className="h-4 w-4" />
           Sohbetler
         </h2>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => {
+        <Button effect="shine" variant="secondary" size="icon-sm"  onClick={() => {
           handleNewChat();
           setIsMobileSessionsOpen(false);
         }}>
@@ -181,31 +173,31 @@ export default function AIChatPage() {
           </div>
         ) : (
           sessions.map((session) => (
-            <button
-              key={session.id}
-              type="button"
-              onClick={() => {
-                setActiveSessionId(session.id);
-                setIsMobileSessionsOpen(false);
-              }}
-              className={`group flex w-full items-center justify-between rounded-sm p-3 text-left transition-colors ${
-                activeSessionId === session.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <span className="truncate pr-2 text-sm font-medium">
-                {session.title || "İsimsiz sohbet"}
-              </span>
-              <span
-                role="button"
-                tabIndex={0}
+            <div key={session.id} className="group flex items-center gap-1">
+              <Button effect="shine"
+                type="button"
+                variant={activeSessionId === session.id ? "default" : "secondary"}
+                onClick={() => {
+                  setActiveSessionId(session.id);
+                  setIsMobileSessionsOpen(false);
+                }}
+                className="min-w-0 flex-1 justify-start px-3"
+              >
+                <span className="truncate text-sm font-medium">
+                  {session.title || "İsimsiz sohbet"}
+                </span>
+              </Button>
+              <Button effect="shine"
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label={`${session.title || "İsimsiz sohbet"} sohbetini sil`}
                 onClick={(event) => void handleDeleteSession(session.id, event)}
-                className="rounded-sm p-1 opacity-0 transition-all hover:bg-rose-50 hover:text-rose-600 lg:group-hover:opacity-100"
+                className="text-destructive opacity-0 transition-opacity lg:group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </span>
-            </button>
+              </Button>
+            </div>
           ))
         )}
       </div>
@@ -244,10 +236,9 @@ export default function AIChatPage() {
             </div>
             <div>
               <h1 className="text-sm font-semibold text-foreground">AI Asistan</h1>
-              <p className="text-xs text-muted-foreground">Kayıtlı verilerin hakkında soru sor.</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="h-8 md:hidden text-xs px-3" onClick={() => setIsMobileSessionsOpen(true)}>
+          <Button effect="shine" variant="secondary" size="sm" className="md:hidden text-xs px-3" onClick={() => setIsMobileSessionsOpen(true)}>
             <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Sohbetler
           </Button>
         </header>
@@ -312,11 +303,11 @@ export default function AIChatPage() {
               disabled={isLoading}
             />
             {isLoading ? (
-              <Button type="button" variant="outline" size="icon" className="shrink-0 h-9 w-9" onClick={() => void stop()}>
+              <Button effect="shine" type="button" variant="secondary" size="icon" className="shrink-0" onClick={() => void stop()}>
                 <span className="h-3 w-3 bg-current" />
               </Button>
             ) : (
-              <Button type="submit" size="icon" className="shrink-0 h-9 w-9" disabled={!input.trim()}>
+              <Button variant="default" effect="shine" type="submit" size="icon" className="shrink-0" disabled={!input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             )}

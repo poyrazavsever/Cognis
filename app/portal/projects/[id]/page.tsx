@@ -1,67 +1,70 @@
-import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { PortalProjectClient } from "./portal-project-client";
+import { DomainError } from "@/server/domain/errors";
+import { requirePortalBackend } from "@/server/web/portal";
+import {
+  PortalProjectClient,
+  type PortalPlanningSection,
+  type PortalProjectDetail,
+  type PortalRevision,
+  type PortalTask,
+} from "./portal-project-client";
 
 export default async function PortalProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { actor, service } = await requirePortalBackend();
+  let data: {
+    project: PortalProjectDetail;
+    sections: PortalPlanningSection[];
+    tasks: PortalTask[];
+    revisions: PortalRevision[];
+  };
 
-  if (!user) return null;
-
-  // 1. Get Client Record
-  const { data: clientData } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("client_auth_id", user.id)
-    .single();
-
-  if (!clientData) {
-    notFound();
+  try {
+    const row = service.getProject(actor, id);
+    const allowance = service.getRevisionAllowance(actor, id);
+    data = {
+      project: {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        status: row.status,
+        progress: row.progress,
+        due_date: row.dueDate,
+        revision_quota: allowance.remaining,
+        can_request_revision: allowance.canRequest,
+      },
+      sections: service.listPlanningSections(actor, id).map((section) => ({
+        id: section.id,
+        title: section.title,
+        content: section.content,
+        type: section.category,
+      })),
+      tasks: service.listTasks(actor, id)
+        .filter((task) => task.status !== "cancelled")
+        .map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status as PortalTask["status"],
+          date: task.dueAt?.toISOString() ?? task.scheduledDate,
+        })),
+      revisions: service.listRevisions(actor, id).map((revision) => ({
+        id: revision.id,
+        description: revision.description,
+        status: revision.status,
+        created_at: revision.createdAt.toISOString(),
+      })),
+    };
+  } catch (error) {
+    if (error instanceof DomainError && error.code === "NOT_FOUND") notFound();
+    throw error;
   }
-
-  // 2. Get Project
-  const { data: project, error } = await supabase
-    .from("projects")
-    .select("id, name, description, status, progress, due_date, revision_quota")
-    .eq("id", id)
-    .eq("client_id", clientData.id)
-    .single();
-
-  if (error || !project) {
-    notFound();
-  }
-
-  // 3. Get Planning Sections (Milestones etc.)
-  const { data: sectionsData } = await supabase
-    .from("project_planning_sections")
-    .select("*")
-    .eq("project_id", id)
-    .order("order_index", { ascending: true });
-
-  // 4. Get Public Tasks
-  const { data: tasksData } = await supabase
-    .from("tasks")
-    .select("*")
-    .eq("project_id", id)
-    .eq("is_public_to_client", true)
-    .order("date", { ascending: false });
-
-  // 5. Get Revisions
-  const { data: revisionsData } = await supabase
-    .from("project_revisions")
-    .select("id, description, status, created_at, requested_by")
-    .eq("project_id", id)
-    .eq("client_id", clientData.id)
-    .order("created_at", { ascending: false });
 
   return (
     <PortalProjectClient
-      project={project}
-      sections={sectionsData || []}
-      tasks={tasksData || []}
-      revisions={revisionsData || []}
-      clientId={clientData.id}
+      project={data.project}
+      sections={data.sections}
+      tasks={data.tasks}
+      revisions={data.revisions}
     />
   );
 }

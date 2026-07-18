@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1783708523046,
+      "tag": "0000_wise_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783709956320,
+      "tag": "0001_silky_jetstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784205329112,
+      "tag": "0002_mighty_korg",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1784208712933,
+      "tag": "0003_chief_excalibur",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1784210311370,
+      "tag": "0004_fancy_baron_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1784234752708,
+      "tag": "0005_brief_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1784266217938,
+      "tag": "0006_moaning_kitty_pryde",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1784268984532,
+      "tag": "0007_flaky_kinsey_walden",
+      "breakpoints": true
+    }
+  ]
+}

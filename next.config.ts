@@ -1,13 +1,8 @@
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-});
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR?.trim() || ".next",
+  output: "standalone",
   experimental: {
     serverActions: {
       bodySizeLimit: "8mb",
@@ -16,4 +11,4 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

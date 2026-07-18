@@ -1,19 +1,22 @@
 import { signup } from "@/app/login/actions";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
-import { getFirstAdminSetupState } from "@/lib/auth/first-admin-setup";
+import { getFirstFreelancerSetupState } from "@/server/auth/setup";
 import { LockKeyhole, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button, Input, Label } from "poyraz-ui/atoms";
+import { Input, Label } from "poyraz-ui/atoms";
 import { SubmitButton } from "@/components/auth/submit-button";
+import { getPublicBranding } from "@/server/branding/runtime";
+
+export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const setupState = await getFirstAdminSetupState();
+  const setupState = await getFirstFreelancerSetupState();
 
   if (setupState.errorMessage) {
     redirect(`/login?error=true&message=${encodeURIComponent(setupState.errorMessage)}`);
@@ -30,11 +33,17 @@ export default async function RegisterPage({
   const resolvedParams = await searchParams;
   const error = resolvedParams?.error;
   const message = resolvedParams?.message;
+  const branding = getPublicBranding();
 
   return (
     <>
       {error && message && <ErrorToaster message={String(message)} />}
       <AuthPageShell
+        branding={{
+          applicationName: branding.organizationName ?? branding.applicationName,
+          lightLogoUrl: branding.lightLogoUrl,
+          darkLogoUrl: branding.darkLogoUrl,
+        }}
         title="İlk admin hesabını oluştur"
         description="Bu Neta çalışma alanının ilk yönetici hesabını oluştur."
         form={
@@ -70,7 +79,7 @@ export default async function RegisterPage({
               </div>
             </div>
 
-            <SubmitButton formAction={signup} className="h-11 w-full gap-2" pendingText="Oluşturuluyor...">
+            <SubmitButton size="lg" formAction={signup} className="w-full gap-2" pendingText="Oluşturuluyor...">
               <UserPlus className="h-4 w-4" />
               Admin hesabını oluştur
             </SubmitButton>

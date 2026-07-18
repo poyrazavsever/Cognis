@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  archiveClientRecord,
   createClientRecord,
   updateClientRecord,
   updateClientPipelineStage,
@@ -28,10 +27,7 @@ import {
   toast,
 } from "poyraz-ui/molecules";
 import {
-  Archive,
-  ExternalLink,
   Mail,
-  PauseCircle,
   Pencil,
   Phone,
   Plus,
@@ -40,14 +36,13 @@ import {
   Wallet,
   Clock,
   ArrowRight,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { StatCard } from "@/components/system/stat-card";
 
 export type ClientListItem = {
   id: string;
@@ -68,19 +63,13 @@ export type ClientListItem = {
   client_value_score: number;
 };
 
-const statusLabels = {
-  active: "Aktif",
-  paused: "Duraklatıldı",
-  archived: "Arşivlendi",
-};
+type ClientPipelineStage = ClientListItem["pipeline_stage"];
 
-const statusClasses = {
-  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  paused: "border-amber-200 bg-amber-50 text-amber-700",
-  archived: "border-zinc-200 bg-zinc-50 text-zinc-600",
-};
-
-const pipelineStages = [
+const pipelineStages: Array<{
+  id: ClientPipelineStage;
+  label: string;
+  color: string;
+}> = [
   { id: "lead", label: "Potansiyel (Lead)", color: "border-slate-200 bg-slate-50 text-slate-700" },
   { id: "contacted", label: "İletişime Geçildi", color: "border-blue-200 bg-blue-50 text-blue-700" },
   { id: "proposal_sent", label: "Teklif İletildi", color: "border-amber-200 bg-amber-50 text-amber-700" },
@@ -92,26 +81,24 @@ type ClientsClientProps = {
   clients: ClientListItem[];
   totalRevenue: number;
   activeCount: number;
-  pausedCount: number;
-  archivedCount: number;
 };
 
 export function ClientsClient({
   clients,
   totalRevenue,
   activeCount,
-  pausedCount,
-  archivedCount,
 }: ClientsClientProps) {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   
   const [draggedClientId, setDraggedClientId] = useState<string | null>(null);
-  const [localClients, setLocalClients] = useState(clients);
-
-  useEffect(() => {
-    setLocalClients(clients);
-  }, [clients]);
+  const [pipelineOverrides, setPipelineOverrides] = useState<
+    Partial<Record<string, ClientPipelineStage>>
+  >({});
+  const localClients = clients.map((client) => ({
+    ...client,
+    pipeline_stage: pipelineOverrides[client.id] ?? client.pipeline_stage,
+  }));
 
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, clientId: string) {
     setDraggedClientId(clientId);
@@ -119,7 +106,7 @@ export function ClientsClient({
     event.dataTransfer.setData("text/plain", clientId);
   }
 
-  async function handleDrop(newStage: string) {
+  async function handleDrop(newStage: ClientPipelineStage) {
     if (!draggedClientId) return;
 
     const clientId = draggedClientId;
@@ -128,15 +115,17 @@ export function ClientsClient({
     const client = localClients.find(c => c.id === clientId);
     if (!client || client.pipeline_stage === newStage) return;
 
-    setLocalClients(prev => 
-      prev.map(c => c.id === clientId ? { ...c, pipeline_stage: newStage as any } : c)
-    );
+    const previousStage = client.pipeline_stage;
+    setPipelineOverrides((current) => ({ ...current, [clientId]: newStage }));
 
     try {
-      await updateClientPipelineStage(clientId, newStage as any);
+      await updateClientPipelineStage(clientId, newStage);
       toast.success("Müşteri aşaması güncellendi.");
     } catch (error) {
-      setLocalClients(clients);
+      setPipelineOverrides((current) => ({
+        ...current,
+        [clientId]: previousStage,
+      }));
       toast.error(
         error instanceof Error
           ? error.message
@@ -163,19 +152,10 @@ export function ClientsClient({
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            CRM & Operasyon
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              CRM & Müşteriler
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Potansiyel müşterilerini pipeline üzerinden takip et ve müşteri ilişkilerini yönet.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            CRM & Müşteriler
+          </h1>
         </div>
 
         <ClientDialog mode="create" />
@@ -186,26 +166,26 @@ export function ClientsClient({
           label="Potansiyel (Lead)"
           value={clients.filter(c => c.pipeline_stage === 'lead' || c.pipeline_stage === 'contacted').length.toString()}
           icon={Users}
-          iconClassName="bg-blue-50 text-blue-700"
+          tone="blue"
         />
         <StatCard
           label="Aktif Müşteri"
           value={activeCount.toString()}
           icon={UserCheck}
-          iconClassName="bg-emerald-50 text-emerald-700"
+          tone="green"
         />
         <StatCard
           label="Bekleyen Follow-up"
           value={clients.filter(c => c.next_follow_up_date && (isPast(new Date(c.next_follow_up_date)) || isToday(new Date(c.next_follow_up_date)))).length.toString()}
           icon={Clock}
-          iconClassName="bg-rose-50 text-rose-700"
+          tone="rose"
         />
         <StatCard
           label="Kayıtlı Gelir"
           value={formatCurrency(totalRevenue)}
           description="Ödenmiş gelir işlemleri"
           icon={Wallet}
-          iconClassName="bg-primary/10 text-primary"
+          tone="primary"
         />
       </div>
 
@@ -337,7 +317,7 @@ function DraggableClientCard({
               {client.name}
             </PendingLink>
             <div onPointerDown={(e) => e.stopPropagation()}>
-              <ClientDialog mode="edit" client={client} trigger={<Button variant="ghost" className="h-6 w-6 p-0"><Pencil className="h-3 w-3" /></Button>} />
+              <ClientDialog mode="edit" client={client} trigger={<Button size="icon-sm" effect="shine" variant="secondary" ><Pencil className="h-3 w-3" /></Button>} />
             </div>
           </div>
           {client.company_name && <p className="text-xs text-muted-foreground mb-2 pointer-events-none">{client.company_name}</p>}
@@ -418,11 +398,11 @@ function ClientRow({ client }: { client: ClientListItem }) {
 
       <div className="flex justify-end gap-2">
         <PendingLink href={`/clients/${client.id}`} className="inline-flex" showSpinner>
-          <Button variant="ghost" className="h-9 w-9 p-0">
+          <Button size="icon" effect="shine" variant="secondary" >
             <ArrowRight className="h-4 w-4" />
           </Button>
         </PendingLink>
-        <ClientDialog mode="edit" client={client} trigger={<Button variant="outline" className="h-9 min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> Düzenle</Button>} />
+        <ClientDialog mode="edit" client={client} trigger={<Button effect="shine" variant="secondary" className="min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> Düzenle</Button>} />
       </div>
     </div>
   );
@@ -463,9 +443,9 @@ function ClientDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button
-            variant={mode === "create" ? "default" : "outline"}
-            className="h-9 min-w-24 gap-2 px-3"
+          <Button effect="shine"
+            variant={mode === "create" ? "default" : "secondary"}
+            className="min-w-24 gap-2 px-3"
           >
             {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
             {mode === "create" ? "Müşteri ekle" : "Düzenle"}
@@ -489,7 +469,7 @@ function ClientDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
                 ? "Kaydediliyor"
@@ -616,25 +596,6 @@ function PhoneInput({ id, name, defaultValue }: { id: string; name: string; defa
       placeholder="+90 (5xx) xxx xx xx"
       onChange={(event) => setValue(formatPhone(event.target.value))}
     />
-  );
-}
-
-function StatCard({ label, value, description, icon: Icon, iconClassName }: { label: string; value: string; description?: string; icon: LucideIcon; iconClassName: string; }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-            {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
-          </div>
-          <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${iconClassName}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

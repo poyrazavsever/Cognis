@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "noEmit": false,
+    "isolatedModules": false,
+    "incremental": false,
+    "rootDir": ".",
+    "outDir": ".next/phase2-domain-smoke-dist"
+  },
+  "include": [
+    "scripts/phase2-domain-smoke.ts",
+    "server/auth/types.ts",
+    "server/db/schema/**/*.ts",
+    "server/domain/**/*.ts",
+    "server/repositories/**/*.ts",
+    "server/services/domain.ts"
+  ],
+  "exclude": ["node_modules"]
+}

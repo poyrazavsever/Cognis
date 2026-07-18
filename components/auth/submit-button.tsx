@@ -2,25 +2,35 @@
 
 import { useFormStatus } from "react-dom";
 import { Button } from "poyraz-ui/atoms";
-import { Loader2 } from "lucide-react";
 import React from "react";
 
-interface SubmitButtonProps extends React.ComponentProps<typeof Button> {
+interface SubmitButtonProps
+  extends Omit<React.ComponentProps<typeof Button>, "effect" | "variant"> {
   pendingText?: string;
+  variant?: "default" | "secondary";
 }
 
 export function SubmitButton({
   children,
   pendingText,
+  type = "submit",
+  variant = "default",
   ...props
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
 
   return (
-    <Button disabled={pending} {...props}>
+    <Button
+      type={type}
+      disabled={pending}
+      loading={pending}
+      aria-busy={pending}
+      {...props}
+      variant={variant}
+      effect="shine"
+    >
       {pending ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
           {pendingText || children}
         </>
       ) : (

@@ -38,8 +38,10 @@ import {
   Brain,
   Loader2,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ChangeEvent } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition, type ChangeEvent } from "react";
+import { StatCard } from "@/components/system/stat-card";
 
 export type ProjectClientOption = {
   id: string;
@@ -114,19 +116,10 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <FolderKanban className="h-4 w-4" />
-            İş ve side project yönetimi
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Projeler
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Müşteri işleri ve kişisel side projectleri aynı yerde takip et.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Projeler
+          </h1>
         </div>
 
         <div className="flex gap-2">
@@ -159,19 +152,19 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
                 className="sm:w-80"
               />
               <div className="flex rounded-sm border border-border p-1">
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "grid" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "grid" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("grid")}
                 >
                   <LayoutGrid className="h-4 w-4" />
                   Kart
                 </Button>
-                <Button
+                <Button size="sm" effect="shine"
                   type="button"
-                  variant={view === "list" ? "default" : "ghost"}
-                  className="h-8 gap-2 px-3"
+                  variant={view === "list" ? "default" : "secondary"}
+                  className="gap-2 px-3"
                   onClick={() => setView("list")}
                 >
                   <List className="h-4 w-4" />
@@ -223,17 +216,13 @@ function ProjectCard({
   clients: ProjectClientOption[];
 }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating, startNavigation] = useTransition();
   const detailHref = `/projects/${project.id}`;
 
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [pathname]);
-
   function goToProjectDetail() {
-    setIsNavigating(true);
-    router.push(detailHref);
+    startNavigation(() => {
+      router.push(detailHref);
+    });
   }
 
   function prefetchProjectDetail() {
@@ -295,11 +284,14 @@ function ProjectCard({
 function ProjectCover({ project }: { project: ProjectListItem }) {
   if (project.coverImageUrl) {
     return (
-      <div className="aspect-video overflow-hidden rounded-sm border border-border bg-muted">
-        <img
+      <div className="relative aspect-video overflow-hidden rounded-sm border border-border bg-muted">
+        <Image
           src={project.coverImageUrl}
           alt={project.cover_image_alt || project.name}
-          className="h-full w-full object-cover"
+          fill
+          sizes="(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw"
+          unoptimized
+          className="object-cover"
         />
       </div>
     );
@@ -372,9 +364,10 @@ function ProjectActions({
     >
       {showDetail ? (
         <Button
+          size="icon"
+          effect="shine"
           asChild
-          variant="outline"
-          className="h-9 w-9 p-0"
+          variant="secondary"
           title="Detaya git"
           aria-label="Detaya git"
         >
@@ -388,8 +381,8 @@ function ProjectActions({
         <form action={completeProjectRecord}>
           <input type="hidden" name="id" value={project.id} />
           <PendingSubmitButton
-            variant="outline"
-            className="h-9 w-9 p-0"
+            size="icon"
+            variant="secondary"
             title="Tamamla"
             aria-label="Tamamla"
             idleIcon={<CheckCircle2 className="h-4 w-4" />}
@@ -438,9 +431,10 @@ function ProjectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={mode === "create" ? "default" : "outline"}
-          className={iconOnly ? "h-9 w-9 p-0" : "h-9 min-w-24 gap-2 px-3"}
+        <Button effect="shine"
+          variant={mode === "create" ? "default" : "secondary"}
+          size={iconOnly ? "icon" : "default"}
+          className={iconOnly ? undefined : "min-w-24 gap-2 px-3"}
           title={mode === "create" ? "Proje ekle" : "Düzenle"}
           aria-label={mode === "create" ? "Proje ekle" : "Düzenle"}
         >
@@ -468,7 +462,7 @@ function ProjectDialog({
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
                 ? "Kaydediliyor"
@@ -521,10 +515,13 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
         className="group relative flex aspect-16/7 cursor-pointer items-center justify-center overflow-hidden rounded-sm border border-dashed border-border bg-muted/20 transition-colors hover:border-primary/50 hover:bg-primary/5"
       >
         {previewUrl ? (
-          <img
+          <Image
             src={previewUrl}
             alt={project?.cover_image_alt || project?.name || "Proje kapak görseli önizlemesi"}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(min-width: 640px) 640px, 100vw"
+            unoptimized
+            className="object-cover"
           />
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground transition-colors group-hover:text-primary">
@@ -728,39 +725,6 @@ function ProgressBar({ progress, compact = false }: { progress: number; compact?
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: typeof FolderKanban;
-  tone: "green" | "blue" | "amber" | "red";
-}) {
-  const toneClass = {
-    green: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    amber: "bg-amber-50 text-amber-700",
-    red: "bg-primary/10 text-primary",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
   return (
     <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
@@ -825,7 +789,7 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 hover:text-indigo-800">
+        <Button effect="shine" variant="secondary" className="gap-2">
           <Brain className="h-4 w-4" />
           AI Risk Analizi
         </Button>
@@ -844,7 +808,7 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
         <div className="py-4">
           {!result && !loading && (
             <div className="text-center py-10">
-              <Button onClick={handleAnalyze} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button variant="default" effect="shine" onClick={handleAnalyze} className="gap-2">
                 <Brain className="h-4 w-4" />
                 Raporu Oluştur
               </Button>
@@ -867,8 +831,8 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
 
         {result && (
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Kapat</Button>
-            <Button variant="default" onClick={handleAnalyze} className="gap-2">
+            <Button effect="shine" variant="secondary" onClick={() => setOpen(false)}>Kapat</Button>
+            <Button effect="shine" variant="default" onClick={handleAnalyze} className="gap-2">
               <Brain className="h-4 w-4" />
               Yeniden Oluştur
             </Button>

@@ -1,5 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "poyraz-ui/atoms";
+import { Card, CardContent, Skeleton } from "poyraz-ui/atoms";
 
 export default function TasksLoading() {
   return (

@@ -1,65 +1,21 @@
-import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, Badge } from "poyraz-ui/atoms";
 import { CheckCircle2, Clock, CalendarDays, KanbanSquare } from "lucide-react";
-import Link from "next/link";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-
-type PortalTaskRow = {
-  id: string;
-  title: string;
-  status: string;
-  project_id: string;
-  created_at: string;
-  date: string | null;
-  priority: string | null;
-};
+import { requirePortalBackend } from "@/server/web/portal";
 
 export default async function PortalTasksPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const { data: clientData } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("client_auth_id", user.id)
-    .single();
-
-  if (!clientData) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-4">
-        <h2 className="text-2xl font-semibold">Hesabınız Henüz Aktif Değil</h2>
-      </div>
-    );
-  }
-
-  const { data: projectsData } = await supabase
-    .from("projects")
-    .select("id, name")
-    .eq("client_id", clientData.id);
-
-  const projectIds = projectsData?.map(p => p.id) || [];
-  
-  let tasks: PortalTaskRow[] = [];
-  if (projectIds.length > 0) {
-    const { data: tasksData } = await supabase
-      .from("tasks")
-      .select("id, title, status, project_id, created_at, date, priority")
-      .in("project_id", projectIds)
-      .eq("is_public_to_client", true)
-      .order("created_at", { ascending: false });
-    tasks = tasksData || [];
-  }
-
-  const getProjectName = (id: string) => projectsData?.find(p => p.id === id)?.name || "Bilinmeyen Proje";
+  const { actor, service } = await requirePortalBackend();
+  const projects = service.listProjects(actor);
+  const projectNames = new Map(projects.map((project) => [project.id, project.name]));
+  const tasks = service.listTasks(actor)
+    .filter((task) => task.projectId && projectNames.has(task.projectId) && task.status !== "cancelled")
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">Yapılan Görevler</h1>
-        <p className="text-muted-foreground">Sizinle paylaşılan aktif ve tamamlanmış görevleri buradan takip edebilirsiniz.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -68,40 +24,36 @@ export default async function PortalTasksPage() {
             <KanbanSquare className="w-10 h-10 text-muted-foreground/50" />
             Henüz sizinle paylaşılan bir görev bulunmuyor.
           </div>
-        ) : (
-          tasks.map(task => (
+        ) : tasks.map((task) => {
+          const isDone = task.status === "done";
+          const date = task.dueAt?.toISOString() ?? task.scheduledDate;
+          return (
             <Card key={task.id} className="h-full">
               <CardContent className="p-5 flex flex-col h-full justify-between gap-4">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className={task.status === 'completed' || task.status === 'done' ? "font-semibold text-lg line-through text-muted-foreground line-clamp-2" : "font-semibold text-lg line-clamp-2"}>
+                    <h3 className={isDone ? "font-semibold text-lg line-through text-muted-foreground line-clamp-2" : "font-semibold text-lg line-clamp-2"}>
                       {task.title}
                     </h3>
-                    <Badge variant={task.status === 'completed' || task.status === 'done' ? 'secondary' : 'outline'} className="capitalize shrink-0">
-                      {task.status === 'todo' ? 'Bekliyor' : task.status === 'in_progress' ? 'İşleniyor' : 'Tamamlandı'}
+                    <Badge variant={isDone ? "secondary" : "outline"} className="capitalize shrink-0">
+                      {task.status === "todo" ? "Bekliyor" : task.status === "in_progress" ? "İşleniyor" : "Tamamlandı"}
                     </Badge>
                   </div>
-                  
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
-                    <span className="font-medium truncate">{getProjectName(task.project_id)}</span>
+                    <span className="font-medium truncate">{projectNames.get(task.projectId!)}</span>
                   </div>
                 </div>
-
                 <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-border pt-4">
                   <div className="flex items-center gap-1.5">
                     <CalendarDays className="h-4 w-4" />
-                    <span>{task.date ? format(new Date(task.date), 'd MMM yyyy', { locale: tr }) : 'Tarih yok'}</span>
+                    <span>{date ? format(new Date(date), "d MMM yyyy", { locale: tr }) : "Tarih yok"}</span>
                   </div>
-                  {task.status === 'completed' || task.status === 'done' ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <Clock className="h-4 w-4" />
-                  )}
+                  {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Clock className="h-4 w-4" />}
                 </div>
               </CardContent>
             </Card>
-          ))
-        )}
+          );
+        })}
       </div>
     </div>
   );

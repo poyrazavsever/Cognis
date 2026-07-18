@@ -35,8 +35,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { StatCard } from "@/components/system/stat-card";
 
 export type DailyLogItem = {
   id: string;
@@ -77,19 +77,10 @@ export function JournalClient({ logs }: JournalClientProps) {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="h-4 w-4" />
-            Günlük durum
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Mood ve enerji
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Günlük ruh hali, enerji ve çalışma memnuniyetini takip ederek kişisel kapasite trendini gör.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Mood ve enerji
+          </h1>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -101,25 +92,25 @@ export function JournalClient({ logs }: JournalClientProps) {
         <StatCard
           label="Ortalama mood"
           value={summary.moodAverage ? summary.moodAverage.toFixed(1) : "-"}
-          icon={<Smile className="h-5 w-5" />}
+          icon={Smile}
           tone="primary"
         />
         <StatCard
           label="Ortalama enerji"
           value={summary.energyAverage ? summary.energyAverage.toFixed(1) : "-"}
-          icon={<Battery className="h-5 w-5" />}
+          icon={Battery}
           tone="green"
         />
         <StatCard
           label="Memnuniyet"
           value={summary.satisfactionAverage ? summary.satisfactionAverage.toFixed(1) : "-"}
-          icon={<LineChartIcon className="h-5 w-5" />}
+          icon={LineChartIcon}
           tone="blue"
         />
         <StatCard
           label="Kayıtlı gün"
           value={String(logs.length)}
-          icon={<CalendarDays className="h-5 w-5" />}
+          icon={CalendarDays}
           tone="amber"
         />
       </div>
@@ -138,12 +129,12 @@ export function JournalClient({ logs }: JournalClientProps) {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ left: -16, right: 16, top: 12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--poyraz-border)" />
                     <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
                     <YAxis domain={[1, 5]} tickCount={5} tickLine={false} axisLine={false} fontSize={12} />
                     <Tooltip
                       contentStyle={{
-                        border: "1px solid hsl(var(--border))",
+                        border: "1px solid var(--poyraz-border)",
                         borderRadius: 4,
                         boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
                       }}
@@ -239,7 +230,7 @@ function DailyLogRow({ log }: { log: DailyLogItem }) {
         <DailyLogDialog mode="edit" log={log} />
         <form action={deleteDailyLogRecord}>
           <input type="hidden" name="id" value={log.id} />
-          <Button type="submit" variant="outline" className="h-9 gap-2 text-rose-600">
+          <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
             <Trash2 className="h-4 w-4" />
             Sil
           </Button>
@@ -275,7 +266,7 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={mode === "create" ? "default" : "outline"} className="h-9 gap-2">
+        <Button effect="shine" variant={mode === "create" ? "default" : "secondary"} className="gap-2">
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           {mode === "create" ? "Günlük ekle" : "Düzenle"}
         </Button>
@@ -295,7 +286,7 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
-            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
+            <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Kaydı ekle" : "Değişiklikleri kaydet"}
             </Button>
           </DialogFooter>
@@ -326,21 +317,18 @@ function DailyLogFormFields({ log }: { log?: DailyLogItem }) {
         label="Mood skoru"
         value={moodScore}
         onChange={setMoodScore}
-        tone="primary"
       />
       <ScorePicker
         name="energy_score"
         label="Enerji skoru"
         value={energyScore}
         onChange={setEnergyScore}
-        tone="green"
       />
       <ScorePicker
         name="work_satisfaction_score"
         label="Çalışma memnuniyeti"
         value={satisfactionScore}
         onChange={setSatisfactionScore}
-        tone="blue"
       />
 
       <div className="grid gap-2">
@@ -361,13 +349,11 @@ function ScorePicker({
   label,
   value,
   onChange,
-  tone,
 }: {
   name: string;
   label: string;
   value: number;
   onChange: (value: number) => void;
-  tone: "primary" | "green" | "blue";
 }) {
   return (
     <div className="grid gap-2">
@@ -378,18 +364,15 @@ function ScorePicker({
       <input type="hidden" name={name} value={value} />
       <div className="grid grid-cols-5 gap-2">
         {[1, 2, 3, 4, 5].map((score) => (
-          <button
+          <Button
+            effect="shine"
             key={score}
             type="button"
+            variant={value === score ? "default" : "secondary"}
             onClick={() => onChange(score)}
-            className={`h-10 rounded-sm border text-sm font-semibold transition-colors ${
-              value === score
-                ? getScoreActiveClass(tone)
-                : "border-border bg-background text-muted-foreground hover:border-primary/40"
-            }`}
           >
             {score}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -403,39 +386,6 @@ function ScoreBadge({ score, tone }: { score: number; tone: "primary" | "green" 
       : "border-primary/20 bg-primary/10 text-primary";
 
   return <Badge className={className}>{score}/5 · {scoreLabels[score]}</Badge>;
-}
-
-function StatCard({
-  label,
-  value,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: ReactNode;
-  tone: "primary" | "green" | "blue" | "amber";
-}) {
-  const toneClass = {
-    primary: "bg-primary/10 text-primary",
-    green: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    amber: "bg-amber-50 text-amber-700",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          {icon}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 function EmptyState() {
@@ -483,12 +433,6 @@ function calculateSummary(logs: DailyLogItem[]) {
 function average(values: number[]) {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function getScoreActiveClass(tone: "primary" | "green" | "blue") {
-  if (tone === "green") return "border-emerald-600 bg-emerald-600 text-white";
-  if (tone === "blue") return "border-blue-600 bg-blue-600 text-white";
-  return "border-primary bg-primary text-primary-foreground";
 }
 
 function formatDate(value: string) {

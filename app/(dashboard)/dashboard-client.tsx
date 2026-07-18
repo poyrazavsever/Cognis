@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PendingLink } from "@/components/ui/pending-link";
+import { StatCard } from "@/components/system/stat-card";
 import { Badge, Card, CardContent } from "poyraz-ui/atoms";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "poyraz-ui/molecules";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, LineChart } from "recharts";
@@ -64,19 +65,10 @@ export function DashboardClient({ data }: DashboardClientProps) {
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="h-4 w-4" />
-            Genel Bakış
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-              Dashboard
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              İş performansını, gelirlerini ve günlük durumunu takip et.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+            Dashboard
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -111,18 +103,18 @@ export function DashboardClient({ data }: DashboardClientProps) {
               {incomeTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={incomeTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dy={10}
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dx={-10}
                     />
                     <Tooltip 
@@ -133,14 +125,14 @@ export function DashboardClient({ data }: DashboardClientProps) {
                             <div className="bg-background border border-border rounded-xl p-3 shadow-lg shadow-black/5">
                               <p className="font-medium text-foreground mb-2 text-sm">{label}</p>
                               <div className="space-y-1.5">
-                                {payload.map((entry: any, index: number) => (
+                                {payload.map((entry, index) => (
                                   <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                     <div className="flex items-center gap-1.5">
                                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                                       <span className="text-muted-foreground">{entry.name === 'income' ? 'Gelir' : 'Gider'}</span>
                                     </div>
                                     <span className="font-semibold text-foreground">
-                                      {formatCurrency(entry.value)}
+                                      {formatCurrency(Number(entry.value ?? 0))}
                                     </span>
                                   </div>
                                 ))}
@@ -181,26 +173,26 @@ export function DashboardClient({ data }: DashboardClientProps) {
               {moodTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={moodTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--poyraz-border)" />
                     <XAxis 
                       dataKey="date" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       dy={10}
                     />
                     <YAxis 
                       domain={[0, 5]} 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} 
+                      tick={{ fontSize: 12, fill: 'var(--poyraz-muted-foreground)' }}
                       width={30}
                       dx={-10}
                     />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
-                        borderColor: 'hsl(var(--border))',
+                        backgroundColor: 'var(--poyraz-background)',
+                        borderColor: 'var(--poyraz-border)',
                         borderRadius: '0.375rem',
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
                       }} 
@@ -208,9 +200,9 @@ export function DashboardClient({ data }: DashboardClientProps) {
                     <Line 
                       type="monotone" 
                       dataKey="mood" 
-                      stroke="hsl(var(--primary))" 
+                      stroke="var(--poyraz-primary)"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                      dot={{ r: 4, fill: "var(--poyraz-primary)", strokeWidth: 2, stroke: "var(--poyraz-background)" }}
                       activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                     <Line 
@@ -218,7 +210,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                       dataKey="energy" 
                       stroke="#eab308" 
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#eab308", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                      dot={{ r: 4, fill: "#eab308", strokeWidth: 2, stroke: "var(--poyraz-background)" }}
                       activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                   </LineChart>
@@ -293,38 +285,5 @@ export function DashboardClient({ data }: DashboardClientProps) {
         </Card>
       </div>
     </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: typeof FolderKanban;
-  tone: "green" | "blue" | "amber" | "red";
-}) {
-  const toneClass = {
-    green: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    amber: "bg-amber-50 text-amber-700",
-    red: "bg-primary/10 text-primary",
-  }[tone];
-
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-sm ${toneClass}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
   );
 }
