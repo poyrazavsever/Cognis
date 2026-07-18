@@ -38,8 +38,9 @@ import {
   Brain,
   Loader2,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ChangeEvent } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition, type ChangeEvent } from "react";
 import { StatCard } from "@/components/system/stat-card";
 
 export type ProjectClientOption = {
@@ -215,17 +216,13 @@ function ProjectCard({
   clients: ProjectClientOption[];
 }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating, startNavigation] = useTransition();
   const detailHref = `/projects/${project.id}`;
 
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [pathname]);
-
   function goToProjectDetail() {
-    setIsNavigating(true);
-    router.push(detailHref);
+    startNavigation(() => {
+      router.push(detailHref);
+    });
   }
 
   function prefetchProjectDetail() {
@@ -287,11 +284,14 @@ function ProjectCard({
 function ProjectCover({ project }: { project: ProjectListItem }) {
   if (project.coverImageUrl) {
     return (
-      <div className="aspect-video overflow-hidden rounded-sm border border-border bg-muted">
-        <img
+      <div className="relative aspect-video overflow-hidden rounded-sm border border-border bg-muted">
+        <Image
           src={project.coverImageUrl}
           alt={project.cover_image_alt || project.name}
-          className="h-full w-full object-cover"
+          fill
+          sizes="(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw"
+          unoptimized
+          className="object-cover"
         />
       </div>
     );
@@ -515,10 +515,13 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
         className="group relative flex aspect-16/7 cursor-pointer items-center justify-center overflow-hidden rounded-sm border border-dashed border-border bg-muted/20 transition-colors hover:border-primary/50 hover:bg-primary/5"
       >
         {previewUrl ? (
-          <img
+          <Image
             src={previewUrl}
             alt={project?.cover_image_alt || project?.name || "Proje kapak görseli önizlemesi"}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(min-width: 640px) 640px, 100vw"
+            unoptimized
+            className="object-cover"
           />
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground transition-colors group-hover:text-primary">

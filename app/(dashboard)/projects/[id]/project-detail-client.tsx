@@ -46,7 +46,8 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react";
-import { useEffect, useState, useTransition, type DragEvent } from "react";
+import Image from "next/image";
+import { useState, useTransition, type DragEvent } from "react";
 
 export type ProjectDetail = {
   id: string;
@@ -105,12 +106,20 @@ export type ProjectFinanceItem = {
   category: string | null;
 };
 
+export type ProjectRevisionItem = {
+  id: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "rejected";
+  created_at: string;
+  requested_by: string;
+};
+
 type ProjectDetailClientProps = {
   project: ProjectDetail;
   sections: ProjectPlanningSectionItem[];
   tasks: ProjectDetailTaskItem[];
   financeTransactions: ProjectFinanceItem[];
-  revisions: any[];
+  revisions: ProjectRevisionItem[];
 };
 
 const typeLabels = {
@@ -239,11 +248,14 @@ export function ProjectDetailClient({
         <Card>
           <CardContent className="p-0">
             {project.coverImageUrl ? (
-              <div className="aspect-[16/7] overflow-hidden rounded-t-sm border-b border-border bg-muted">
-                <img
+              <div className="relative aspect-[16/7] overflow-hidden rounded-t-sm border-b border-border bg-muted">
+                <Image
                   src={project.coverImageUrl}
                   alt={project.cover_image_alt || project.name}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
             ) : (
@@ -339,16 +351,29 @@ export function ProjectDetailClient({
   );
 }
 
-function RevisionsPanel({ projectId, revisions }: { projectId: string; revisions: any[] }) {
+function RevisionsPanel({
+  projectId,
+  revisions,
+}: {
+  projectId: string;
+  revisions: ProjectRevisionItem[];
+}) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  async function handleStatusChange(id: string, status: string) {
+  async function handleStatusChange(
+    id: string,
+    status: ProjectRevisionItem["status"],
+  ) {
     setIsUpdating(true);
     try {
       const { updateRevisionStatus } = await import("@/app/(dashboard)/projects/actions");
       await updateRevisionStatus(id, projectId, status);
-    } catch (err: any) {
-      console.error(err);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Revizyon durumu güncellenemedi.",
+      );
     } finally {
       setIsUpdating(false);
     }
@@ -370,7 +395,12 @@ function RevisionsPanel({ projectId, revisions }: { projectId: string; revisions
                   </div>
                   <Select
                     defaultValue={rev.status}
-                    onValueChange={(val) => handleStatusChange(rev.id, val)}
+                    onValueChange={(value) =>
+                      handleStatusChange(
+                        rev.id,
+                        value as ProjectRevisionItem["status"],
+                      )
+                    }
                     disabled={isUpdating}
                   >
                     <SelectTrigger className="w-40 h-8 text-xs">
@@ -591,26 +621,31 @@ function TaskPanel({
   tasks: ProjectDetailTaskItem[];
 }) {
   const [view, setView] = useState<"list" | "kanban">("list");
-  const [localTasks, setLocalTasks] = useState(tasks);
+  const [statusOverrides, setStatusOverrides] = useState<
+    Partial<Record<string, ProjectDetailTaskItem["status"]>>
+  >({});
   const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
+  const localTasks = tasks.map((task) => ({
+    ...task,
+    status: statusOverrides[task.id] ?? task.status,
+  }));
 
   function handleTaskStatusChange(taskId: string, status: ProjectDetailTaskItem["status"]) {
-    const previousTasks = localTasks;
+    const previousStatus = localTasks.find((task) => task.id === taskId)?.status;
 
     setPendingTask(taskId, true);
-    setLocalTasks((currentTasks) =>
-      currentTasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
-    );
+    setStatusOverrides((current) => ({ ...current, [taskId]: status }));
 
     startTransition(() => {
       void updateTaskStatusRecord(taskId, status, projectId)
         .catch((error) => {
-          setLocalTasks(previousTasks);
+          setStatusOverrides((current) => {
+            const next = { ...current };
+            if (previousStatus) next[taskId] = previousStatus;
+            else delete next[taskId];
+            return next;
+          });
           toast.error(
             error instanceof Error
               ? error.message
@@ -924,7 +959,7 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
               </div>
             )}
             {progressType === "auto" && (
-              <p className="text-xs text-muted-foreground">İlerleme yüzdesi "Görevler" sekmesindeki görevlerin tamamlanma durumuna göre otomatik hesaplanacaktır.</p>
+              <p className="text-xs text-muted-foreground">İlerleme yüzdesi &quot;Görevler&quot; sekmesindeki görevlerin tamamlanma durumuna göre otomatik hesaplanacaktır.</p>
             )}
 
             <div className="grid gap-2">

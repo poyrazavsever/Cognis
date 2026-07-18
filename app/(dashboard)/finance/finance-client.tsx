@@ -644,8 +644,10 @@ function AIFinanceDialog() {
         throw new Error(data.error || "Bilinmeyen bir hata oluştu.");
       }
       setResult(data.text);
-    } catch (err: any) {
-      setResult("Hata: " + err.message);
+    } catch (error) {
+      setResult(
+        `Hata: ${error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu."}`,
+      );
     } finally {
       setLoading(false);
     }

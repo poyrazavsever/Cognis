@@ -125,14 +125,14 @@ export function DashboardClient({ data }: DashboardClientProps) {
                             <div className="bg-background border border-border rounded-xl p-3 shadow-lg shadow-black/5">
                               <p className="font-medium text-foreground mb-2 text-sm">{label}</p>
                               <div className="space-y-1.5">
-                                {payload.map((entry: any, index: number) => (
+                                {payload.map((entry, index) => (
                                   <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                     <div className="flex items-center gap-1.5">
                                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                                       <span className="text-muted-foreground">{entry.name === 'income' ? 'Gelir' : 'Gider'}</span>
                                     </div>
                                     <span className="font-semibold text-foreground">
-                                      {formatCurrency(entry.value)}
+                                      {formatCurrency(Number(entry.value ?? 0))}
                                     </span>
                                   </div>
                                 ))}

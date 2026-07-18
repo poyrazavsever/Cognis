@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  archiveClientRecord,
   createClientRecord,
   updateClientRecord,
   updateClientPipelineStage,
@@ -28,10 +27,7 @@ import {
   toast,
 } from "poyraz-ui/molecules";
 import {
-  Archive,
-  ExternalLink,
   Mail,
-  PauseCircle,
   Pencil,
   Phone,
   Plus,
@@ -45,7 +41,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/components/system/stat-card";
 
@@ -68,19 +63,13 @@ export type ClientListItem = {
   client_value_score: number;
 };
 
-const statusLabels = {
-  active: "Aktif",
-  paused: "Duraklatıldı",
-  archived: "Arşivlendi",
-};
+type ClientPipelineStage = ClientListItem["pipeline_stage"];
 
-const statusClasses = {
-  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  paused: "border-amber-200 bg-amber-50 text-amber-700",
-  archived: "border-zinc-200 bg-zinc-50 text-zinc-600",
-};
-
-const pipelineStages = [
+const pipelineStages: Array<{
+  id: ClientPipelineStage;
+  label: string;
+  color: string;
+}> = [
   { id: "lead", label: "Potansiyel (Lead)", color: "border-slate-200 bg-slate-50 text-slate-700" },
   { id: "contacted", label: "İletişime Geçildi", color: "border-blue-200 bg-blue-50 text-blue-700" },
   { id: "proposal_sent", label: "Teklif İletildi", color: "border-amber-200 bg-amber-50 text-amber-700" },
@@ -92,26 +81,24 @@ type ClientsClientProps = {
   clients: ClientListItem[];
   totalRevenue: number;
   activeCount: number;
-  pausedCount: number;
-  archivedCount: number;
 };
 
 export function ClientsClient({
   clients,
   totalRevenue,
   activeCount,
-  pausedCount,
-  archivedCount,
 }: ClientsClientProps) {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   
   const [draggedClientId, setDraggedClientId] = useState<string | null>(null);
-  const [localClients, setLocalClients] = useState(clients);
-
-  useEffect(() => {
-    setLocalClients(clients);
-  }, [clients]);
+  const [pipelineOverrides, setPipelineOverrides] = useState<
+    Partial<Record<string, ClientPipelineStage>>
+  >({});
+  const localClients = clients.map((client) => ({
+    ...client,
+    pipeline_stage: pipelineOverrides[client.id] ?? client.pipeline_stage,
+  }));
 
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, clientId: string) {
     setDraggedClientId(clientId);
@@ -119,7 +106,7 @@ export function ClientsClient({
     event.dataTransfer.setData("text/plain", clientId);
   }
 
-  async function handleDrop(newStage: string) {
+  async function handleDrop(newStage: ClientPipelineStage) {
     if (!draggedClientId) return;
 
     const clientId = draggedClientId;
@@ -128,15 +115,17 @@ export function ClientsClient({
     const client = localClients.find(c => c.id === clientId);
     if (!client || client.pipeline_stage === newStage) return;
 
-    setLocalClients(prev => 
-      prev.map(c => c.id === clientId ? { ...c, pipeline_stage: newStage as any } : c)
-    );
+    const previousStage = client.pipeline_stage;
+    setPipelineOverrides((current) => ({ ...current, [clientId]: newStage }));
 
     try {
-      await updateClientPipelineStage(clientId, newStage as any);
+      await updateClientPipelineStage(clientId, newStage);
       toast.success("Müşteri aşaması güncellendi.");
     } catch (error) {
-      setLocalClients(clients);
+      setPipelineOverrides((current) => ({
+        ...current,
+        [clientId]: previousStage,
+      }));
       toast.error(
         error instanceof Error
           ? error.message

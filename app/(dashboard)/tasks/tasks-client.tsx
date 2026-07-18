@@ -31,7 +31,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState, useTransition, type DragEvent } from "react";
+import { useState, useTransition, type DragEvent } from "react";
 
 export type TaskRelationOption = {
   id: string;
@@ -82,29 +82,37 @@ type TasksClientProps = {
 };
 
 export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
-  const [localTasks, setLocalTasks] = useState(tasks);
+  const [statusOverrides, setStatusOverrides] = useState<
+    Partial<Record<string, TaskListItem["status"]>>
+  >({});
+  const [deletedTaskIds, setDeletedTaskIds] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState("__all");
   const [view, setView] = useState<"list" | "kanban">("list");
   const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
+  const localTasks = tasks
+    .filter((task) => !deletedTaskIds.has(task.id))
+    .map((task) => ({
+      ...task,
+      status: statusOverrides[task.id] ?? task.status,
+    }));
 
   function handleTaskStatusChange(taskId: string, status: TaskListItem["status"]) {
-    const previousTasks = localTasks;
+    const previousStatus = localTasks.find((task) => task.id === taskId)?.status;
 
     setPendingTask(taskId, true);
-    setLocalTasks((currentTasks) =>
-      currentTasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
-    );
+    setStatusOverrides((current) => ({ ...current, [taskId]: status }));
 
     startTransition(() => {
       void updateTaskStatusRecord(taskId, status)
         .catch((error) => {
-          setLocalTasks(previousTasks);
+          setStatusOverrides((current) => {
+            const next = { ...current };
+            if (previousStatus) next[taskId] = previousStatus;
+            else delete next[taskId];
+            return next;
+          });
           toast.error(
             error instanceof Error
               ? error.message
@@ -118,7 +126,6 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
   }
 
   function handleTaskDelete(taskId: string) {
-    const previousTasks = localTasks;
     const task = localTasks.find((item) => item.id === taskId);
     const formData = new FormData();
     formData.set("id", taskId);
@@ -128,12 +135,16 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
     }
 
     setPendingTask(taskId, true);
-    setLocalTasks((currentTasks) => currentTasks.filter((item) => item.id !== taskId));
+    setDeletedTaskIds((current) => new Set(current).add(taskId));
 
     startTransition(() => {
       void deleteTaskRecord(formData)
         .catch((error) => {
-          setLocalTasks(previousTasks);
+          setDeletedTaskIds((current) => {
+            const next = new Set(current);
+            next.delete(taskId);
+            return next;
+          });
           toast.error(
             error instanceof Error ? error.message : "Görev silinemedi.",
           );

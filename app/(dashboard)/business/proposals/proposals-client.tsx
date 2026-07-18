@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { FileText, Plus, MoreHorizontal, FileEdit, Trash2, Mail, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, MoreHorizontal, FileEdit, Trash2, Mail, CheckCircle2, XCircle } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "poyraz-ui/atoms";
 import {
   DropdownMenu,

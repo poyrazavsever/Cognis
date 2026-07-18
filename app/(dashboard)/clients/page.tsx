@@ -57,8 +57,6 @@ export default async function ClientsPage() {
       clients={clients}
       totalRevenue={clients.reduce((sum, client) => sum + client.revenueTotal, 0)}
       activeCount={clients.filter((client) => client.status === "active").length}
-      pausedCount={clients.filter((client) => client.status === "paused").length}
-      archivedCount={clients.filter((client) => client.status === "archived").length}
     />
   );
 }

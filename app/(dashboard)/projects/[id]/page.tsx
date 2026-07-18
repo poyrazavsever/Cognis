@@ -5,6 +5,7 @@ import {
   type ProjectDetailTaskItem,
   type ProjectFinanceItem,
   type ProjectPlanningSectionItem,
+  type ProjectRevisionItem,
 } from "@/app/(dashboard)/projects/[id]/project-detail-client";
 import { DomainError } from "@/server/domain/errors";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
@@ -18,7 +19,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     sections: ProjectPlanningSectionItem[];
     tasks: ProjectDetailTaskItem[];
     financeTransactions: ProjectFinanceItem[];
-    revisions: Array<Record<string, unknown>>;
+    revisions: ProjectRevisionItem[];
   };
   try {
     const row = service.getProject(actor, id);
