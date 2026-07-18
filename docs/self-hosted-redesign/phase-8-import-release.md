@@ -7,7 +7,7 @@ last_updated: 2026-07-17
 
 # Faz 8 — Supabase import ve production release runbook
 
-Bu belge Neta self-hosted v3'ün operasyonel kaynağıdır. `supabase/` ve `docs/database/` yalnızca eski PostgreSQL şemasını ve import kaynağını açıklayan tarihsel arşivdir; yeni instance kurulumu için kullanılmaz.
+Bu belge Neta self-hosted v3'ün operasyonel kaynağıdır. Eski PostgreSQL şeması, migration kayıtları ve v2 kurulum belgeleri aktif release ağacından kaldırılmıştır; gerektiğinde Git geçmişinden incelenebilir. Yeni instance kurulumu yalnızca SQLite migration'larını kullanır.
 
 ## 1. Tamamlanan runtime sınırı
 
@@ -27,7 +27,7 @@ Bu belge Neta self-hosted v3'ün operasyonel kaynağıdır. `supabase/` ve `docs
 | Runtime | `next`, `react`, `react-dom` | Web runtime ve SSR |
 | Auth/veri | `better-auth`, `better-sqlite3`, `drizzle-orm`, `zod` | Auth, SQLite erişimi, schema ve input doğrulama |
 | UI | `poyraz-ui`, `lucide-react`, `recharts`, `framer-motion`, `clsx`, `tailwind-merge`, `tailwindcss-animate` | Aktif component importları; Framer Motion auth shell'de reduced-motion ile, Recharts üç aktif ekranda kullanılır |
-| Build/UI peer | `@tailwindcss/postcss`, `mermaid`, `react-hook-form` | Tailwind v4 build plugin'i; Poyraz molecule entrypoint'inin temiz npm/container build'inde doğrudan çözdüğü peer'ler |
+| Build/UI peer | `@tailwindcss/postcss`, `mermaid`, `react-hook-form` | Tailwind v4 build plugin'i; Poyraz molecule entrypoint'inin temiz pnpm/container build'inde doğrudan çözdüğü peer'ler |
 | Tarih | `date-fns` | Aktif tarih filtreleme/formatlama |
 | AI | `ai`, `@ai-sdk/react`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/groq` | Chat stream'i ve kullanıcı tarafından seçilebilen aktif provider adapter'ları |
 

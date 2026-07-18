@@ -3,7 +3,7 @@ title: Neta Self-Hosted v3 Ana Dönüşüm Planı
 description: Supabase çıkışı, SQLite tabanlı backend, Better Auth, Poyraz UI v3 ve instance özelleştirmesi için ana yol haritası.
 status: active
 current_phase: "10 — Kullanıcı yönlendirmeli sayfa tasarımları"
-last_updated: 2026-07-17
+last_updated: 2026-07-18
 ---
 
 # Neta Self-Hosted v3 Ana Dönüşüm Planı
@@ -705,7 +705,7 @@ Mümkün olduğunda küçük ve doğrudan test araçları tercih edilir; test al
 ### 19.2. Her faz sonunda çalıştırılacak kalite kapıları
 
 - [x] Typecheck başarılı.
-- [ ] Lint başarılı.
+- [x] Lint başarılı.
 - [x] Production build başarılı.
 - [x] İlgili smoke testler başarılı.
 - [x] Database migration temiz DB üzerinde başarılı.
@@ -971,12 +971,14 @@ Faz 8 tamamlanma notu (2026-07-17):
 - `neta-supabase-export` v1 offline bundle importer'ı; owner scope, enum, tarih, exact para/basis-point, foreign key, dosya path/magic-byte/size/SHA-256 kontrolleriyle tamamlandı. Dry-run ve `0600` rapor, boş hedef koruması, kontrollü `--allow-existing` upsert ve DB hatasında staged file rollback davranışı eklendi.
 - Görev `completed -> done`, `journals + daily_logs` birleşimi, kanonik journal referansı, business kayıtları, user preference/AI provider ayarları ve storage URL yeniden yazımı fixture üzerinde doğrulandı. AI key, auth password/session, eski client auth bağı ve embeddings runtime'a taşınmıyor.
 - Supabase SDK/helper/env; PWA wrapper, Dexie, offline indicator, legacy browser DB ve service-worker çıktıları kaldırıldı. Kullanılmayan DnD/resolver/UUID paketleri temizlendi; temiz Docker build'in doğruladığı `react-hook-form` ve `mermaid` Poyraz UI runtime peer'i olarak gerekçeli biçimde korundu.
+- Runtime tarafından okunmayan legacy PostgreSQL SQL ağacı, migration kayıtları ve çelişkili numaralı v2 belgeleri release ağacından kaldırıldı; tarihsel içerik Git geçmişinde kaldı. Offline import aracı Supabase SDK veya network bağlantısı kullanmadan mevcut production verisini korumak için tutuldu.
 - Backup'a versioned manifest, symlink reddi ve sayıya dayalı retention eklendi. Restore, manifest completeness/size/SHA-256 kontrolünden sonra DB ve upload ağacını staged atomik swap ile değiştirir ve hata halinde önceki hedefi geri alır.
 - Pre-import backup, final import, idempotent tekrar ve ayrı data directory'ye rollback fixture provası geçti. Bu prova gerçek production maintenance/DNS cutover yerine geçmez; Bölüm 17.2'de dış sistem yetkisi isteyen maddeler açık bırakıldı.
-- README ve Faz 8 runbook; SQLite/Better Auth mimarisi, env, ilk owner/client daveti, branding, Docker/Coolify/Dokploy, HTTPS, backup retention, import, upgrade, cutover ve rollback'i anlatır. Eski numaralı Supabase belgeleri ve PostgreSQL SQL kayıtları `legacy-v2-archive` sınırına alındı.
-- Supabase env'leri unset durumda typecheck, production build, source/build artifact boundary, standalone liveness/readiness ve `/register` SSR başarılıdır. Temiz Docker `npm ci` + build, non-root user, startup migration, persistent volume readiness ve restart smoke geçti.
-- Faz 2–7 boundary/smoke regresyonları ve Faz 8 hedefli ESLint başarılıdır. Repo genel ESLint'i Faz 10'da ele alınacak mevcut client-component borçlarında 14 hata/14 warning üretmeye devam ettiği için genel lint kalite kapısı işaretlenmedi.
-- Production dependency audit'inde high/critical bulgu yoktur; npm altı moderate advisory raporlar. Bunlar Next'in bundled PostCSS'i ve development migration toolchain'inin eski esbuild loader'ı kaynaklıdır; npm'in önerdiği uyumsuz downgrade otomatik uygulanmadı.
+- README ve Faz 8 runbook; SQLite/Better Auth mimarisi, env, ilk owner/client daveti, branding, Docker/Coolify/Dokploy, HTTPS, backup retention, import, upgrade, cutover ve rollback'i anlatır. Eski numaralı Supabase belgeleri ve PostgreSQL SQL kayıtları aktif release ağacından kaldırıldı.
+- Supabase env'leri unset durumda typecheck, production build, source/build artifact boundary, standalone liveness/readiness ve `/register` SSR başarılıdır. Temiz Docker canonical `pnpm-lock.yaml` + build, non-root user, startup migration, persistent volume readiness ve restart smoke geçti.
+- Faz 2–9 boundary/smoke regresyonları, repo genel ESLint, typecheck ve production build kalite kapıları başarılıdır.
+- Production dependency audit'inde high/critical bulgu yoktur; canonical pnpm ağacı iki moderate advisory raporlar. Bunlar Next'in bundled PostCSS'i ve development migration toolchain'inin eski esbuild loader'ı kaynaklıdır; uyumsuz framework/tooling downgrade'i otomatik uygulanmadı.
+- 2026-07-18 final teknik denetiminin kanıtları, kalıntı riskleri ve production cutover sınırı `release-readiness-2026-07-18.md` içinde kaydedildi.
 
 Çıkış kriteri: Uygulama Supabase environment değişkenleri olmadan build ve runtime smoke testini geçiyor.
 
@@ -1112,7 +1114,7 @@ Her sayfa için tasarım kabul checklist'i:
 ### Release
 
 - [x] Typecheck başarılı.
-- [ ] Lint başarılı.
+- [x] Lint başarılı.
 - [x] Build başarılı.
 - [x] Tüm smoke testler başarılı.
 - [x] Kritik authorization negatif testleri başarılı.
@@ -1143,16 +1145,13 @@ Neta Self-Hosted v3 aşağıdaki koşulların tümü sağlandığında tamamlanm
 - Gelecekteki mobil istemci için service ve API sınırları belgelenmiştir.
 - Sayfa tasarımları backend ve runtime Supabase temizliği tamamlandıktan sonra yapılmış, kullanıcı tarafından tek tek kabul edilmiştir.
 
-## 25. Sıradaki çalışma paketi — Faz 8
+## 25. Kalan çalışma — Faz 10 kabulü ve production cutover
 
-Faz 0–7 tamamlandı. Sıradaki çalışma paketi production import, runtime Supabase temizliği ve release hardening'dir:
+Faz 0–9'un teknik backend, Supabase çıkışı, self-host hardening ve mobil API kapsamı tamamlandı. Repository 2026-07-18 denetiminde Supabase'siz teknik release adayıdır.
 
-1. Faz 0 schema mapping'ini temel alan tekrar çalıştırılabilir Supabase export/import aracını dry-run, satır sayısı, foreign key ve enum raporlarıyla tamamlamak.
-2. Chat ve business dahil korunacak production verisini fixture ve import rehearsal ile doğrulamak; AI key, auth password/session ve raw invitation token taşımamak.
-3. Kalan runtime Supabase importlarını ve kullanılmayan legacy helper'ları kaldırmak; `@supabase/ssr` ile `@supabase/supabase-js` paketlerini silmek.
-4. PWA/Dexie runtime kararını uygulamak ve kapsam dışı offline kod/paketleri temizlemek.
-5. Backup/restore checksum, retention, upgrade/migration ve rollback prosedürlerini production sözleşmesine bağlamak.
-6. Supabase environment değişkenleri olmadan production build, standalone/Docker runtime ve kritik cutover smoke testlerini çalıştırmak.
-7. README, self-host kurulum, reverse proxy/HTTPS, branding, backup/restore ve upgrade belgelerini güncellemek.
+Tam ürün Definition of Done için iki ayrı iş paketi açıktır:
 
-Tasarım backlog'u Faz 10'a kadar açılmaz. Faz 10 başladığında sayfa sırası ve her sayfanın görsel/UX yönü kullanıcı tarafından adım adım belirlenecektir.
+1. Faz 10'daki freelancer/portal sayfalarının responsive, accessibility, light/dark ve loading/empty/error/permission durumlarını kullanıcıyla sayfa bazında doğrulayıp kabul checklist'lerini kapatmak.
+2. Gerçek production ortamında Bölüm 17.2'deki backup, maintenance/read-only, final export/import, satır/dosya/checksum doğrulama, kritik akış smoke, DNS/deploy ve rollback retention adımlarını yürütmek.
+
+Offline Supabase importer yalnızca eski kurulumların verisini kaybetmeden taşıyabilmek için korunur; SDK, environment değişkeni veya network bağlantısı kullanmaz ve uygulamanın build/runtime dependency'si değildir.

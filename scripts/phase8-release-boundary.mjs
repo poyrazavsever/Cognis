@@ -10,6 +10,13 @@ const installed = {
   ...packageJson.optionalDependencies,
 };
 
+assert.equal(packageJson.packageManager, "pnpm@11.5.1", "The canonical package manager must be pinned");
+assert.equal(
+  fs.existsSync(path.join(repoRoot, "package-lock.json")),
+  false,
+  "A second npm lockfile must not diverge from the canonical pnpm lockfile",
+);
+
 const removedPackages = [
   "@supabase/ssr",
   "@supabase/supabase-js",
@@ -27,6 +34,22 @@ for (const dependency of removedPackages) {
   assert.equal(installed[dependency], undefined, `Removed dependency is still declared: ${dependency}`);
 }
 
+assert.equal(
+  packageJson.scripts?.start,
+  "node .next/standalone/server.js",
+  "Production start command must use the generated standalone server",
+);
+assert.equal(
+  packageJson.scripts?.postbuild,
+  "node scripts/prepare-standalone.mjs",
+  "Production build must package public and static assets into standalone output",
+);
+const dockerfile = fs.readFileSync(path.join(repoRoot, "Dockerfile"), "utf8");
+assert.match(dockerfile, /COPY package\.json pnpm-lock\.yaml pnpm-workspace\.yaml \.\//);
+assert.match(dockerfile, /pnpm install --frozen-lockfile --config\.node-linker=hoisted/);
+assert.match(dockerfile, /pnpm --config\.node-linker=hoisted build/);
+assert.doesNotMatch(dockerfile, /\bnpm (?:ci|install|run)\b/);
+
 const runtimeTargets = [
   "app",
   "components",
@@ -40,6 +63,7 @@ const runtimeTargets = [
 const runtimePatterns = [
   [/@supabase\//i, "Supabase package import"],
   [/\b(?:NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_ANON_KEY|SUPABASE_SERVICE_ROLE_KEY)\b/, "Supabase runtime environment variable"],
+  [/next\/font\/google/i, "build-time Google Fonts network dependency"],
   [/\b(?:dexie|dexie-react-hooks)\b/i, "browser database dependency"],
   [/\bnext-pwa\b/i, "PWA wrapper"],
   [/\b(?:serviceWorker|service-worker|workbox|OfflineIndicator|offline-indicator)\b/i, "offline/PWA runtime"],
@@ -55,6 +79,22 @@ for (const filePath of runtimeTargets.flatMap(walk)) {
   }
 }
 assert.deepEqual(violations, [], `Phase 8 runtime boundary violations:\n${violations.join("\n")}`);
+
+for (const removedLegacyPath of ["supabase", "docs/database"]) {
+  assert.equal(
+    fs.existsSync(path.join(repoRoot, removedLegacyPath)),
+    false,
+    `Legacy Supabase archive must not remain in the release tree: ${removedLegacyPath}`,
+  );
+}
+const legacyNumberedDocs = fs.existsSync(path.join(repoRoot, "docs"))
+  ? fs.readdirSync(path.join(repoRoot, "docs")).filter((fileName) => /^\d{2}-.+\.md$/.test(fileName))
+  : [];
+assert.deepEqual(
+  legacyNumberedDocs,
+  [],
+  `Legacy v2 documentation must not remain beside active release docs:\n${legacyNumberedDocs.join("\n")}`,
+);
 
 const publicFiles = walk("public").map((filePath) => path.basename(filePath).toLowerCase());
 assert.equal(

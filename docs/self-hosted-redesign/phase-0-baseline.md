@@ -190,7 +190,7 @@ Bu tablo Faz 0 kritik davranış kaydıdır. Canlı ekran kaydı mevcut hibrit a
 
 ## 7. Supabase kaynak envanteri
 
-`supabase/setup.sql` üzerinden doğrulanan kaynak tablolar:
+Geçiş başlangıcında bulunan ve daha sonra release ağacından kaldırılan legacy PostgreSQL setup kaydı üzerinden doğrulanan kaynak tablolar:
 
 ```text
 profiles
@@ -235,7 +235,7 @@ Kaynak RPC/trigger function yüzeyi:
 
 ### 7.1. Fixture satır baseline'ı
 
-`supabase/seeds/0001_demo_freelancer_os_data.sql` deterministik içerik:
+Geçiş başlangıcındaki legacy demo seed'in deterministik içeriği:
 
 | Tablo | Satır |
 | --- | ---: |
@@ -247,7 +247,7 @@ Kaynak RPC/trigger function yüzeyi:
 | daily_logs | 3 |
 | app_settings | 1 |
 
-`supabase/seed.sql` legacy fixture; 1 profile, 1 settings, 2 project, 3 task, 3 finance ve 3 daily log içerir. Bu seed'de `completed` task status'ü ve `daily_logs.notes` alanı gibi güncel schema ile uyumsuz legacy değerler vardır; hedef seed olarak kullanılmayacaktır.
+İlk legacy fixture; 1 profile, 1 settings, 2 project, 3 task, 3 finance ve 3 daily log içeriyordu. Bu seed'de `completed` task status'ü ve `daily_logs.notes` alanı gibi güncel schema ile uyumsuz legacy değerler vardı; hedef seed olarak kullanılmadı ve release ağacından kaldırıldı.
 
 ### 7.2. Production veri sayımı durumu
 

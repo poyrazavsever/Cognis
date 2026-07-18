@@ -11,12 +11,7 @@ Faz 0'da hedef DB schema henüz oluşmadığı için kesin SQLite seed dosyası 
 
 ## Mevcut seed referansı
 
-Kaynak:
-
-- `supabase/seeds/0001_demo_freelancer_os_data.sql`
-- `supabase/seed.sql`
-
-Bu seed'ler Supabase schema için referanstır; hedef SQLite seed'i doğrudan bu dosyaları çalıştırmayacak.
+Geçiş başlangıcında iki legacy PostgreSQL seed'i kaynak veri kapsamını belirlemek için referans alındı. Hedef SQLite testleri bu dosyaları hiçbir zaman çalıştırmadı. Geçiş tamamlandıktan sonra seed'ler aktif release ağacından kaldırıldı ve gerektiğinde Git geçmişinden incelenebilir.
 
 ## Küçük fixture kapsamı
 
