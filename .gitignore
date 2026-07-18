@@ -14,3 +14,7 @@ yarn-error.log*
 pnpm-debug.log*
 .pnpm-store/
 *.tsbuildinfo
+.DS_Store
+.artifacts/
+__pycache__/
+*.py[cod]

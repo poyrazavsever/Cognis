@@ -32,7 +32,7 @@ Kalıcı veri ağacı:
 ## Gereksinimler
 
 - Node.js 22
-- pnpm 11 (lokal geliştirme için)
+- pnpm 11.5.1 (lokal geliştirme ve Docker build için; sürüm `packageManager` alanında sabittir)
 - Production'da kalıcı disk/volume
 - Localhost dışındaki production kurulumunda HTTPS reverse proxy
 
@@ -43,6 +43,8 @@ pnpm install --frozen-lockfile
 cp .env.example .env.local
 openssl rand -base64 32
 ```
+
+`pnpm-lock.yaml` repository'nin tek canonical dependency lockfile'ıdır. Lokal kurulum ve Docker image aynı çözümü kullanır.
 
 Üretilen secret'ı `.env.local` içindeki `BETTER_AUTH_SECRET` alanına koyun, ardından:
 
@@ -187,6 +189,8 @@ pnpm build
 ```
 
 `phase8:release-boundary`; Supabase, PWA ve browser database bağımlılıklarının runtime'a geri dönmesini engeller.
+
+Güncel teknik yayın durumu, doğrulama kanıtları, kalıntı güvenlik riskleri ve gerçek production cutover sınırı: [2026-07-18 release-readiness raporu](docs/self-hosted-redesign/release-readiness-2026-07-18.md).
 
 ## Lisans
 

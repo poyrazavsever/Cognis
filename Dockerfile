@@ -1,14 +1,16 @@
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --config.node-linker=hoisted
 
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN pnpm --config.node-linker=hoisted build
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
@@ -25,7 +27,6 @@ RUN groupadd --system --gid 1001 nodejs \
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/server/db/migrations ./server/db/migrations
 COPY --from=builder /app/node_modules/drizzle-orm ./node_modules/drizzle-orm

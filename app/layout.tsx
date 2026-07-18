@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { cookies } from "next/headers";
 import "./globals.css";
-import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import {
   COLOR_MODE_COOKIE,
@@ -11,7 +10,6 @@ import {
 import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const colorModeScript = `(() => {
   const root = document.documentElement;
   const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -58,7 +56,7 @@ export default async function RootLayout({
   return (
     <html
       lang="tr"
-      className={cn("font-sans", geist.variable, colorMode === "dark" && "dark")}
+      className={cn("font-sans", colorMode === "dark" && "dark")}
       data-color-mode={colorMode}
       style={branding.cssVariables as CSSProperties}
       suppressHydrationWarning

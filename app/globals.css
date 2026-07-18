@@ -9,7 +9,7 @@
 
 @layer base {
   :root {
-    --poyraz-font-primary: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --poyraz-font-primary: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   * {
