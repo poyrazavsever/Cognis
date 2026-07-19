@@ -27,14 +27,18 @@ type AuthPageShellProps = {
   form: ReactNode;
   secondaryAction?: ReactNode;
   footer: ReactNode;
+  marketing?: {
+    headline: string;
+    description: string;
+    openSource: string;
+    github: string;
+    via: string;
+    builtBy: string;
+    highlights: [string, string, string, string];
+  };
 };
 
-const highlights = [
-  { label: "Müşteriler", icon: Kanban },
-  { label: "Takvim", icon: CalendarDays },
-  { label: "Finans", icon: Wallet },
-  { label: "Raporlar", icon: BarChart3 },
-];
+const highlightIcons = [Kanban, CalendarDays, Wallet, BarChart3];
 
 export function AuthPageShell({
   branding,
@@ -43,6 +47,15 @@ export function AuthPageShell({
   form,
   secondaryAction,
   footer,
+  marketing = {
+    headline: "Freelancer işlerini, müşterilerini ve finansını tek yerde yönet.",
+    description: `${branding.applicationName}, günlük operasyonunu, projelerini, side projectlerini ve temel finans durumunu sade raporlarla takip etmen için tasarlanır.`,
+    openSource: "Açık kaynak ve self-host edilebilir.",
+    github: "GitHub",
+    via: "üzerinden ulaşabilirsin.",
+    builtBy: "tarafından kodlandı.",
+    highlights: ["Müşteriler", "Takvim", "Finans", "Raporlar"],
+  },
 }: AuthPageShellProps) {
   const reducedMotion = useReducedMotion();
 
@@ -87,12 +100,10 @@ export function AuthPageShell({
                 variant="display"
                 className="max-w-2xl text-5xl font-semibold leading-[1.02] text-primary-foreground"
               >
-                Freelancer işlerini, müşterilerini ve finansını tek yerde yönet.
+                {marketing.headline}
               </Typography>
               <Typography component="p" variant="lead" className="mt-6 max-w-xl text-lg leading-8 text-primary-foreground/78">
-                {branding.applicationName}, günlük operasyonunu, projelerini, side projectlerini ve
-                temel finans durumunu sade raporlarla takip etmen için
-                tasarlanır.
+                {marketing.description}
               </Typography>
             </motion.div>
 
@@ -102,15 +113,15 @@ export function AuthPageShell({
               transition={{ duration: reducedMotion ? 0 : 0.55, delay: 0.16 }}
               className="mt-10 grid max-w-xl grid-cols-2 gap-3"
             >
-              {highlights.map((item) => {
-                const Icon = item.icon;
+              {marketing.highlights.map((label, index) => {
+                const Icon = highlightIcons[index] ?? Kanban;
                 return (
                   <div
-                    key={item.label}
+                    key={label}
                     className="flex items-center gap-3 rounded-sm border border-white/18 bg-white/10 px-4 py-3 text-sm font-medium backdrop-blur"
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
+                    {label}
                   </div>
                 );
               })}
@@ -118,15 +129,15 @@ export function AuthPageShell({
           </div>
 
           <div className="w-full relative z-10 p-10 text-sm text-primary-foreground/78">
-            <span>Açık kaynak ve self-host edilebilir.</span>{" "}
+            <span>{marketing.openSource}</span>{" "}
             <Link
               href="https://github.com/poyrazavsever/neta"
               className="font-semibold text-primary-foreground underline-offset-4 hover:underline"
               target="_blank"
             >
-              GitHub <ArrowUpRight className="h-3.5 w-3.5 inline" />
+              {marketing.github} <ArrowUpRight className="h-3.5 w-3.5 inline" />
             </Link>
-            <span> üzerinden ulaşabilirsin. </span>
+            <span> {marketing.via} </span>
             <Link
               href="https://poyrazavsever.com"
               className="inline-flex items-center gap-1 font-semibold text-primary-foreground underline-offset-4 hover:underline"
@@ -134,7 +145,7 @@ export function AuthPageShell({
             >
               Poyraz Avsever <ArrowUpRight className="h-3.5 w-3.5 inline" />
             </Link>
-            <span> tarafından kodlandı.</span>
+            <span> {marketing.builtBy}</span>
           </div>
         </motion.section>
 

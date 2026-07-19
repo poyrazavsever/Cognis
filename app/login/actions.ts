@@ -13,7 +13,10 @@ import {
 } from '@/server/auth/setup'
 import { getDefaultDisplayName, parseAuthCredentials } from '@/server/auth/validation'
 
-const genericLoginError = 'E-posta veya \u015fifre hatal\u0131.'
+const LOGIN_ERROR_CODE = 'auth.messages.invalidCredentials'
+const SETUP_UNAVAILABLE_CODE = 'auth.messages.setupUnavailable'
+const SETUP_STATE_ERROR_CODE = 'auth.messages.setupStateError'
+const SIGNUP_FAILED_CODE = 'auth.messages.signupFailed'
 type SignInEmailResult = Awaited<ReturnType<typeof auth.api.signInEmail>>
 type SignUpEmailResult = Awaited<ReturnType<typeof auth.api.signUpEmail>>
 
@@ -34,7 +37,7 @@ export async function login(formData: FormData) {
       email: credentials.email,
       metadata: { reason: 'invalid_credentials' },
     })
-    redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
+    redirect(`/login?error=true&code=${LOGIN_ERROR_CODE}`)
   }
 
   let profile = getProfileByAuthUserId(result.user.id)
@@ -52,7 +55,7 @@ export async function login(formData: FormData) {
       email: credentials.email,
       metadata: { reason: 'missing_or_disabled_profile' },
     })
-    redirect(`/login?error=true&message=${encodeURIComponent(genericLoginError)}`)
+    redirect(`/login?error=true&code=${LOGIN_ERROR_CODE}`)
   }
 
   redirectTarget = profile.role === 'client' ? '/portal' : '/'
@@ -65,15 +68,11 @@ export async function signup(formData: FormData) {
   const setupState = await getFirstFreelancerSetupState()
 
   if (setupState.errorMessage) {
-    redirect(`/register?error=true&message=${encodeURIComponent(setupState.errorMessage)}`)
+    redirect(`/register?error=true&code=${SETUP_STATE_ERROR_CODE}`)
   }
 
   if (!setupState.available) {
-    redirect(
-      `/login?error=true&message=${encodeURIComponent(
-        'Kay\u0131t kapal\u0131. Bu Neta kurulumunda ilk freelancer hesab\u0131 zaten olu\u015fturulmu\u015f.',
-      )}`,
-    )
+    redirect(`/login?error=true&code=${SETUP_UNAVAILABLE_CODE}`)
   }
 
   const credentials = parseAuthCredentials(formData)
@@ -85,10 +84,9 @@ export async function signup(formData: FormData) {
       password: credentials.password,
       rememberMe: true,
     })
-  } catch (error) {
+  } catch {
     failFirstFreelancerSetup(credentials.email, 'better_auth_signup_failed')
-    const message = error instanceof Error ? error.message : 'Kullan\u0131c\u0131 olu\u015fturulamad\u0131.'
-    redirect(`/register?error=true&message=${encodeURIComponent(message)}`)
+    redirect(`/register?error=true&code=${SIGNUP_FAILED_CODE}`)
   }
 
   revalidatePath('/', 'layout')

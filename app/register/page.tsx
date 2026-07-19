@@ -1,6 +1,7 @@
 import { signup } from "@/app/login/actions";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
+import { LocaleSelectForm } from "@/components/i18n/locale-select-form";
 import { getFirstFreelancerSetupState } from "@/server/auth/setup";
 import { LockKeyhole, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
@@ -8,8 +9,29 @@ import { redirect } from "next/navigation";
 import { Input, Label } from "poyraz-ui/atoms";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { getPublicBranding } from "@/server/branding/runtime";
+import { getSqliteConnection } from "@/server/db/client";
+import { ContentTranslationService } from "@/server/i18n/content";
+import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { createTranslator } from "@/server/i18n/translator";
+import type { TranslationValues } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+function firstParam(value: string | string[] | undefined): string | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
+
+function resolveAuthMessage(
+  code: string | null,
+  fallback: string | null,
+  t: (key: string, values?: TranslationValues) => string,
+): string | null {
+  if (!code) return fallback;
+  const key = code.startsWith("auth.") ? code : `auth.${code}`;
+  const message = t(key);
+  return message === key ? fallback : message;
+}
 
 export default async function RegisterPage({
   searchParams,
@@ -19,46 +41,63 @@ export default async function RegisterPage({
   const setupState = await getFirstFreelancerSetupState();
 
   if (setupState.errorMessage) {
-    redirect(`/login?error=true&message=${encodeURIComponent(setupState.errorMessage)}`);
+    redirect("/login?error=true&code=auth.messages.setupStateError");
   }
 
   if (!setupState.available) {
-    redirect(
-      `/login?error=true&message=${encodeURIComponent(
-        "Kayıt kapalı. Bu Neta kurulumunda ilk admin hesabı zaten oluşturulmuş.",
-      )}`,
-    );
+    redirect("/login?error=true&code=auth.messages.setupUnavailable");
   }
 
   const resolvedParams = await searchParams;
-  const error = resolvedParams?.error;
-  const message = resolvedParams?.message;
+  const error = firstParam(resolvedParams?.error);
+  const code = firstParam(resolvedParams?.code);
+  const rawMessage = firstParam(resolvedParams?.message);
   const branding = getPublicBranding();
+  const locale = await resolveRequestLocale();
+  const t = createTranslator(locale.locale, ["auth"]).t;
+  const localization = new ContentTranslationService(getSqliteConnection().db).getPublicLocalizationContext();
+  const message = resolveAuthMessage(code, rawMessage, t);
+  const marketing = {
+    headline: t("auth.marketing.headline"),
+    description: t("auth.marketing.description", { app: branding.organizationName ?? branding.applicationName }),
+    openSource: t("auth.marketing.openSource"),
+    github: t("auth.marketing.github"),
+    via: t("auth.marketing.via"),
+    builtBy: t("auth.marketing.builtBy"),
+    highlights: [
+      t("auth.highlights.clients"),
+      t("auth.highlights.calendar"),
+      t("auth.highlights.finance"),
+      t("auth.highlights.reports"),
+    ] as [string, string, string, string],
+  };
 
   return (
     <>
-      {error && message && <ErrorToaster message={String(message)} />}
+      {error && message ? <ErrorToaster message={message} /> : null}
       <AuthPageShell
         branding={{
           applicationName: branding.organizationName ?? branding.applicationName,
           lightLogoUrl: branding.lightLogoUrl,
           darkLogoUrl: branding.darkLogoUrl,
         }}
-        title="İlk admin hesabını oluştur"
-        description="Bu Neta çalışma alanının ilk yönetici hesabını oluştur."
+        title={t("auth.register.firstAdminTitle")}
+        description={t("auth.register.description")}
+        marketing={marketing}
         form={
           <form className="space-y-6">
+            <LocaleSelectForm label={t("auth.language")} value={locale.locale} locales={localization.locales} />
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  E-posta
+                  {t("auth.login.email")}
                 </Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="ornek@mail.com"
+                  placeholder={t("auth.login.emailPlaceholder")}
                   required
                   className="h-11"
                 />
@@ -67,7 +106,7 @@ export default async function RegisterPage({
               <div className="space-y-2">
                 <Label htmlFor="password" className="flex items-center gap-2">
                   <LockKeyhole className="h-4 w-4 text-muted-foreground" />
-                  Şifre
+                  {t("auth.login.password")}
                 </Label>
                 <Input
                   id="password"
@@ -79,21 +118,21 @@ export default async function RegisterPage({
               </div>
             </div>
 
-            <SubmitButton size="lg" formAction={signup} className="w-full gap-2" pendingText="Oluşturuluyor...">
+            <SubmitButton size="lg" formAction={signup} className="w-full gap-2" pendingText={t("auth.register.pending")}>
               <UserPlus className="h-4 w-4" />
-              Admin hesabını oluştur
+              {t("auth.register.submit")}
             </SubmitButton>
           </form>
         }
         secondaryAction={null}
         footer={
           <div className="text-center text-sm">
-            Zaten hesabın var mı?{" "}
+            {t("auth.register.hasAccount")}{" "}
             <Link
               href="/login"
               className="font-medium text-primary transition-colors hover:text-primary-hover"
             >
-              Giriş yap
+              {t("auth.login.submit")}
             </Link>
           </div>
         }
