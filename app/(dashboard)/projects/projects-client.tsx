@@ -1,13 +1,17 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   completeProjectRecord,
   createProjectRecord,
   updateProjectRecord,
 } from "@/app/(dashboard)/projects/actions";
+import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
 import { PendingLink } from "@/components/ui/pending-link";
 import { PendingSubmitButton } from "@/components/ui/pending-submit-button";
-import { Badge, Button, Card, CardContent, Input, Label, Textarea } from "poyraz-ui/atoms";
+import { contentTranslationRegistry } from "@/lib/i18n/content";
+import { Badge, Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +70,7 @@ export type ProjectListItem = {
   coverImageUrl: string | null;
   taskCount: number;
   doneTaskCount: number;
+  translations?: LocalizedFieldValues;
 };
 
 const typeLabels = {
@@ -92,9 +97,14 @@ const statusClasses = {
 type ProjectsClientProps = {
   projects: ProjectListItem[];
   clients: ProjectClientOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 };
 
-export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
+export function ProjectsClient({ projects, clients, localization }: ProjectsClientProps) {
+  const t = useTranslations();
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const normalizedQuery = query.trim().toLowerCase();
@@ -118,21 +128,21 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Projeler
+            {t("projects.title")}
           </h1>
         </div>
 
         <div className="flex gap-2">
           <AIProjectRiskDialog />
-          <ProjectDialog mode="create" clients={clients} />
+          <ProjectDialog mode="create" clients={clients} localization={localization} />
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <StatCard label="Aktif proje" value={activeCount.toString()} icon={FolderKanban} tone="green" />
+        <StatCard label={t("projects.stats.active")} value={activeCount.toString()} icon={FolderKanban} tone="green" />
         <StatCard label="Side project" value={sideProjectCount.toString()} icon={Target} tone="blue" />
-        <StatCard label="Ortalama ilerleme" value={`${averageProgress}%`} icon={CheckCircle2} tone="amber" />
-        <StatCard label="Toplam bütçe" value={formatCurrency(totalBudget)} icon={Wallet} tone="red" />
+        <StatCard label={t("projects.stats.progress")} value={`${averageProgress}%`} icon={CheckCircle2} tone="amber" />
+        <StatCard label={t("projects.stats.budget")} value={formatCurrency(totalBudget)} icon={Wallet} tone="red" />
       </div>
 
       <Card>
@@ -178,7 +188,7 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
             view === "grid" ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {filteredProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} clients={clients} />
+                  <ProjectCard key={project.id} project={project} clients={clients} localization={localization} />
                 ))}
               </div>
             ) : (
@@ -193,7 +203,7 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
                   </div>
                   <div className="divide-y divide-border">
                     {filteredProjects.map((project) => (
-                      <ProjectRow key={project.id} project={project} clients={clients} />
+                      <ProjectRow key={project.id} project={project} clients={clients} localization={localization} />
                     ))}
                   </div>
                 </div>
@@ -211,9 +221,11 @@ export function ProjectsClient({ projects, clients }: ProjectsClientProps) {
 function ProjectCard({
   project,
   clients,
+  localization,
 }: {
   project: ProjectListItem;
   clients: ProjectClientOption[];
+  localization: ProjectsClientProps["localization"];
 }) {
   const router = useRouter();
   const [isNavigating, startNavigation] = useTransition();
@@ -274,7 +286,7 @@ function ProjectCard({
           <div className="text-xs text-muted-foreground">
             {project.doneTaskCount}/{project.taskCount} görev tamamlandı
           </div>
-          <ProjectActions project={project} clients={clients} showDetail={false} />
+          <ProjectActions project={project} clients={clients} localization={localization} showDetail={false} />
         </div>
       </CardContent>
     </Card>
@@ -307,9 +319,11 @@ function ProjectCover({ project }: { project: ProjectListItem }) {
 function ProjectRow({
   project,
   clients,
+  localization,
 }: {
   project: ProjectListItem;
   clients: ProjectClientOption[];
+  localization: ProjectsClientProps["localization"];
 }) {
   return (
     <div className="grid gap-4 px-4 py-4 grid-cols-[1.5fr_1fr_1fr_0.8fr_1fr] items-center">
@@ -327,7 +341,7 @@ function ProjectRow({
         <ProgressBar progress={project.progress} compact />
       </div>
       <div className="flex justify-end gap-2">
-        <ProjectActions project={project} clients={clients} showDetail />
+        <ProjectActions project={project} clients={clients} localization={localization} showDetail />
       </div>
     </div>
   );
@@ -350,10 +364,12 @@ function ProjectMeta({ project }: { project: ProjectListItem }) {
 function ProjectActions({
   project,
   clients,
+  localization,
   showDetail,
 }: {
   project: ProjectListItem;
   clients: ProjectClientOption[];
+  localization: ProjectsClientProps["localization"];
   showDetail: boolean;
 }) {
   return (
@@ -376,7 +392,7 @@ function ProjectActions({
           </PendingLink>
         </Button>
       ) : null}
-      <ProjectDialog mode="edit" project={project} clients={clients} iconOnly />
+      <ProjectDialog mode="edit" project={project} clients={clients} localization={localization} iconOnly />
       {project.status !== "completed" ? (
         <form action={completeProjectRecord}>
           <input type="hidden" name="id" value={project.id} />
@@ -398,11 +414,13 @@ function ProjectDialog({
   mode,
   project,
   clients,
+  localization,
   iconOnly = false,
 }: {
   mode: "create" | "edit";
   project?: ProjectListItem;
   clients: ProjectClientOption[];
+  localization: ProjectsClientProps["localization"];
   iconOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -456,6 +474,7 @@ function ProjectDialog({
             <ProjectFormFields
               project={project}
               clients={clients}
+              localization={localization}
               projectType={projectType}
               onProjectTypeChange={setProjectType}
             />
@@ -549,15 +568,6 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
         className="sr-only"
         onChange={handleFileChange}
       />
-      <div className="grid gap-2">
-        <Label htmlFor={`cover-alt-${project?.id || "new"}`}>Görsel alt metni</Label>
-        <Input
-          id={`cover-alt-${project?.id || "new"}`}
-          name="cover_image_alt"
-          defaultValue={project?.cover_image_alt || ""}
-          placeholder="Görseli kısaca açıkla"
-        />
-      </div>
     </div>
   );
 }
@@ -565,11 +575,13 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
 function ProjectFormFields({
   project,
   clients,
+  localization,
   projectType,
   onProjectTypeChange,
 }: {
   project?: ProjectListItem;
   clients: ProjectClientOption[];
+  localization: ProjectsClientProps["localization"];
   projectType: ProjectListItem["type"];
   onProjectTypeChange: (value: ProjectListItem["type"]) => void;
 }) {
@@ -577,16 +589,18 @@ function ProjectFormFields({
     <div className="grid gap-4">
       <CoverImageInput project={project} />
 
-      <div className="grid gap-2">
-        <Label htmlFor={`name-${project?.id || "new"}`}>Proje adı</Label>
-        <Input
-          id={`name-${project?.id || "new"}`}
-          name="name"
-          defaultValue={project?.name || ""}
-          required
-          placeholder="Örn. Marka web sitesi"
-        />
-      </div>
+      <LocalizedFields
+        idPrefix={`project-${project?.id || "new"}`}
+        defaultLocale={localization.defaultLocale}
+        locales={localization.locales}
+        fields={contentTranslationRegistry.project}
+        values={project?.translations}
+        fallbackValues={{
+          name: project?.name,
+          description: project?.description,
+          coverImageAlt: project?.cover_image_alt,
+        }}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
@@ -624,17 +638,6 @@ function ProjectFormFields({
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor={`description-${project?.id || "new"}`}>Açıklama</Label>
-        <Textarea
-          id={`description-${project?.id || "new"}`}
-          name="description"
-          defaultValue={project?.description || ""}
-          placeholder="Kapsam, hedef veya teslimat notları..."
-          rows={3}
-        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -742,7 +745,7 @@ function EmptyState({ hasQuery }: { hasQuery: boolean }) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -750,7 +753,7 @@ function formatDate(value: string) {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("tr-TR", {
+  return new Intl.NumberFormat(getDocumentIntlLocale(), {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,

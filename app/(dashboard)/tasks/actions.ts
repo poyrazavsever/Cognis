@@ -1,6 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getSqliteConnection } from "@/server/db/client";
+import {
+  ContentTranslationService,
+  parseContentTranslationsFromFormData,
+} from "@/server/i18n/content";
 import { cleanText, optionalDate, requiredText } from "@/server/web/form-data";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
@@ -16,11 +21,12 @@ function minutes(value: FormDataEntryValue | null): number | null {
   return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : null;
 }
 
-function payload(formData: FormData) {
+function payload(formData: FormData, translations?: Record<string, Record<string, string | null>>, defaultLocale = "tr") {
   const dueAt = optionalDate(formData.get("due_at"));
+  const localized = translations?.[defaultLocale] ?? {};
   return {
-    title: requiredText(formData.get("title"), "Görev başlığı zorunludur."),
-    description: cleanText(formData.get("description")),
+    title: localized.title ?? requiredText(formData.get("title"), "Görev başlığı zorunludur."),
+    description: localized.description ?? cleanText(formData.get("description")),
     status: enumValue(formData.get("status"), TASK_STATUSES, "todo"),
     priority: enumValue(formData.get("priority"), TASK_PRIORITIES, "medium"),
     clientId: cleanText(formData.get("client_id")),
@@ -50,17 +56,23 @@ function revalidate(projectId?: string | null) {
 
 export async function createTaskRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
-  const value = completeRelations(payload(formData), service, actor);
-  service.createTask(actor, value);
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "task", context);
+  const value = completeRelations(payload(formData, translations, context.defaultLocale), service, actor);
+  service.createTask(actor, { ...value, translations });
   revalidate(value.projectId);
 }
 
 export async function updateTaskRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "task", context);
   const id = requiredText(formData.get("id"), "Görev kaydı bulunamadı.");
-  const value = completeRelations(payload(formData), service, actor);
+  const value = completeRelations(payload(formData, translations, context.defaultLocale), service, actor);
   const current = service.listTasks(actor).find((task) => task.id === id);
-  service.updateTask(actor, id, value);
+  service.updateTask(actor, id, { ...value, translations });
   revalidate(value.projectId);
   if (current?.projectId !== value.projectId) revalidate(current?.projectId);
 }

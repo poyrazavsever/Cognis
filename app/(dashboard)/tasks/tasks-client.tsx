@@ -1,12 +1,16 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   createTaskRecord,
   deleteTaskRecord,
   updateTaskStatusRecord,
   updateTaskRecord,
 } from "@/app/(dashboard)/tasks/actions";
-import { Badge, Button, Card, CardContent, Input, Label, Textarea } from "poyraz-ui/atoms";
+import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
+import { contentTranslationRegistry } from "@/lib/i18n/content";
+import { Badge, Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +57,7 @@ export type TaskListItem = {
   project_id: string | null;
   projectName: string | null;
   created_at: string;
+  translations?: LocalizedFieldValues;
 };
 
 const statusLabels = {
@@ -79,9 +84,14 @@ type TasksClientProps = {
   tasks: TaskListItem[];
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 };
 
-export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
+export function TasksClient({ tasks, clients, projects, localization }: TasksClientProps) {
+  const t = useTranslations();
   const [statusOverrides, setStatusOverrides] = useState<
     Partial<Record<string, TaskListItem["status"]>>
   >({});
@@ -193,11 +203,11 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Görevler
+            {t("tasks.title")}
           </h1>
         </div>
 
-        <TaskDialog mode="create" clients={clients} projects={projects} />
+        <TaskDialog mode="create" clients={clients} projects={projects} localization={localization} />
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
@@ -266,6 +276,7 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
                 tasks={filteredTasks}
                 clients={clients}
                 projects={projects}
+                localization={localization}
                 pendingTaskIds={pendingTaskIds}
                 onTaskDelete={handleTaskDelete}
                 onTaskStatusChange={handleTaskStatusChange}
@@ -275,6 +286,7 @@ export function TasksClient({ tasks, clients, projects }: TasksClientProps) {
                 tasks={filteredTasks}
                 clients={clients}
                 projects={projects}
+                localization={localization}
                 pendingTaskIds={pendingTaskIds}
                 onTaskDelete={handleTaskDelete}
                 onTaskStatusChange={handleTaskStatusChange}
@@ -293,6 +305,7 @@ function TaskList({
   tasks,
   clients,
   projects,
+  localization,
   pendingTaskIds,
   onTaskDelete,
   onTaskStatusChange,
@@ -300,6 +313,7 @@ function TaskList({
   tasks: TaskListItem[];
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
   pendingTaskIds: Set<string>;
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
@@ -321,6 +335,7 @@ function TaskList({
             task={task}
             clients={clients}
             projects={projects}
+            localization={localization}
             isPending={pendingTaskIds.has(task.id)}
             onTaskDelete={onTaskDelete}
             onTaskStatusChange={onTaskStatusChange}
@@ -336,6 +351,7 @@ function TaskRow({
   task,
   clients,
   projects,
+  localization,
   isPending,
   onTaskDelete,
   onTaskStatusChange,
@@ -343,6 +359,7 @@ function TaskRow({
   task: TaskListItem;
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
   isPending: boolean;
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
@@ -373,6 +390,7 @@ function TaskRow({
         task={task}
         clients={clients}
         projects={projects}
+        localization={localization}
         isPending={isPending}
         onTaskDelete={onTaskDelete}
         onTaskStatusChange={onTaskStatusChange}
@@ -385,6 +403,7 @@ function TaskKanban({
   tasks,
   clients,
   projects,
+  localization,
   pendingTaskIds,
   onTaskDelete,
   onTaskStatusChange,
@@ -392,6 +411,7 @@ function TaskKanban({
   tasks: TaskListItem[];
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
   pendingTaskIds: Set<string>;
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
@@ -460,6 +480,7 @@ function TaskKanban({
                         task={task}
                         clients={clients}
                         projects={projects}
+                        localization={localization}
                         compact
                         isPending={pendingTaskIds.has(task.id)}
                         onTaskDelete={onTaskDelete}
@@ -481,6 +502,7 @@ function TaskActions({
   task,
   clients,
   projects,
+  localization,
   compact = false,
   isPending,
   onTaskDelete,
@@ -489,6 +511,7 @@ function TaskActions({
   task: TaskListItem;
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
   compact?: boolean;
   isPending: boolean;
   onTaskDelete: (taskId: string) => void;
@@ -496,7 +519,7 @@ function TaskActions({
 }) {
   return (
     <div className={compact ? "flex justify-end gap-1" : "flex justify-start gap-2 lg:justify-end"}>
-      <TaskDialog mode="edit" task={task} clients={clients} projects={projects} />
+      <TaskDialog mode="edit" task={task} clients={clients} projects={projects} localization={localization} />
       {task.status !== "done" ? (
         <Button effect="shine"
           type="button"
@@ -537,11 +560,13 @@ function TaskDialog({
   task,
   clients,
   projects,
+  localization,
 }: {
   mode: "create" | "edit";
   task?: TaskListItem;
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
 }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -587,7 +612,7 @@ function TaskDialog({
           </DialogHeader>
 
           <div className="tiny-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <TaskFormFields task={task} clients={clients} projects={projects} />
+            <TaskFormFields task={task} clients={clients} projects={projects} localization={localization} />
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
@@ -610,10 +635,12 @@ function TaskFormFields({
   task,
   clients,
   projects,
+  localization,
 }: {
   task?: TaskListItem;
   clients: TaskRelationOption[];
   projects: TaskRelationOption[];
+  localization: TasksClientProps["localization"];
 }) {
   const [clientId, setClientId] = useState(task?.client_id || "__none");
   const [projectId, setProjectId] = useState(task?.project_id || "__none");
@@ -650,27 +677,17 @@ function TaskFormFields({
 
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor={`title-${task?.id || "new"}`}>Başlık</Label>
-        <Input
-          id={`title-${task?.id || "new"}`}
-          name="title"
-          defaultValue={task?.title || ""}
-          required
-          placeholder="Örn. Ana sayfa wireframe revizyonu"
-        />
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor={`description-${task?.id || "new"}`}>Açıklama</Label>
-        <Textarea
-          id={`description-${task?.id || "new"}`}
-          name="description"
-          defaultValue={task?.description || ""}
-          rows={3}
-          placeholder="Kapsam, not veya teslim kriterleri..."
-        />
-      </div>
+      <LocalizedFields
+        idPrefix={`task-${task?.id || "new"}`}
+        defaultLocale={localization.defaultLocale}
+        locales={localization.locales}
+        fields={contentTranslationRegistry.task}
+        values={task?.translations}
+        fallbackValues={{
+          title: task?.title,
+          description: task?.description,
+        }}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <SelectField name="status" label="Durum" defaultValue={task?.status || "todo"}>
@@ -825,7 +842,7 @@ function isOverdue(task: TaskListItem) {
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

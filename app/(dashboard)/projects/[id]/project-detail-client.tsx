@@ -1,5 +1,6 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
 import {
   completeProjectRecord,
   createProjectPlanningSectionRecord,
@@ -10,9 +11,11 @@ import {
   createTaskRecord,
   updateTaskStatusRecord,
 } from "@/app/(dashboard)/tasks/actions";
+import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
 import { PendingLink } from "@/components/ui/pending-link";
 import { PendingSubmitButton } from "@/components/ui/pending-submit-button";
-import { Badge, Button, Card, CardContent, Input, Label, Textarea } from "poyraz-ui/atoms";
+import { contentTranslationRegistry } from "@/lib/i18n/content";
+import { Badge, Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +69,7 @@ export type ProjectDetail = {
   revision_quota: number;
   cover_image_alt: string | null;
   coverImageUrl: string | null;
+  translations?: LocalizedFieldValues;
 };
 
 export type ProjectPlanningSectionItem = {
@@ -85,6 +89,7 @@ export type ProjectPlanningSectionItem = {
   title: string;
   content: string | null;
   sort_order: number;
+  translations?: LocalizedFieldValues;
 };
 
 export type ProjectDetailTaskItem = {
@@ -94,6 +99,7 @@ export type ProjectDetailTaskItem = {
   priority: "low" | "medium" | "high" | "urgent";
   due_at: string | null;
   is_public_to_client: boolean;
+  translations?: LocalizedFieldValues;
 };
 
 export type ProjectFinanceItem = {
@@ -120,6 +126,10 @@ type ProjectDetailClientProps = {
   tasks: ProjectDetailTaskItem[];
   financeTransactions: ProjectFinanceItem[];
   revisions: ProjectRevisionItem[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 };
 
 const typeLabels = {
@@ -185,6 +195,7 @@ export function ProjectDetailClient({
   tasks,
   financeTransactions,
   revisions,
+  localization,
 }: ProjectDetailClientProps) {
   const [activeTab, setActiveTab] = useState<"planning" | "design" | "tasks" | "finance" | "revisions">(
     "planning",
@@ -227,7 +238,7 @@ export function ProjectDetailClient({
 
         <div className="flex gap-2">
           <ProjectSettingsDialog project={project} />
-          <SectionDialog projectId={project.id} mode="create" defaultCategory="overview" />
+          <SectionDialog projectId={project.id} mode="create" defaultCategory="overview" localization={localization} />
           {project.status !== "completed" ? (
             <form action={completeProjectRecord}>
               <input type="hidden" name="id" value={project.id} />
@@ -329,6 +340,7 @@ export function ProjectDetailClient({
           description="Problem, amaç, hedef kitle, kapsam ve proje notlarını burada tut."
           sections={planningSections}
           defaultCategory="overview"
+          localization={localization}
         />
       ) : null}
 
@@ -339,11 +351,12 @@ export function ProjectDetailClient({
           description="Renk paleti, tipografi, görsel dil ve asset notlarını proje kaynağına bağla."
           sections={designSections}
           defaultCategory="design_system"
+          localization={localization}
         />
       ) : null}
 
       {activeTab === "tasks" ? (
-        <TaskPanel projectId={project.id} clientId={project.client_id} tasks={tasks} />
+        <TaskPanel projectId={project.id} clientId={project.client_id} tasks={tasks} localization={localization} />
       ) : null}
       {activeTab === "finance" ? <FinancePanel transactions={financeTransactions} /> : null}
       {activeTab === "revisions" ? <RevisionsPanel projectId={project.id} revisions={revisions} /> : null}
@@ -391,7 +404,7 @@ function RevisionsPanel({
               <div key={rev.id} className="p-4 border rounded-md">
                 <div className="flex justify-between items-start mb-3">
                   <div className="text-sm text-muted-foreground">
-                    {new Date(rev.created_at).toLocaleString('tr-TR')}
+                    {new Date(rev.created_at).toLocaleString(getDocumentIntlLocale())}
                   </div>
                   <Select
                     defaultValue={rev.status}
@@ -430,12 +443,14 @@ function SectionGrid({
   description,
   sections,
   defaultCategory,
+  localization,
 }: {
   projectId: string;
   title: string;
   description: string;
   sections: ProjectPlanningSectionItem[];
   defaultCategory: ProjectPlanningSectionItem["category"];
+  localization: ProjectDetailClientProps["localization"];
 }) {
   return (
     <Card>
@@ -445,13 +460,13 @@ function SectionGrid({
             <h2 className="text-lg font-semibold text-foreground">{title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </div>
-          <SectionDialog projectId={projectId} mode="create" defaultCategory={defaultCategory} />
+          <SectionDialog projectId={projectId} mode="create" defaultCategory={defaultCategory} localization={localization} />
         </div>
 
         {sections.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
             {sections.map((section) => (
-              <PlanningSectionCard key={section.id} section={section} />
+              <PlanningSectionCard key={section.id} section={section} localization={localization} />
             ))}
           </div>
         ) : (
@@ -469,7 +484,13 @@ function SectionGrid({
   );
 }
 
-function PlanningSectionCard({ section }: { section: ProjectPlanningSectionItem }) {
+function PlanningSectionCard({
+  section,
+  localization,
+}: {
+  section: ProjectPlanningSectionItem;
+  localization: ProjectDetailClientProps["localization"];
+}) {
   return (
     <Card className="transition-colors hover:border-primary/30">
       <CardContent className="flex h-full flex-col gap-4 p-4">
@@ -479,7 +500,7 @@ function PlanningSectionCard({ section }: { section: ProjectPlanningSectionItem 
             <h3 className="mt-3 text-base font-semibold text-foreground">{section.title}</h3>
           </div>
           <div className="flex gap-2">
-            <SectionDialog projectId={section.project_id} mode="edit" section={section} />
+            <SectionDialog projectId={section.project_id} mode="edit" section={section} localization={localization} />
             <form action={deleteProjectPlanningSectionRecord}>
               <input type="hidden" name="id" value={section.id} />
               <input type="hidden" name="project_id" value={section.project_id} />
@@ -505,11 +526,13 @@ function SectionDialog({
   mode,
   defaultCategory,
   section,
+  localization,
 }: {
   projectId: string;
   mode: "create" | "edit";
   defaultCategory?: ProjectPlanningSectionItem["category"];
   section?: ProjectPlanningSectionItem;
+  localization: ProjectDetailClientProps["localization"];
 }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -569,26 +592,17 @@ function SectionDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor={`section-title-${section?.id || "new"}`}>Başlık</Label>
-              <Input
-                id={`section-title-${section?.id || "new"}`}
-                name="title"
-                defaultValue={section?.title || ""}
-                required
-                placeholder="Örn. Başarı kriterleri"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor={`section-content-${section?.id || "new"}`}>İçerik</Label>
-              <Textarea
-                id={`section-content-${section?.id || "new"}`}
-                name="content"
-                defaultValue={section?.content || ""}
-                rows={8}
-                placeholder="Kısa notlar, kriterler, renkler, tipografi kararları..."
-              />
-            </div>
+            <LocalizedFields
+              idPrefix={`section-${section?.id || "new"}`}
+              defaultLocale={localization.defaultLocale}
+              locales={localization.locales}
+              fields={contentTranslationRegistry.planning_section}
+              values={section?.translations}
+              fallbackValues={{
+                title: section?.title,
+                content: section?.content,
+              }}
+            />
             <div className="grid gap-2">
               <Label htmlFor={`section-order-${section?.id || "new"}`}>Sıra</Label>
               <Input
@@ -615,10 +629,12 @@ function TaskPanel({
   projectId,
   clientId,
   tasks,
+  localization,
 }: {
   projectId: string;
   clientId: string | null;
   tasks: ProjectDetailTaskItem[];
+  localization: ProjectDetailClientProps["localization"];
 }) {
   const [view, setView] = useState<"list" | "kanban">("list");
   const [statusOverrides, setStatusOverrides] = useState<
@@ -703,7 +719,7 @@ function TaskPanel({
                 Kanban
               </Button>
             </div>
-            <ProjectTaskDialog projectId={projectId} clientId={clientId} />
+            <ProjectTaskDialog projectId={projectId} clientId={clientId} localization={localization} />
           </div>
         </div>
 
@@ -989,9 +1005,11 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
 function ProjectTaskDialog({
   projectId,
   clientId,
+  localization,
 }: {
   projectId: string;
   clientId: string | null;
+  localization: ProjectDetailClientProps["localization"];
 }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1027,24 +1045,12 @@ function ProjectTaskDialog({
           </DialogHeader>
 
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="project-task-title">Başlık</Label>
-              <Input
-                id="project-task-title"
-                name="title"
-                required
-                placeholder="Örn. Mobil görünüm kontrolü"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="project-task-description">Açıklama</Label>
-              <Textarea
-                id="project-task-description"
-                name="description"
-                rows={3}
-                placeholder="Kapsam, teslim notu veya kabul kriterleri..."
-              />
-            </div>
+            <LocalizedFields
+              idPrefix="project-task"
+              defaultLocale={localization.defaultLocale}
+              locales={localization.locales}
+              fields={contentTranslationRegistry.task}
+            />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label>Durum</Label>
@@ -1262,7 +1268,7 @@ function TabButton({
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -1270,7 +1276,7 @@ function formatDate(value: string) {
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -1285,7 +1291,7 @@ function getTaskStatusLabel(status: ProjectDetailTaskItem["status"]) {
 }
 
 function formatCurrency(value: number, currency: string) {
-  return new Intl.NumberFormat("tr-TR", {
+  return new Intl.NumberFormat(getDocumentIntlLocale(), {
     style: "currency",
     currency,
     maximumFractionDigits: 0,

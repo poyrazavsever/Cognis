@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { Card, CardContent, Badge, Button, Input, Textarea, Label } from "poyraz-ui/atoms";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, DialogDescription } from "poyraz-ui/molecules";
 import { Phone, Mail, ExternalLink, Calendar, Plus, MessageSquare, UserPlus, Loader2, Copy } from "lucide-react";
@@ -20,6 +20,7 @@ export type ClientDetailData = {
   status: string;
   notes: string | null;
   client_auth_id: string | null;
+  portal_locale: string;
 };
 
 export type ClientActivity = {
@@ -31,9 +32,18 @@ export type ClientActivity = {
   created_at: string;
 };
 
-export function ClientDetailClient({ client, activities }: { client: ClientDetailData; activities: ClientActivity[] }) {
+export function ClientDetailClient({
+  client,
+  activities,
+  locales,
+}: {
+  client: ClientDetailData;
+  activities: ClientActivity[];
+  locales: Array<{ code: string; nativeName: string; name: string }>;
+}) {
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [portalLocale, setPortalLocale] = useState(client.portal_locale);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -71,24 +81,43 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const locale = formData.get("locale") as string;
     
     setIsCreatingUser(true);
     try {
       const res = await fetch("/api/create-client-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, client_id: client.id })
+        body: JSON.stringify({ email, client_id: client.id, locale })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
         throw new Error(data.error || "Kullanıcı oluşturulamadı.");
       }
       setInvitationUrl(data.invitation.invitationUrl);
+      setPortalLocale(data.invitation.locale ?? locale);
       toast.success("Güvenli portal daveti oluşturuldu.");
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Davet oluşturulamadı.");
     } finally {
       setIsCreatingUser(false);
+    }
+  }
+
+  async function handlePortalLocaleChange(nextLocale: string) {
+    setPortalLocale(nextLocale);
+    try {
+      const response = await fetch(`/api/portal-clients/${client.id}/locale`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: nextLocale }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.error) throw new Error(data.error || "Portal dili güncellenemedi.");
+      toast.success("Portal dili güncellendi.");
+    } catch (error) {
+      setPortalLocale(client.portal_locale);
+      toast.error(error instanceof Error ? error.message : "Portal dili güncellenemedi.");
     }
   }
 
@@ -129,6 +158,21 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                       <Label htmlFor="email">E-posta Adresi</Label>
                       <Input id="email" name="email" type="email" required defaultValue={client.email || ""} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Portal dili</Label>
+                      <Select name="locale" defaultValue={portalLocale}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Dil seç" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {locales.map((locale) => (
+                            <SelectItem key={locale.code} value={locale.code}>
+                              {locale.nativeName || locale.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {invitationUrl ? (
                       <div className="space-y-2">
                         <Label htmlFor="invitation-url">Davet bağlantısı</Label>
@@ -163,9 +207,23 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
             </Dialog>
           )}
           {client.client_auth_id && (
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-sm flex items-center gap-1.5 ml-2">
-              <UserPlus className="h-3.5 w-3.5" /> Portal Aktif
-            </Badge>
+            <>
+              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-sm flex items-center gap-1.5 ml-2">
+                <UserPlus className="h-3.5 w-3.5" /> Portal Aktif
+              </Badge>
+              <Select value={portalLocale} onValueChange={handlePortalLocaleChange}>
+                <SelectTrigger className="h-9 w-36">
+                  <SelectValue placeholder="Portal dili" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locales.map((locale) => (
+                    <SelectItem key={locale.code} value={locale.code}>
+                      {locale.nativeName || locale.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
           )}
         </div>
       </div>
@@ -290,7 +348,7 @@ export function ClientDetailClient({ client, activities }: { client: ClientDetai
                             {getActivityBadge(activity.type)}
                           </div>
                           <time className="text-xs text-muted-foreground block mb-2 font-medium">
-                            {format(new Date(activity.activity_date), "d MMM yyyy, HH:mm", { locale: tr })}
+                            {format(new Date(activity.activity_date), "d MMM yyyy, HH:mm", { locale: getDocumentDateFnsLocale() })}
                           </time>
                           {activity.content && (
                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{activity.content}</p>

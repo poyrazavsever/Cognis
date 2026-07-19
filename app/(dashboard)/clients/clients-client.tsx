@@ -1,5 +1,7 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   createClientRecord,
   updateClientRecord,
@@ -40,7 +42,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { format, isPast, isToday } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/components/system/stat-card";
 
@@ -88,6 +90,7 @@ export function ClientsClient({
   totalRevenue,
   activeCount,
 }: ClientsClientProps) {
+  const t = useTranslations();
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   
@@ -154,7 +157,7 @@ export function ClientsClient({
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            CRM & Müşteriler
+            {t("clients.title")}
           </h1>
         </div>
 
@@ -326,7 +329,7 @@ function DraggableClientCard({
             <div className="mt-3 flex items-center gap-1.5 text-xs pointer-events-none">
               <Clock className={`h-3 w-3 ${isPast(new Date(client.next_follow_up_date)) ? 'text-rose-500' : 'text-muted-foreground'}`} />
               <span className={isPast(new Date(client.next_follow_up_date)) ? 'text-rose-500 font-medium' : 'text-muted-foreground'}>
-                {format(new Date(client.next_follow_up_date), 'd MMM yyyy', { locale: tr })}
+                {format(new Date(client.next_follow_up_date), 'd MMM yyyy', { locale: getDocumentDateFnsLocale() })}
               </span>
             </div>
           )}
@@ -384,7 +387,7 @@ function ClientRow({ client }: { client: ClientListItem }) {
         {client.next_follow_up_date ? (
           <div className={`flex items-center gap-1.5 ${isFollowUpOverdue ? 'text-rose-600 font-medium' : 'text-muted-foreground'}`}>
             <Clock className="h-3.5 w-3.5" />
-            {format(new Date(client.next_follow_up_date), 'd MMM yyyy', { locale: tr })}
+            {format(new Date(client.next_follow_up_date), 'd MMM yyyy', { locale: getDocumentDateFnsLocale() })}
           </div>
         ) : (
           <span className="text-muted-foreground opacity-50">-</span>
@@ -635,5 +638,5 @@ function formatPhone(input: string) {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
