@@ -85,17 +85,23 @@ Hata:
   "ok": false,
   "error": {
     "code": "UNAUTHENTICATED",
-    "message": "Geçerli bir oturum gerekli.",
-    "details": {}
+    "message": "Authentication required.",
+    "details": {
+      "messageKey": "api.errors.unauthenticated"
+    }
   }
 }
 ```
 
-`details` opsiyoneldir. `/api/v1` yanıtları `X-Neta-API-Version: 1` header'ı taşır. Mobil istemci kullanıcıya göstereceği metni `message` alanından alabilir; program akışını yalnızca stabil `code` üzerinden kurmalıdır.
+`details` opsiyoneldir. `/api/v1` yanıtları `X-Neta-API-Version: 1` header'ı taşır.
+Mobil istemci program akışını yalnızca stabil `code` üzerinden kurmalı, kullanıcıya
+göstereceği metni mümkünse `details.messageKey` ile kendi catalog'undan çözmelidir.
+`message` alanı debug/fallback içindir ve lokalizasyon kaynağı kabul edilmemelidir.
 
 Mevcut hata kodları:
 
 - `VALIDATION_ERROR`
+- `UNSUPPORTED_LOCALE`
 - `UNAUTHENTICATED`
 - `FORBIDDEN`
 - `NOT_FOUND`

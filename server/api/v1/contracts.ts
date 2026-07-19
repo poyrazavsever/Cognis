@@ -1,5 +1,7 @@
 import type { PublicBranding } from "../../branding/service";
 import type { InstanceIdentity } from "../../instance/service";
+import type { getPublicLocalizationMetadata } from "../../i18n/runtime";
+import { buildLocalizationContract } from "./localization";
 
 export const NETA_PROTOCOL = "neta" as const;
 export const NETA_DISCOVERY_VERSION = 1 as const;
@@ -16,9 +18,22 @@ export type NetaCapability = {
   access: CapabilityAccess;
 };
 
+export type NetaLocalizedResponse<TResource> = {
+  resource: TResource;
+  localized: TResource;
+  locale: string;
+  fallbackChain: string[];
+};
+
+export type NetaTranslationMutationShape = Record<
+  string,
+  Record<string, string | null>
+>;
+
 export const NETA_CAPABILITIES = [
   { id: "instance.discovery", version: 1, status: "available", access: "public" },
   { id: "instance.branding", version: 1, status: "available", access: "public" },
+  { id: "instance.localization", version: 1, status: "available", access: "public" },
   { id: "auth.better-auth-cookie", version: 1, status: "available", access: "session" },
   { id: "files.local", version: 1, status: "available", access: "session" },
   { id: "freelancer.core", version: 1, status: "available", access: "freelancer" },
@@ -43,6 +58,18 @@ export type NetaDiscoveryDocument = {
     httpsRequired: true;
     insecureLoopbackAllowed: true;
   };
+  localization: {
+    defaultLocale: string;
+    supportedLocales: Array<{
+      code: string;
+      name: string;
+      nativeName: string;
+      status: string;
+      textDirection: string;
+    }>;
+    catalogVersion: number;
+  };
+  capabilities: readonly NetaCapability[];
 };
 
 export type NetaInstanceMetadata = {
@@ -73,6 +100,20 @@ export type NetaInstanceMetadata = {
     iconUrl: string | null;
     faviconUrl: string | null;
   };
+  localization: ReturnType<typeof buildLocalizationContract>;
+  contracts: {
+    localizedResponse: {
+      resource: "original database record";
+      localized: "locale-resolved record";
+      locale: "resolved locale code";
+      fallbackChain: "ordered locale fallback chain";
+    };
+    ownerMutationTranslations: {
+      field: "translations";
+      shape: "Record<locale, Record<field, string | null>>";
+      unsupportedLocaleCode: "UNSUPPORTED_LOCALE";
+    };
+  };
   client: {
     minimumSupportedVersion: string | null;
     platforms: readonly ["ios", "android"];
@@ -96,6 +137,7 @@ type ContractInput = {
   minimumMobileClientVersion: string | null;
   identity: InstanceIdentity;
   branding: PublicBranding;
+  localization: ReturnType<typeof getPublicLocalizationMetadata>;
 };
 
 export function buildDiscoveryDocument(
@@ -118,6 +160,18 @@ export function buildDiscoveryDocument(
       httpsRequired: true,
       insecureLoopbackAllowed: true,
     },
+    localization: {
+      defaultLocale: input.localization.defaultLocale,
+      supportedLocales: input.localization.supportedLocales.map((locale) => ({
+        code: locale.code,
+        name: locale.name,
+        nativeName: locale.nativeName,
+        status: locale.status,
+        textDirection: locale.textDirection,
+      })),
+      catalogVersion: input.localization.catalogVersion,
+    },
+    capabilities: NETA_CAPABILITIES,
   };
 }
 
@@ -151,6 +205,20 @@ export function buildInstanceMetadata(
       darkLogoUrl: absoluteOptionalUrl(input.appUrl, input.branding.darkLogoUrl),
       iconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
       faviconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
+    },
+    localization: buildLocalizationContract(input.localization),
+    contracts: {
+      localizedResponse: {
+        resource: "original database record",
+        localized: "locale-resolved record",
+        locale: "resolved locale code",
+        fallbackChain: "ordered locale fallback chain",
+      },
+      ownerMutationTranslations: {
+        field: "translations",
+        shape: "Record<locale, Record<field, string | null>>",
+        unsupportedLocaleCode: "UNSUPPORTED_LOCALE",
+      },
     },
     client: {
       minimumSupportedVersion: input.minimumMobileClientVersion,

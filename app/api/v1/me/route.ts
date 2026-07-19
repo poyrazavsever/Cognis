@@ -1,9 +1,14 @@
 import { apiV1Error, apiV1Success } from "@/server/api/v1/responses";
+import { negotiateLocale } from "@/server/api/v1/localization";
 import { domainActorFromSession } from "@/server/auth/domain-actor";
 import { getSessionContextFromHeaders } from "@/server/auth/session";
 import { getServerConfig } from "@/server/config";
+import { getSqliteConnection } from "@/server/db/client";
+import { clients } from "@/server/db/schema";
 import { DomainError } from "@/server/domain/errors";
+import { getPublicLocalizationMetadata } from "@/server/i18n/runtime";
 import { getUserPreferences } from "@/server/settings/preferences";
+import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,9 +17,26 @@ export async function GET(request: Request) {
   try {
     const context = await getSessionContextFromHeaders(new Headers(request.headers));
     if (!context) {
-      throw new DomainError("UNAUTHENTICATED", "Geçerli bir oturum gerekli.");
+      throw new DomainError("UNAUTHENTICATED", "Authentication required.", {
+        messageKey: "api.errors.unauthenticated",
+      });
     }
+    const requestUrl = new URL(request.url);
     const preferences = getUserPreferences(domainActorFromSession(context));
+    const portalLocale = context.profile.clientId
+      ? getSqliteConnection().db
+          .select({ portalLocale: clients.portalLocale })
+          .from(clients)
+          .where(eq(clients.id, context.profile.clientId))
+          .get()?.portalLocale ?? null
+      : null;
+    const resolvedLocale = negotiateLocale({
+      metadata: getPublicLocalizationMetadata(),
+      requestedLocale: requestUrl.searchParams.get("locale"),
+      acceptLanguage: request.headers.get("accept-language"),
+      preferredLocale: preferences.language,
+      portalLocale,
+    });
 
     return apiV1Success({
       user: {
@@ -29,6 +51,15 @@ export async function GET(request: Request) {
         expiresAt: context.session.expiresAt.toISOString(),
       },
       preferences,
+      localization: {
+        language: preferences.language,
+        portalLocale,
+        resolvedLocale: resolvedLocale.locale,
+        requestedLocale: resolvedLocale.requestedLocale,
+        defaultLocale: resolvedLocale.defaultLocale,
+        source: resolvedLocale.source,
+        fallbackChain: resolvedLocale.fallbackChain,
+      },
     });
   } catch (error) {
     return apiV1Error(error);

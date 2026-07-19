@@ -1,0 +1,19 @@
+{
+  "scenario": "French is requested before the self-host instance activates it",
+  "request": {
+    "path": "/api/v1/me?locale=fr",
+    "headers": {
+      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8,tr;q=0.7",
+      "Cookie": "better-auth.session_token=<redacted>"
+    }
+  },
+  "expected": {
+    "ok": false,
+    "error": {
+      "code": "UNSUPPORTED_LOCALE",
+      "details": {
+        "requestedLocale": "fr"
+      }
+    }
+  }
+}

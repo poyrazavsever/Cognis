@@ -3,6 +3,7 @@ import "server-only";
 import packageJson from "../../../package.json";
 import { getPublicBranding } from "../../branding/runtime";
 import { getServerConfig } from "../../config";
+import { getPublicLocalizationMetadata } from "../../i18n/runtime";
 import { getInstanceService } from "../../instance/runtime";
 import {
   buildDiscoveryDocument,
@@ -25,5 +26,6 @@ function getContractInput() {
     minimumMobileClientVersion: config.minimumMobileClientVersion,
     identity: getInstanceService().getIdentity(),
     branding: getPublicBranding(),
+    localization: getPublicLocalizationMetadata(),
   };
 }

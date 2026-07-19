@@ -1,0 +1,31 @@
+{
+  "scenario": "Turkish mobile client discovers localization support",
+  "request": {
+    "path": "/api/v1/meta",
+    "headers": {
+      "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.7"
+    }
+  },
+  "expected": {
+    "ok": true,
+    "data": {
+      "capabilities": [
+        {
+          "id": "instance.localization",
+          "version": 1,
+          "status": "available",
+          "access": "public"
+        }
+      ],
+      "localization": {
+        "defaultLocale": "tr",
+        "negotiator": {
+          "queryParam": "locale",
+          "header": "Accept-Language",
+          "unsupportedLocaleCode": "UNSUPPORTED_LOCALE",
+          "matching": "exact-or-base-language"
+        }
+      }
+    }
+  }
+}

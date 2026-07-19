@@ -19,7 +19,7 @@ export function GET() {
         discoveryVersion: 1,
         error: {
           code: "SERVICE_UNAVAILABLE",
-          message: "Instance keşif bilgisi geçici olarak kullanılamıyor.",
+          message: "Instance discovery is temporarily unavailable.",
         },
       },
       {
