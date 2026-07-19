@@ -1,0 +1,15 @@
+export const common = {
+  "actions.save": "Save",
+  "actions.cancel": "Cancel",
+  "actions.delete": "Delete",
+  "actions.edit": "Edit",
+  "actions.create": "Create",
+  "actions.close": "Close",
+  "actions.search": "Search",
+  "states.loading": "Loading...",
+  "states.empty": "No records yet.",
+  "states.error": "Something went wrong.",
+  "pagination.previous": "Previous",
+  "pagination.next": "Next",
+  "plural.item": "{count, plural, one {# item} other {# items}}",
+};
