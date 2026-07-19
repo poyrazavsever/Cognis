@@ -48,7 +48,7 @@ export const userPreferences = sqliteTable(
   },
   (table) => [
     check("user_preferences_currency_check", sql`length(${table.defaultCurrency}) = 3`),
-    check("user_preferences_language_check", sql`${table.language} in ('tr', 'en')`),
+    check("user_preferences_language_check", sql`length(${table.language}) between 2 and 12`),
     check("user_preferences_color_mode_check", sql`${table.colorMode} in ('light', 'dark', 'system')`),
   ],
 );

@@ -45,6 +45,7 @@ export const clients = sqliteTable(
     email: text("email"),
     phone: text("phone"),
     website: text("website"),
+    portalLocale: text("portal_locale"),
     status: text("status").$type<ClientStatus>().default("active").notNull(),
     pipelineStage: text("pipeline_stage").$type<ClientPipelineStage>().default("lead").notNull(),
     nextFollowUpDate: text("next_follow_up_date"),
@@ -60,6 +61,7 @@ export const clients = sqliteTable(
     index("clients_owner_user_id_idx").on(table.ownerUserId),
     index("clients_owner_status_idx").on(table.ownerUserId, table.status),
     index("clients_owner_pipeline_idx").on(table.ownerUserId, table.pipelineStage),
+    index("clients_portal_locale_idx").on(table.portalLocale),
     index("clients_next_follow_up_date_idx").on(table.nextFollowUpDate),
     check("clients_status_check", sql`${table.status} in ('active', 'paused', 'archived')`),
     check(
