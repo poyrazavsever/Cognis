@@ -11,22 +11,30 @@ import { DomainError } from "@/server/domain/errors";
 const colorModeInputSchema = z.object({
   colorMode: z.enum(["light", "dark", "system"]),
 });
+const languageInputSchema = z.object({
+  language: z.string().trim().regex(/^[a-z]{2}(?:-[A-Z]{2}[0-9]?)?$/),
+});
 
 export type PublicUserPreferences = {
   colorMode: ColorMode;
+  language: string;
 };
 
 export function getUserPreferences(actor: DomainActor): PublicUserPreferences {
   assertEnabledActor(actor);
 
   const row = getSqliteConnection().db
-    .select({ colorMode: userPreferences.colorMode })
+    .select({
+      colorMode: userPreferences.colorMode,
+      language: userPreferences.language,
+    })
     .from(userPreferences)
     .where(eq(userPreferences.ownerUserId, actor.authUserId))
     .get();
 
   return {
     colorMode: (row?.colorMode as ColorMode | undefined) ?? "system",
+    language: row?.language ?? "tr",
   };
 }
 
@@ -56,5 +64,41 @@ export function updateColorModePreference(
     })
     .run();
 
-  return { colorMode: parsed.data.colorMode };
+  return {
+    colorMode: parsed.data.colorMode,
+    language: getUserPreferences(actor).language,
+  };
+}
+
+export function updateLanguagePreference(
+  actor: DomainActor,
+  input: unknown,
+): PublicUserPreferences {
+  assertEnabledActor(actor);
+
+  const parsed = languageInputSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new DomainError("VALIDATION_ERROR", "Dil tercihi geçersiz.");
+  }
+
+  const { db } = getSqliteConnection();
+  db.insert(userPreferences)
+    .values({
+      ownerUserId: actor.authUserId,
+      language: parsed.data.language,
+    })
+    .onConflictDoUpdate({
+      target: userPreferences.ownerUserId,
+      set: {
+        language: parsed.data.language,
+        updatedAt: new Date().toISOString(),
+      },
+    })
+    .run();
+
+  const preferences = getUserPreferences(actor);
+  return {
+    ...preferences,
+    language: parsed.data.language,
+  };
 }

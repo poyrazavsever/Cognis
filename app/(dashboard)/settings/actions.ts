@@ -12,13 +12,21 @@ import { getServerConfig } from "@/server/config";
 import { getBrandingService } from "@/server/branding/runtime";
 import { getSqliteConnection } from "@/server/db/client";
 import { appProfiles } from "@/server/db/schema";
+import { runtimeEvents } from "@/server/db/schema/runtime";
 import { domainActorFromSession } from "@/server/auth/domain-actor";
 import { getFileService } from "@/server/files/runtime";
 import { getPublicAiSettings, updateAiSettings } from "@/server/settings/ai";
 import {
   getUserPreferences,
+  updateLanguagePreference,
   updateColorModePreference,
 } from "@/server/settings/preferences";
+import { buildLocaleCookie } from "@/server/i18n/locale";
+import {
+  ContentTranslationService,
+  parseContentTranslationsFromFormData,
+} from "@/server/i18n/content";
+import { getReferenceTranslationKeys, I18nService } from "@/server/i18n/service";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 import { cleanText } from "@/server/web/form-data";
 
@@ -28,6 +36,13 @@ export async function loadSettings() {
   const ai = getPublicAiSettings(actor);
   const preferences = getUserPreferences(actor);
   const branding = getBrandingService().getPublic();
+  const i18nService = new I18nService(getSqliteConnection().db);
+  const locales = i18nService.listLocales(actor);
+  const i18nSettings = i18nService.getSettings(actor);
+  const translations = i18nService.listUiTranslations(actor);
+  const completion = i18nService.getCompletion(actor);
+  const contentI18n = new ContentTranslationService(getSqliteConnection().db);
+  const brandingTranslations = contentI18n.listEntityTranslations("branding", "default");
 
   return {
     firstName,
@@ -46,6 +61,18 @@ export async function loadSettings() {
     hasCustomLightLogo: Boolean(branding.lightLogoFileId),
     hasCustomDarkLogo: Boolean(branding.darkLogoFileId),
     hasCustomFavicon: Boolean(branding.iconFileId),
+    language: preferences.language,
+    i18n: {
+      locales,
+      defaultLocale: i18nSettings.defaultLocale,
+      catalogVersion: i18nSettings.catalogVersion,
+      translations,
+      completion,
+      referenceKeys: getReferenceTranslationKeys("all"),
+    },
+    contentTranslations: {
+      branding: brandingTranslations,
+    },
   };
 }
 
@@ -143,6 +170,140 @@ export async function saveColorMode(colorMode: string) {
   }
 }
 
+export async function saveLanguagePreference(language: string) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const preferences = updateLanguagePreference(actor, { language });
+
+    (await cookies()).set(buildLocaleCookie(preferences.language));
+    recordI18nEvent(actor.authUserId, `user_language_updated:${preferences.language}`);
+    revalidatePath("/", "layout");
+    revalidatePath("/settings");
+    return { success: true, language: preferences.language };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Dil tercihi kaydedilemedi." };
+  }
+}
+
+export async function createLocaleAction(input: {
+  code: string;
+  name: string;
+  nativeName: string;
+  fallbackLocale: string;
+  textDirection: "ltr" | "rtl";
+}) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    const locale = service.createLocale(actor, input);
+    recordI18nEvent(actor.authUserId, `locale_created:${locale.code}`);
+    revalidateI18nPaths();
+    return { success: true, locale };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Dil eklenemedi." };
+  }
+}
+
+export async function updateLocaleStatusAction(code: string, status: "draft" | "active" | "archived" | "test") {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    const locale = service.updateLocale(actor, code, { status });
+    recordI18nEvent(actor.authUserId, `locale_status_updated:${locale.code}:${locale.status}`);
+    revalidateI18nPaths();
+    return { success: true, locale };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Dil durumu güncellenemedi." };
+  }
+}
+
+export async function setDefaultLocaleAction(code: string) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    const settings = service.setDefaultLocale(actor, code);
+    recordI18nEvent(actor.authUserId, `default_locale_updated:${settings.defaultLocale}`);
+    revalidateI18nPaths();
+    return { success: true, settings };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Varsayılan dil güncellenemedi." };
+  }
+}
+
+export async function saveUiTranslationAction(input: {
+  locale: string;
+  namespace: string;
+  key: string;
+  value: string;
+}) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    service.upsertUiTranslation(actor, input);
+    recordI18nEvent(actor.authUserId, `ui_translation_saved:${input.locale}:${input.namespace}.${input.key}`);
+    revalidateI18nPaths();
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Çeviri kaydedilemedi." };
+  }
+}
+
+export async function resetUiTranslationAction(input: {
+  locale: string;
+  namespace: string;
+  key: string;
+}) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    service.resetUiTranslation(actor, input);
+    recordI18nEvent(actor.authUserId, `ui_translation_reset:${input.locale}:${input.namespace}.${input.key}`);
+    revalidateI18nPaths();
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Çeviri sıfırlanamadı." };
+  }
+}
+
+export async function exportI18nAction() {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    recordI18nEvent(actor.authUserId, "i18n_exported");
+    return { success: true, package: service.exportPackage(actor) };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Çeviri paketi dışa aktarılamadı." };
+  }
+}
+
+export async function previewI18nImportAction(rawJson: string) {
+  try {
+    await requireFreelancerBackend();
+    const parsed = JSON.parse(rawJson);
+    const localeCount = Array.isArray(parsed.locales) ? parsed.locales.length : 0;
+    const translationCount = Array.isArray(parsed.translations) ? parsed.translations.length : 0;
+    if (parsed.format !== "neta-i18n" || parsed.version !== 1) {
+      return { error: "Import paketi desteklenmiyor." };
+    }
+    return { success: true, preview: { localeCount, translationCount, defaultLocale: parsed.defaultLocale ?? "tr" } };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Import paketi okunamadı." };
+  }
+}
+
+export async function commitI18nImportAction(rawJson: string) {
+  try {
+    const { actor } = await requireFreelancerBackend();
+    const service = new I18nService(getSqliteConnection().db);
+    const result = service.importPackage(actor, JSON.parse(rawJson));
+    recordI18nEvent(actor.authUserId, `i18n_imported:${result.translations.length}`);
+    revalidateI18nPaths();
+    return { success: true, package: result };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Çeviri paketi içe aktarılamadı." };
+  }
+}
+
 export async function saveGeneralSettings(formData: FormData) {
   const uploadedFileIds: string[] = [];
   let brandingCommitted = false;
@@ -170,6 +331,9 @@ export async function saveGeneralSettings(formData: FormData) {
     }
 
     const brandingService = getBrandingService();
+    const contentI18n = new ContentTranslationService(getSqliteConnection().db);
+    const localization = contentI18n.getLocalizationContext(actor);
+    const brandingTranslations = parseContentTranslationsFromFormData(formData, "branding", localization);
     const current = brandingService.getPublic();
     const lightLogoFileId = await uploadBrandingFile(formData, "lightLogo", "branding_logo", actor);
     if (lightLogoFileId) uploadedFileIds.push(lightLogoFileId);
@@ -188,6 +352,7 @@ export async function saveGeneralSettings(formData: FormData) {
       ...(iconFileId ? { iconFileId } : {}),
     });
     brandingCommitted = true;
+    contentI18n.upsertEntityTranslations("branding", "default", brandingTranslations);
 
     deleteSupersededBrandingFiles(actor, current, updated);
 
@@ -305,4 +470,19 @@ function revalidateBrandingPaths(): void {
   revalidatePath("/settings");
   revalidatePath("/portal", "layout");
   revalidatePath("/manifest.webmanifest");
+}
+
+function revalidateI18nPaths(): void {
+  revalidatePath("/", "layout");
+  revalidatePath("/settings");
+  revalidatePath("/portal", "layout");
+  revalidatePath("/api/v1/meta");
+}
+
+function recordI18nEvent(authUserId: string, message: string): void {
+  getSqliteConnection().db.insert(runtimeEvents).values({
+    type: "i18n.settings",
+    message: `${authUserId}:${message}`,
+    createdAt: new Date(),
+  }).run();
 }
