@@ -32,7 +32,16 @@
     "phase8:import-smoke": "node scripts/phase8-import-smoke.mjs",
     "phase8:release-boundary": "node scripts/phase8-release-boundary.mjs",
     "phase9:api-boundary": "node scripts/phase9-api-boundary.mjs",
-    "phase9:smoke": "node scripts/phase9-smoke.mjs"
+    "phase9:smoke": "node scripts/phase9-smoke.mjs",
+    "i18n:phase1-smoke": "node scripts/i18n-phase1-smoke.mjs",
+    "i18n:phase2-smoke": "node scripts/i18n-phase2-smoke.mjs",
+    "i18n:phase3-smoke": "node scripts/i18n-phase3-smoke.mjs",
+    "i18n:phase4-boundary": "node scripts/i18n-phase4-boundary.mjs",
+    "i18n:phase5-smoke": "node scripts/i18n-phase5-smoke.mjs",
+    "i18n:phase7-smoke": "node scripts/i18n-phase7-smoke.mjs",
+    "i18n:phase8-smoke": "node scripts/i18n-phase8-smoke.mjs",
+    "phase-i18n:boundary": "node scripts/i18n-phase9-boundary.mjs",
+    "i18n:phase9-hardening": "node scripts/i18n-phase9-hardening.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",

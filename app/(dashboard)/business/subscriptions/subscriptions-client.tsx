@@ -1,8 +1,9 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
 import { useState } from "react";
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { CreditCard, Plus, MoreHorizontal, FileEdit, Trash2, StopCircle, RefreshCw } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "poyraz-ui/atoms";
 import {
@@ -28,7 +29,7 @@ export function SubscriptionsClient({ subscriptions }: { subscriptions: Subscrip
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format(amount);
+    return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency }).format(amount);
   };
 
   const getCycleBadge = (cycle: string) => {
@@ -125,7 +126,7 @@ export function SubscriptionsClient({ subscriptions }: { subscriptions: Subscrip
                           )}
                         </td>
                         <td className="p-4 align-middle text-muted-foreground">
-                          {sub.next_billing_date ? format(new Date(sub.next_billing_date), "dd MMM yyyy", { locale: tr }) : "-"}
+                          {sub.next_billing_date ? format(new Date(sub.next_billing_date), "dd MMM yyyy", { locale: getDocumentDateFnsLocale() }) : "-"}
                         </td>
                         <td className="p-4 align-middle text-right">
                           <DropdownMenu>

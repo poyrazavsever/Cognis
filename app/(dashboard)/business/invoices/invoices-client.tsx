@@ -1,8 +1,9 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
 import { useState } from "react";
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { Plus, MoreHorizontal, FileEdit, Trash2, Send, Download, CheckCircle2 } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "poyraz-ui/atoms";
 import {
@@ -29,7 +30,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format(amount);
+    return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency }).format(amount);
   };
 
   const getStatusBadge = (status: string) => {
@@ -101,7 +102,7 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
                           {getStatusBadge(invoice.status)}
                         </td>
                         <td className="p-4 align-middle text-muted-foreground">
-                          {invoice.issue_date ? format(new Date(invoice.issue_date), "dd MMM yyyy", { locale: tr }) : "-"}
+                          {invoice.issue_date ? format(new Date(invoice.issue_date), "dd MMM yyyy", { locale: getDocumentDateFnsLocale() }) : "-"}
                         </td>
                         <td className="p-4 align-middle text-right">
                           <DropdownMenu>

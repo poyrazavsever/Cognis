@@ -1,8 +1,9 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
 import { useState } from "react";
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { Plus, MoreHorizontal, FileEdit, Trash2, Mail, CheckCircle2, XCircle } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "poyraz-ui/atoms";
 import {
@@ -28,7 +29,7 @@ export function ProposalsClient({ proposals }: { proposals: ProposalRow[] }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("tr-TR", { style: "currency", currency }).format(amount);
+    return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency }).format(amount);
   };
 
   const getStatusBadge = (status: string) => {
@@ -100,7 +101,7 @@ export function ProposalsClient({ proposals }: { proposals: ProposalRow[] }) {
                           {getStatusBadge(proposal.status)}
                         </td>
                         <td className="p-4 align-middle text-muted-foreground">
-                          {proposal.valid_until ? format(new Date(proposal.valid_until), "dd MMM yyyy", { locale: tr }) : "-"}
+                          {proposal.valid_until ? format(new Date(proposal.valid_until), "dd MMM yyyy", { locale: getDocumentDateFnsLocale() }) : "-"}
                         </td>
                         <td className="p-4 align-middle text-right">
                           <DropdownMenu>
