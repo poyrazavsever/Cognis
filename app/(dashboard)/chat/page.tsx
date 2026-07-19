@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { Brain, Loader2, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
 import { Button } from "poyraz-ui/atoms";
@@ -43,6 +44,7 @@ type ChatSession = {
 };
 
 export default function AIChatPage() {
+  const t = useTranslations();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -235,7 +237,7 @@ export default function AIChatPage() {
               <Brain className="h-4 w-4" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground">AI Asistan</h1>
+              <h1 className="text-sm font-semibold text-foreground">{t("chat.title")}</h1>
             </div>
           </div>
           <Button effect="shine" variant="secondary" size="sm" className="md:hidden text-xs px-3" onClick={() => setIsMobileSessionsOpen(true)}>

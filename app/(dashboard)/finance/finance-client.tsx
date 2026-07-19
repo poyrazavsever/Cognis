@@ -1,5 +1,7 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   createFinanceTransactionRecord,
   deleteFinanceTransactionRecord,
@@ -103,6 +105,7 @@ type FinanceClientProps = {
 };
 
 export function FinanceClient({ transactions, clients, projects }: FinanceClientProps) {
+  const t = useTranslations();
   const [query, setQuery] = useState("");
   const [monthFilter, setMonthFilter] = useState(() => new Date().toISOString().slice(0, 7));
   const summaryTrackRef = useRef<HTMLDivElement>(null);
@@ -146,7 +149,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Finans işlemleri
+            {t("finance.title")}
           </h1>
         </div>
         <div className="flex gap-2">
@@ -730,7 +733,7 @@ function calculateExpenseCategories(transactions: FinanceTransactionItem[]) {
 }
 
 function formatCurrency(value: number, currency = "USD") {
-  return new Intl.NumberFormat("tr-TR", {
+  return new Intl.NumberFormat(getDocumentIntlLocale(), {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -738,7 +741,7 @@ function formatCurrency(value: number, currency = "USD") {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",

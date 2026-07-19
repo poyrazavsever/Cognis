@@ -72,6 +72,7 @@ type AppShellProps = {
   branding: AppShellBranding;
   children: React.ReactNode;
   homeHref: string;
+  labels?: AppShellLabels;
   navGroups: AppShellNavGroup[];
   settingsHref: string;
   user: ShellUser;
@@ -79,10 +80,27 @@ type AppShellProps = {
   colorMode?: ColorMode;
 };
 
+export type AppShellLabels = {
+  skipToContent: string;
+  homeAriaLabel: string;
+  mobileMenuAriaLabel: string;
+  mobileMenuTooltip: string;
+  logoAlt: string;
+  progressTitle: string;
+  progressValue: string;
+  progressAriaLabel: string;
+  accountMenuAriaLabel: string;
+  settings: string;
+  signOut: string;
+  signingOut: string;
+  signOutError: string;
+};
+
 export function AppShell({
   branding,
   children,
   homeHref,
+  labels = defaultAppShellLabels,
   navGroups,
   settingsHref,
   user,
@@ -90,7 +108,7 @@ export function AppShell({
   colorMode,
 }: AppShellProps) {
   const pathname = usePathname();
-  const sidebarProps = { branding, homeHref, navGroups, pathname, progress, settingsHref, user };
+  const sidebarProps = { branding, homeHref, labels, navGroups, pathname, progress, settingsHref, user };
 
   return (
     <TooltipProvider>
@@ -100,7 +118,7 @@ export function AppShell({
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[90] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:ring-2 focus:ring-focus-ring"
         >
-          Ana içeriğe geç
+          {labels.skipToContent}
         </a>
 
         <div className="flex min-h-screen">
@@ -118,9 +136,26 @@ export function AppShell({
   );
 }
 
+const defaultAppShellLabels: AppShellLabels = {
+  skipToContent: "Ana içeriğe geç",
+  homeAriaLabel: "Ana sayfa",
+  mobileMenuAriaLabel: "Ana menüyü aç veya kapat",
+  mobileMenuTooltip: "Menü",
+  logoAlt: "Logo",
+  progressTitle: "Proje ilerlemesi",
+  progressValue: "%{progress} tamamlandı",
+  progressAriaLabel: "Proje ilerlemesi",
+  accountMenuAriaLabel: "{name} için hesap menüsünü aç",
+  settings: "Ayarlar",
+  signOut: "Çıkış yap",
+  signingOut: "Çıkış yapılıyor",
+  signOutError: "Çıkış yapılamadı. Lütfen tekrar deneyin.",
+};
+
 type SidebarCompositionProps = {
   branding: AppShellBranding;
   homeHref: string;
+  labels: AppShellLabels;
   navGroups: AppShellNavGroup[];
   pathname: string;
   progress?: number;
@@ -145,15 +180,15 @@ function MobileSidebar(props: SidebarCompositionProps) {
         <Link
           href={props.homeHref}
           className="flex min-w-0 max-w-40 items-center"
-          aria-label={`${props.branding.applicationName} ana sayfa`}
+          aria-label={props.labels.homeAriaLabel}
         >
           <WorkspaceLogo branding={props.branding} compact />
         </Link>
         <Tooltip>
           <TooltipTrigger asChild>
-            <SidebarTrigger action="mobile" aria-label="Ana menüyü aç veya kapat" />
+            <SidebarTrigger action="mobile" aria-label={props.labels.mobileMenuAriaLabel} />
           </TooltipTrigger>
-          <TooltipContent>Menü</TooltipContent>
+          <TooltipContent>{props.labels.mobileMenuTooltip}</TooltipContent>
         </Tooltip>
       </header>
 
@@ -167,6 +202,7 @@ function MobileSidebar(props: SidebarCompositionProps) {
 function SidebarComposition({
   branding,
   homeHref,
+  labels,
   navGroups,
   pathname,
   progress,
@@ -179,7 +215,7 @@ function SidebarComposition({
         <Link
           href={homeHref}
           className="flex min-h-12 w-full items-center justify-center"
-          aria-label={`${branding.applicationName} ana sayfa`}
+          aria-label={labels.homeAriaLabel}
         >
           <WorkspaceLogo branding={branding} />
         </Link>
@@ -194,8 +230,8 @@ function SidebarComposition({
       </SidebarContent>
 
       <SidebarFooter className="flex flex-col gap-3">
-        {typeof progress === "number" ? <ProgressSummary progress={progress} /> : null}
-        <AccountMenu user={user} settingsHref={settingsHref} />
+        {typeof progress === "number" ? <ProgressSummary labels={labels} progress={progress} /> : null}
+        <AccountMenu labels={labels} user={user} settingsHref={settingsHref} />
       </SidebarFooter>
     </>
   );
@@ -257,7 +293,7 @@ function WorkspaceLogo({
     <span className="flex h-full w-full items-center justify-center overflow-hidden">
       <Image
         src={lightLogoUrl}
-        alt={`${branding.applicationName} logosu`}
+        alt={branding.applicationName}
         width={180}
         height={56}
         unoptimized
@@ -265,7 +301,7 @@ function WorkspaceLogo({
       />
       <Image
         src={darkLogoUrl}
-        alt={`${branding.applicationName} logosu`}
+        alt={branding.applicationName}
         width={180}
         height={56}
         unoptimized
@@ -275,22 +311,23 @@ function WorkspaceLogo({
   );
 }
 
-function ProgressSummary({ progress }: { progress: number }) {
+function ProgressSummary({ labels, progress }: { labels: AppShellLabels; progress: number }) {
   const normalizedProgress = Math.max(0, Math.min(100, progress));
+  const progressValue = labels.progressValue.replace("{progress}", String(normalizedProgress));
 
   return (
     <Card variant="soft" className="w-full overflow-hidden border-primary/10 shadow-none">
       <CardContent className="space-y-3 p-3">
         <Typography variant="small" className="font-semibold">
-          Proje ilerlemesi
+          {labels.progressTitle}
         </Typography>
         <div className="space-y-1.5">
           <Typography variant="caption" className="font-medium text-primary">
-            %{normalizedProgress} tamamlandı
+            {progressValue}
           </Typography>
           <div
             role="progressbar"
-            aria-label="Proje ilerlemesi"
+            aria-label={labels.progressAriaLabel}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={normalizedProgress}
@@ -307,7 +344,7 @@ function ProgressSummary({ progress }: { progress: number }) {
   );
 }
 
-function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: string }) {
+function AccountMenu({ labels, user, settingsHref }: { labels: AppShellLabels; user: ShellUser; settingsHref: string }) {
   const router = useRouter();
   const [isSigningOut, startSignOutTransition] = useTransition();
 
@@ -318,7 +355,7 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
         router.replace(result.redirectTo);
         router.refresh();
       } catch {
-        toast.error("Çıkış yapılamadı. Lütfen tekrar deneyin.");
+        toast.error(labels.signOutError);
       }
     });
   }
@@ -329,7 +366,7 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
         <Button effect="shine"
           type="button"
           variant="secondary"
-          aria-label={`${user.displayName} için hesap menüsünü aç`}
+          aria-label={labels.accountMenuAriaLabel.replace("{name}", user.displayName)}
           className="group h-auto min-h-10 w-full justify-start p-1.5 text-left"
         >
           <SidebarUserProfile
@@ -365,7 +402,7 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
         <DropdownMenuItem asChild>
           <Link href={settingsHref} className="gap-2">
             <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span>Ayarlar</span>
+            <span>{labels.settings}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -385,7 +422,7 @@ function AccountMenu({ user, settingsHref }: { user: ShellUser; settingsHref: st
             className="w-full justify-start gap-2 text-left text-destructive"
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}</span>
+            <span>{isSigningOut ? labels.signingOut : labels.signOut}</span>
           </Button>
         </DropdownMenuItem>
       </DropdownMenuContent>

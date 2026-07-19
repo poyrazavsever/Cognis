@@ -1,5 +1,7 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   createCalendarEventRecord,
   deleteCalendarEventRecord,
@@ -73,6 +75,7 @@ type CalendarClientProps = {
 };
 
 export function CalendarClient({ events, clients, projects, tasks }: CalendarClientProps) {
+  const t = useTranslations();
   const [monthDate, setMonthDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
   const days = useMemo(() => buildMonthDays(monthDate), [monthDate]);
@@ -90,7 +93,7 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground">Takvim</h1>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground">{t("calendar.title")}</h1>
         </div>
 
         <CalendarEventDialog
@@ -442,16 +445,16 @@ function startOfToday() {
 }
 
 function formatMonth(date: Date) {
-  return new Intl.DateTimeFormat("tr-TR", { month: "long", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), { month: "long", year: "numeric" }).format(date);
 }
 
 function formatDateLabel(dateKey: string) {
-  return new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(`${dateKey}T00:00:00`));
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), { day: "2-digit", month: "long", year: "numeric" }).format(new Date(`${dateKey}T00:00:00`));
 }
 
 function formatTimeRange(event: CalendarEventItem) {
-  const start = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" }).format(new Date(event.starts_at));
-  const end = event.ends_at ? new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" }).format(new Date(event.ends_at)) : null;
+  const start = new Intl.DateTimeFormat(getDocumentIntlLocale(), { hour: "2-digit", minute: "2-digit" }).format(new Date(event.starts_at));
+  const end = event.ends_at ? new Intl.DateTimeFormat(getDocumentIntlLocale(), { hour: "2-digit", minute: "2-digit" }).format(new Date(event.ends_at)) : null;
   return end ? `${start} - ${end}` : start;
 }
 

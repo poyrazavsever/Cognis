@@ -1,5 +1,7 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import {
   createDailyLogRecord,
   deleteDailyLogRecord,
@@ -60,6 +62,7 @@ const scoreLabels: Record<number, string> = {
 };
 
 export function JournalClient({ logs }: JournalClientProps) {
+  const t = useTranslations();
   const summary = useMemo(() => calculateSummary(logs), [logs]);
   const chartData = useMemo(
     () =>
@@ -79,7 +82,7 @@ export function JournalClient({ logs }: JournalClientProps) {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Mood ve enerji
+            {t("journal.title")}
           </h1>
         </div>
 
@@ -436,7 +439,7 @@ function average(values: number[]) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -444,14 +447,14 @@ function formatDate(value: string) {
 }
 
 function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
   }).format(new Date(`${value}T00:00:00`));
 }
 
 function formatWeekday(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     weekday: "long",
   }).format(new Date(`${value}T00:00:00`));
 }

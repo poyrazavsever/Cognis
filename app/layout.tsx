@@ -9,6 +9,7 @@ import {
 } from "@/lib/color-mode";
 import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
+import { resolveRequestLocale } from "@/server/i18n/resolver";
 
 const colorModeScript = `(() => {
   const root = document.documentElement;
@@ -52,10 +53,12 @@ export default async function RootLayout({
   const colorMode = isColorMode(cookieColorMode)
     ? cookieColorMode
     : branding.defaultColorMode;
+  const locale = await resolveRequestLocale();
 
   return (
     <html
-      lang="tr"
+      lang={locale.locale}
+      dir={locale.direction}
       className={cn("font-sans", colorMode === "dark" && "dark")}
       data-color-mode={colorMode}
       style={branding.cssVariables as CSSProperties}
