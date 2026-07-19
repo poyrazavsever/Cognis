@@ -22,4 +22,5 @@ export type AuthAuditEventType =
   | "invitation_accepted"
   | "invitation_accept_failed"
   | "client_access_disabled"
-  | "client_access_enabled";
+  | "client_access_enabled"
+  | "client_locale_updated";

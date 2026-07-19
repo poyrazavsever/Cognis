@@ -17,8 +17,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { email, client_id: clientId } = await request.json();
-    const invitation = await createPortalInvitation(actor, { email, clientId });
+    const { email, client_id: clientId, locale } = await request.json();
+    const invitation = await createPortalInvitation(actor, { email, clientId, locale });
 
     return NextResponse.json({ success: true, invitation }, { status: 201 });
   } catch (error) {

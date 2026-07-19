@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const invitation = await createPortalInvitation(actor, {
       clientId: body.clientId,
       email: body.email,
+      locale: body.locale,
       expiresInHours: body.expiresInHours,
     });
 
