@@ -3,6 +3,7 @@ export type ContentTranslationEntityType =
   | "branding"
   | "calendar_event"
   | "client"
+  | "client_activity"
   | "planning_section"
   | "project"
   | "task";
@@ -42,6 +43,10 @@ export const contentTranslationRegistry = {
   ],
   client: [
     { name: "notes", label: "Notlar", kind: "textarea", maxLength: 10_000 },
+  ],
+  client_activity: [
+    { name: "title", label: "Başlık", required: true, maxLength: 500 },
+    { name: "content", label: "İçerik", kind: "textarea", maxLength: 20_000 },
   ],
 } satisfies Record<ContentTranslationEntityType, ContentTranslationField[]>;
 

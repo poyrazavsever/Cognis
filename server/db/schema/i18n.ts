@@ -14,6 +14,7 @@ export type TranslationEntityType =
   | "branding"
   | "calendar_event"
   | "client"
+  | "client_activity"
   | "planning_section"
   | "project"
   | "task";
@@ -114,7 +115,7 @@ export const contentTranslations = sqliteTable(
     index("content_translations_entity_locale_idx").on(table.entityType, table.entityId, table.locale),
     check(
       "content_translations_entity_type_check",
-      sql`${table.entityType} in ('branding', 'calendar_event', 'client', 'planning_section', 'project', 'task')`,
+      sql`${table.entityType} in ('branding', 'calendar_event', 'client', 'client_activity', 'planning_section', 'project', 'task')`,
     ),
     check("content_translations_field_check", sql`length(${table.field}) between 1 and 64`),
     check("content_translations_locale_check", sql`length(${table.locale}) between 2 and 12`),

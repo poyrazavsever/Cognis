@@ -69,25 +69,48 @@ export class DomainService {
 
   createClient(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
-    const value = parseDomainInput(clientCreateSchema, input);
-    return this.repositories.clients.create(scope, { ...value, id: value.id ?? this.id() });
+    const translations = this.getContentTranslations(input);
+    const defaultLocale = this.contentTranslations.getLocalizationContext(actor).defaultLocale;
+    const value = parseDomainInput(
+      clientCreateSchema,
+      translations ? projectBaseFromTranslations("client", input as Record<string, unknown>, translations, defaultLocale) : input,
+    );
+    const client = this.repositories.clients.create(scope, { ...value, id: value.id ?? this.id() });
+    this.contentTranslations.upsertEntityTranslations("client", client.id, translations);
+    return client;
   }
 
   updateClient(actor: DomainActor, id: string, input: unknown) {
     const scope = requireOwnerScope(actor);
-    const value = parseDomainInput(clientUpdateSchema, input);
-    return this.repositories.clients.update(scope, id, value) ?? this.throwNotFound("Müşteri");
+    const translations = this.getContentTranslations(input);
+    const defaultLocale = this.contentTranslations.getLocalizationContext(actor).defaultLocale;
+    const value = parseDomainInput(
+      clientUpdateSchema,
+      translations ? projectBaseFromTranslations("client", input as Record<string, unknown>, translations, defaultLocale) : input,
+    );
+    const client = this.repositories.clients.update(scope, id, value) ?? this.throwNotFound("Müşteri");
+    this.contentTranslations.upsertEntityTranslations("client", id, translations);
+    return client;
   }
 
   deleteClient(actor: DomainActor, id: string) {
-    return this.repositories.clients.remove(requireOwnerScope(actor), id) ?? this.throwNotFound("Müşteri");
+    const client = this.repositories.clients.remove(requireOwnerScope(actor), id) ?? this.throwNotFound("Müşteri");
+    this.contentTranslations.deleteEntityTranslations("client", id);
+    return client;
   }
 
   addClientActivity(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
-    const value = parseDomainInput(clientActivityCreateSchema, input);
+    const translations = this.getContentTranslations(input);
+    const defaultLocale = this.contentTranslations.getLocalizationContext(actor).defaultLocale;
+    const value = parseDomainInput(
+      clientActivityCreateSchema,
+      translations ? projectBaseFromTranslations("client_activity", input as Record<string, unknown>, translations, defaultLocale) : input,
+    );
     this.requireOwnedClient(scope, value.clientId);
-    return this.repositories.clients.createActivity(scope, { ...value, id: value.id ?? this.id() });
+    const activity = this.repositories.clients.createActivity(scope, { ...value, id: value.id ?? this.id() });
+    this.contentTranslations.upsertEntityTranslations("client_activity", activity.id, translations);
+    return activity;
   }
 
   listClientActivities(actor: DomainActor, clientId: string) {
@@ -217,9 +240,16 @@ export class DomainService {
 
   createCalendarEvent(actor: DomainActor, input: unknown) {
     const scope = requireOwnerScope(actor);
-    const value = parseDomainInput(calendarEventCreateSchema, input);
+    const translations = this.getContentTranslations(input);
+    const defaultLocale = this.contentTranslations.getLocalizationContext(actor).defaultLocale;
+    const value = parseDomainInput(
+      calendarEventCreateSchema,
+      translations ? projectBaseFromTranslations("calendar_event", input as Record<string, unknown>, translations, defaultLocale) : input,
+    );
     this.assertTaskRelations(scope, value);
-    return this.repositories.calendar.create(scope, { ...value, id: value.id ?? this.id() });
+    const event = this.repositories.calendar.create(scope, { ...value, id: value.id ?? this.id() });
+    this.contentTranslations.upsertEntityTranslations("calendar_event", event.id, translations);
+    return event;
   }
 
   listCalendarEvents(actor: DomainActor) {
@@ -229,17 +259,26 @@ export class DomainService {
   updateCalendarEvent(actor: DomainActor, eventId: string, input: unknown) {
     const scope = requireOwnerScope(actor);
     const current = this.repositories.calendar.get(scope, eventId) ?? this.throwNotFound("Takvim kaydı");
-    const value = parseDomainInput(calendarEventUpdateSchema, input);
+    const translations = this.getContentTranslations(input);
+    const defaultLocale = this.contentTranslations.getLocalizationContext(actor).defaultLocale;
+    const value = parseDomainInput(
+      calendarEventUpdateSchema,
+      translations ? projectBaseFromTranslations("calendar_event", input as Record<string, unknown>, translations, defaultLocale) : input,
+    );
     const merged = { ...current, ...value };
     if (merged.endsAt && merged.endsAt < merged.startsAt) {
       throw new DomainError("VALIDATION_ERROR", "Bitiş zamanı başlangıç zamanından önce olamaz.");
     }
     this.assertTaskRelations(scope, merged);
-    return this.repositories.calendar.update(scope, eventId, value) ?? this.throwNotFound("Takvim kaydı");
+    const event = this.repositories.calendar.update(scope, eventId, value) ?? this.throwNotFound("Takvim kaydı");
+    this.contentTranslations.upsertEntityTranslations("calendar_event", eventId, translations);
+    return event;
   }
 
   deleteCalendarEvent(actor: DomainActor, eventId: string) {
-    return this.repositories.calendar.remove(requireOwnerScope(actor), eventId) ?? this.throwNotFound("Takvim kaydı");
+    const event = this.repositories.calendar.remove(requireOwnerScope(actor), eventId) ?? this.throwNotFound("Takvim kaydı");
+    this.contentTranslations.deleteEntityTranslations("calendar_event", eventId);
+    return event;
   }
 
   createFinanceTransaction(actor: DomainActor, input: unknown) {
