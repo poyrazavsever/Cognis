@@ -3,6 +3,8 @@ import { requireFreelancerBackend } from "@/server/web/freelancer";
 import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { getClientI18nPayload } from "@/server/i18n/translator";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
+import { getSqliteConnection } from "@/server/db/client";
+import { I18nService } from "@/server/i18n/service";
 import type { ContentTranslationRow } from "@/server/i18n/content";
 
 function buildTranslations(rows: ContentTranslationRow[] | undefined) {
@@ -19,7 +21,9 @@ export default async function CalendarPage() {
   const { context, actor, service } = await requireFreelancerBackend();
   const resolvedLocale = await resolveFreelancerLocale(context);
   const payload = getClientI18nPayload(resolvedLocale.locale, ["calendar"]);
-  const activeLocales = service.listLocales(actor).filter(l => l.status !== "archived").map(l => ({ code: l.code, name: l.nativeName }));
+  
+  const i18n = new I18nService(getSqliteConnection().db);
+  const activeLocales = i18n.listLocales(actor).filter(l => l.status !== "archived").map(l => ({ code: l.code, name: l.nativeName }));
   
   const eventRows = service.listCalendarEvents(actor);
   const clientRows = service.listClients(actor);
