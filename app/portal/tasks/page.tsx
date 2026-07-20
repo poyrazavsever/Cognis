@@ -3,12 +3,12 @@ import { CheckCircle2, Clock, CalendarDays, KanbanSquare } from "lucide-react";
 import { formatDate } from "@/lib/i18n/format";
 import { getSqliteConnection } from "@/server/db/client";
 import { ContentTranslationService, getContentFallbackLocale } from "@/server/i18n/content";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolvePortalLocale } from "@/server/i18n/resolver";
 import { createTranslator } from "@/server/i18n/translator";
 import { requirePortalBackend } from "@/server/web/portal";
 
 export default async function PortalTasksPage() {
-  const locale = await resolveRequestLocale();
+  const locale = await resolvePortalLocale();
   const t = createTranslator(locale.locale, ["portal"]).t;
   const { actor, service } = await requirePortalBackend();
   const content = new ContentTranslationService(getSqliteConnection().db);

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getSqliteConnection } from "@/server/db/client";
 import { DomainError } from "@/server/domain/errors";
 import { ContentTranslationService, getContentFallbackLocale } from "@/server/i18n/content";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolvePortalLocale } from "@/server/i18n/resolver";
 import { requirePortalBackend } from "@/server/web/portal";
 import {
   PortalProjectClient,
@@ -14,7 +14,7 @@ import {
 
 export default async function PortalProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const locale = await resolveRequestLocale();
+  const locale = await resolvePortalLocale();
   const { actor, service } = await requirePortalBackend();
   const content = new ContentTranslationService(getSqliteConnection().db);
   const localization = content.getPublicLocalizationContext();

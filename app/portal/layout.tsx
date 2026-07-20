@@ -1,6 +1,6 @@
 import { PortalShell } from "@/components/layout/portal-shell";
 import { getPublicBranding } from "@/server/branding/runtime";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolvePortalLocale } from "@/server/i18n/resolver";
 import { createTranslator, getClientI18nPayload } from "@/server/i18n/translator";
 import { getUserPreferences } from "@/server/settings/preferences";
 import { requirePortalBackend } from "@/server/web/portal";
@@ -11,7 +11,7 @@ export default async function PortalLayout({
   children: React.ReactNode;
 }>) {
   const { context, actor, service } = await requirePortalBackend();
-  const resolvedLocale = await resolveRequestLocale();
+  const resolvedLocale = await resolvePortalLocale(context);
   const t = createTranslator(resolvedLocale.locale, ["navigation", "portal", "common"]).t;
   const { user, profile } = context;
   const branding = getPublicBranding();
