@@ -10,12 +10,12 @@ import {
 import { getSqliteConnection } from "@/server/db/client";
 import { DomainError } from "@/server/domain/errors";
 import { ContentTranslationService, type ContentTranslationRow } from "@/server/i18n/content";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const locale = await resolveRequestLocale();
+  const locale = await resolveFreelancerLocale();
   const { actor, service } = await requireFreelancerBackend();
   const content = new ContentTranslationService(getSqliteConnection().db);
   const localization = content.getLocalizationContext(actor);

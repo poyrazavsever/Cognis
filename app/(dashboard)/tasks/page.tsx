@@ -1,11 +1,11 @@
 import { TasksClient, type TaskListItem, type TaskRelationOption } from "@/app/(dashboard)/tasks/tasks-client";
 import { getSqliteConnection } from "@/server/db/client";
 import { ContentTranslationService, type ContentTranslationRow } from "@/server/i18n/content";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
 export default async function TasksPage() {
-  const locale = await resolveRequestLocale();
+  const locale = await resolveFreelancerLocale();
   const { actor, service } = await requireFreelancerBackend();
   const content = new ContentTranslationService(getSqliteConnection().db);
   const localization = content.getLocalizationContext(actor);
