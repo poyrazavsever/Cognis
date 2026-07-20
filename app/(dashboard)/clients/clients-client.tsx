@@ -63,6 +63,7 @@ export type ClientListItem = {
   next_follow_up_date: string | null;
   last_contact_date: string | null;
   client_value_score: number;
+  translations?: Record<string, Record<string, string>>;
 };
 
 type ClientPipelineStage = ClientListItem["pipeline_stage"];
@@ -83,12 +84,14 @@ type ClientsClientProps = {
   clients: ClientListItem[];
   totalRevenue: number;
   activeCount: number;
+  activeLocales: { code: string; name: string }[];
 };
 
 export function ClientsClient({
   clients,
   totalRevenue,
   activeCount,
+  activeLocales,
 }: ClientsClientProps) {
   const t = useTranslations();
   const [query, setQuery] = useState("");
@@ -123,7 +126,7 @@ export function ClientsClient({
 
     try {
       await updateClientPipelineStage(clientId, newStage);
-      toast.success("Müşteri aşaması güncellendi.");
+      toast.success(t("clients.messages.stageUpdated"));
     } catch (error) {
       setPipelineOverrides((current) => ({
         ...current,
@@ -132,7 +135,7 @@ export function ClientsClient({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Müşteri aşaması güncellenemedi.",
+          : t("clients.errors.stageUpdateFailed"),
       );
     }
   }
@@ -161,32 +164,32 @@ export function ClientsClient({
           </h1>
         </div>
 
-        <ClientDialog mode="create" />
+        <ClientDialog mode="create" activeLocales={activeLocales} />
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
         <StatCard
-          label="Potansiyel (Lead)"
+          label={t("clients.stats.lead")}
           value={clients.filter(c => c.pipeline_stage === 'lead' || c.pipeline_stage === 'contacted').length.toString()}
           icon={Users}
           tone="blue"
         />
         <StatCard
-          label="Aktif Müşteri"
+          label={t("clients.stats.active")}
           value={activeCount.toString()}
           icon={UserCheck}
           tone="green"
         />
         <StatCard
-          label="Bekleyen Follow-up"
+          label={t("clients.stats.followUp")}
           value={clients.filter(c => c.next_follow_up_date && (isPast(new Date(c.next_follow_up_date)) || isToday(new Date(c.next_follow_up_date)))).length.toString()}
           icon={Clock}
           tone="rose"
         />
         <StatCard
-          label="Kayıtlı Gelir"
+          label={t("clients.stats.revenue")}
           value={formatCurrency(totalRevenue)}
-          description="Ödenmiş gelir işlemleri"
+          description={t("clients.stats.revenueDesc")}
           icon={Wallet}
           tone="primary"
         />
@@ -195,14 +198,14 @@ export function ClientsClient({
       <Tabs defaultValue="pipeline" className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <TabsList>
-            <TabsTrigger value="pipeline">Pipeline (Kanban)</TabsTrigger>
-            <TabsTrigger value="list">Müşteri Listesi</TabsTrigger>
+            <TabsTrigger value="pipeline">{t("clients.tabs.pipeline")}</TabsTrigger>
+            <TabsTrigger value="list">{t("clients.tabs.list")}</TabsTrigger>
           </TabsList>
           
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Müşteri, firma, e-posta veya not ara"
+            placeholder={t("clients.search")}
             className="md:max-w-sm"
           />
         </div>
@@ -214,7 +217,7 @@ export function ClientsClient({
               return (
                 <DroppableColumn 
                   key={stage.id} 
-                  title={stage.label} 
+                  title={t(`clients.pipeline.${stage.id}` as any)} 
                   count={stageClients.length} 
                   color={stage.color.split(' ')[1]}
                   onDrop={() => handleDrop(stage.id)}
@@ -230,7 +233,7 @@ export function ClientsClient({
                   ))}
                   {stageClients.length === 0 && (
                     <div className="h-24 flex items-center justify-center border-2 border-dashed border-border rounded-md text-xs text-muted-foreground">
-                      Boş
+                      {t("clients.empty.pipeline")}
                     </div>
                   )}
                 </DroppableColumn>
@@ -244,22 +247,22 @@ export function ClientsClient({
             <div className="overflow-x-auto rounded-sm border border-border">
               <div className="min-w-[900px]">
                 <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_0.8fr_0.8fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground">
-                  <span>Müşteri</span>
-                  <span>İletişim</span>
-                  <span>Aşama</span>
-                  <span>Follow-up</span>
-                  <span>Projeler</span>
+                  <span>{t("clients.list.client")}</span>
+                  <span>{t("clients.list.contact")}</span>
+                  <span>{t("clients.list.stage")}</span>
+                  <span>{t("clients.list.followUp")}</span>
+                  <span>Finans</span>
                   <span className="text-right">İşlem</span>
                 </div>
                 <div className="divide-y divide-border">
-                  {filteredClients.map((client) => (
-                    <ClientRow key={client.id} client={client} />
+                  {filteredClients.map(client => (
+                    <ClientRow key={client.id} client={client} activeLocales={activeLocales} />
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            <EmptyState hasQuery={Boolean(normalizedQuery)} />
+            <EmptyState hasQuery={query.length > 0} />
           )}
         </TabsContent>
       </Tabs>
@@ -320,7 +323,7 @@ function DraggableClientCard({
               {client.name}
             </PendingLink>
             <div onPointerDown={(e) => e.stopPropagation()}>
-              <ClientDialog mode="edit" client={client} trigger={<Button size="icon-sm" effect="shine" variant="secondary" ><Pencil className="h-3 w-3" /></Button>} />
+              <ClientDialog mode="edit" client={client} activeLocales={[{code: "dummy", name: "dummy"}]} trigger={<Button size="icon-sm" effect="shine" variant="secondary" ><Pencil className="h-3 w-3" /></Button>} />
             </div>
           </div>
           {client.company_name && <p className="text-xs text-muted-foreground mb-2 pointer-events-none">{client.company_name}</p>}
@@ -339,7 +342,8 @@ function DraggableClientCard({
   );
 }
 
-function ClientRow({ client }: { client: ClientListItem }) {
+function ClientRow({ client, activeLocales }: { client: ClientListItem, activeLocales: { code: string; name: string }[] }) {
+  const t = useTranslations();
   const isFollowUpOverdue = client.next_follow_up_date && (isPast(new Date(client.next_follow_up_date)) || isToday(new Date(client.next_follow_up_date)));
   const stage = pipelineStages.find(s => s.id === client.pipeline_stage) || pipelineStages[0];
 
@@ -353,7 +357,7 @@ function ClientRow({ client }: { client: ClientListItem }) {
           <div className="min-w-0">
             <PendingLink href={`/clients/${client.id}`} className="truncate font-medium text-foreground hover:underline flex items-center gap-1.5" showSpinner>{client.name}</PendingLink>
             <div className="truncate text-sm text-muted-foreground">
-              {client.company_name || "Firma bilgisi yok"}
+              {client.company_name || t("clients.list.noCompany")}
             </div>
           </div>
         </div>
@@ -373,13 +377,13 @@ function ClientRow({ client }: { client: ClientListItem }) {
           </Link>
         ) : null}
         {!client.email && !client.phone && !client.website ? (
-          <span>İletişim bilgisi yok</span>
+          <span>{t("clients.list.noContact")}</span>
         ) : null}
       </div>
 
       <div>
         <Badge className={stage.color}>
-          {stage.label}
+          {t(`clients.pipeline.${stage.id}` as any)}
         </Badge>
       </div>
 
@@ -395,7 +399,7 @@ function ClientRow({ client }: { client: ClientListItem }) {
       </div>
 
       <div className="text-sm">
-        <div className="font-medium text-foreground">{client.projectCount} Proje</div>
+        <div className="font-medium text-foreground">{client.projectCount} {t("clients.list.projects")}</div>
         <div className="text-muted-foreground">{formatCurrency(client.revenueTotal)}</div>
       </div>
 
@@ -405,7 +409,7 @@ function ClientRow({ client }: { client: ClientListItem }) {
             <ArrowRight className="h-4 w-4" />
           </Button>
         </PendingLink>
-        <ClientDialog mode="edit" client={client} trigger={<Button effect="shine" variant="secondary" className="min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> Düzenle</Button>} />
+        <ClientDialog mode="edit" client={client} activeLocales={activeLocales} trigger={<Button effect="shine" variant="secondary" className="min-w-20 gap-2 px-3"><Pencil className="h-4 w-4" /> {t("clients.actions.edit")}</Button>} />
       </div>
     </div>
   );
@@ -414,12 +418,15 @@ function ClientRow({ client }: { client: ClientListItem }) {
 function ClientDialog({
   mode,
   client,
-  trigger
+  trigger,
+  activeLocales
 }: {
   mode: "create" | "edit";
   client?: ClientListItem;
   trigger?: React.ReactNode;
+  activeLocales: { code: string; name: string }[];
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action = mode === "create" ? createClientRecord : updateClientRecord;
@@ -430,12 +437,12 @@ function ClientDialog({
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "Müşteri eklendi." : "Müşteri güncellendi.");
+      toast.success(mode === "create" ? t("clients.messages.created") : t("clients.messages.updated"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Müşteri kaydedilirken beklenmeyen bir hata oluştu.",
+          : t("clients.errors.saveFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -451,7 +458,7 @@ function ClientDialog({
             className="min-w-24 gap-2 px-3"
           >
             {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-            {mode === "create" ? "Müşteri ekle" : "Düzenle"}
+            {mode === "create" ? t("clients.actions.add") : t("clients.actions.edit")}
           </Button>
         )}
       </DialogTrigger>
@@ -460,25 +467,25 @@ function ClientDialog({
           {client ? <input type="hidden" name="id" value={client.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
             <DialogTitle>
-              {mode === "create" ? "Yeni müşteri" : "Müşteriyi düzenle"}
+              {mode === "create" ? t("clients.form.createTitle") : t("clients.form.editTitle")}
             </DialogTitle>
             <DialogDescription>
-              Müşterinin iletişim ve CRM detaylarını girin.
+              {t("clients.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="tiny-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <ClientFormFields client={client} />
+            <ClientFormFields client={client} activeLocales={activeLocales} />
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
-                ? "Kaydediliyor"
+                ? "..."
                 : mode === "create"
-                  ? "Müşteriyi ekle"
-                  : "Değişiklikleri kaydet"}
+                  ? t("clients.form.save")
+                  : t("clients.form.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -487,12 +494,13 @@ function ClientDialog({
   );
 }
 
-function ClientFormFields({ client }: { client?: ClientListItem }) {
+function ClientFormFields({ client, activeLocales }: { client?: ClientListItem, activeLocales: { code: string; name: string }[] }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor={`name-${client?.id || "new"}`}>Müşteri adı</Label>
+          <Label htmlFor={`name-${client?.id || "new"}`}>{t("clients.form.name")}</Label>
           <Input
             id={`name-${client?.id || "new"}`}
             name="name"
@@ -502,40 +510,39 @@ function ClientFormFields({ client }: { client?: ClientListItem }) {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`company-${client?.id || "new"}`}>Firma / marka adı</Label>
+          <Label htmlFor={`company-${client?.id || "new"}`}>{t("clients.form.company")}</Label>
           <Input
             id={`company-${client?.id || "new"}`}
             name="company_name"
             defaultValue={client?.company_name || ""}
-            placeholder="Opsiyonel"
           />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 border-t border-border pt-4 mt-2">
         <div className="grid gap-2">
-          <Label>Satış Aşaması (Pipeline)</Label>
+          <Label>{t("clients.form.pipelineStage")}</Label>
           <Select name="pipeline_stage" defaultValue={client?.pipeline_stage || "lead"}>
             <SelectTrigger>
-              <SelectValue placeholder="Aşama seç" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {pipelineStages.map(stage => (
-                <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
+                <SelectItem key={stage.id} value={stage.id}>{t(`clients.pipeline.${stage.id}` as any)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label>Durum</Label>
+          <Label>{t("clients.form.status")}</Label>
           <Select name="status" defaultValue={client?.status || "active"}>
             <SelectTrigger>
-              <SelectValue placeholder="Durum seç" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Aktif</SelectItem>
-              <SelectItem value="paused">Duraklatıldı</SelectItem>
-              <SelectItem value="archived">Arşivlendi</SelectItem>
+              <SelectItem value="active">{t("clients.form.active")}</SelectItem>
+              <SelectItem value="paused">{t("clients.form.paused")}</SelectItem>
+              <SelectItem value="archived">{t("clients.form.archived")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -543,7 +550,7 @@ function ClientFormFields({ client }: { client?: ClientListItem }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor={`followup-${client?.id || "new"}`}>Sonraki Follow-up Tarihi</Label>
+          <Label htmlFor={`followup-${client?.id || "new"}`}>{t("clients.form.followUp")}</Label>
           <Input
             id={`followup-${client?.id || "new"}`}
             name="next_follow_up_date"
@@ -555,7 +562,7 @@ function ClientFormFields({ client }: { client?: ClientListItem }) {
 
       <div className="grid gap-4 md:grid-cols-2 border-t border-border pt-4 mt-2">
         <div className="grid gap-2">
-          <Label htmlFor={`email-${client?.id || "new"}`}>E-posta</Label>
+          <Label htmlFor={`email-${client?.id || "new"}`}>{t("clients.form.email")}</Label>
           <Input
             id={`email-${client?.id || "new"}`}
             name="email"
@@ -565,7 +572,7 @@ function ClientFormFields({ client }: { client?: ClientListItem }) {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`phone-${client?.id || "new"}`}>Telefon</Label>
+          <Label htmlFor={`phone-${client?.id || "new"}`}>{t("clients.form.phone")}</Label>
           <PhoneInput
             id={`phone-${client?.id || "new"}`}
             name="phone"
@@ -574,15 +581,26 @@ function ClientFormFields({ client }: { client?: ClientListItem }) {
         </div>
       </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor={`notes-${client?.id || "new"}`}>Genel Notlar</Label>
-        <Textarea
-          id={`notes-${client?.id || "new"}`}
-          name="notes"
-          defaultValue={client?.notes || ""}
-          placeholder="İletişim notları, beklentiler, özel bilgiler..."
-          rows={3}
-        />
+      <div className="grid gap-2 border-t border-border pt-4 mt-2">
+        <Tabs defaultValue={activeLocales[0].code}>
+          <div className="flex items-center justify-between mb-4">
+            <Label>{t("clients.form.notes")}</Label>
+            <TabsList>
+              {activeLocales.map((locale) => (
+                <TabsTrigger key={locale.code} value={locale.code}>{locale.name}</TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          {activeLocales.map((locale) => (
+            <TabsContent key={locale.code} value={locale.code} className="mt-0 space-y-4">
+              <Textarea
+                name={`i18n.${locale.code}.notes`}
+                defaultValue={client?.translations?.[locale.code]?.notes ?? ""}
+                rows={4}
+              />
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </div>
   );

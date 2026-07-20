@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 import { cleanText, requiredText } from "@/server/web/form-data";
+import { parseContentTranslationsFromFormData } from "@/server/i18n/content";
 
 const CLIENT_STATUSES = ["active", "paused", "archived"] as const;
 const PIPELINE_STAGES = ["lead", "contacted", "proposal_sent", "won", "lost"] as const;
@@ -20,7 +21,11 @@ function cleanWebsite(value: FormDataEntryValue | null) {
   return website && !/^https?:\/\//i.test(website) ? `https://${website}` : website;
 }
 
-function readPayload(formData: FormData) {
+function readPayload(
+  formData: FormData,
+  service: Awaited<ReturnType<typeof requireFreelancerBackend>>["service"],
+  actor: Awaited<ReturnType<typeof requireFreelancerBackend>>["actor"]
+) {
   return {
     name: requiredText(formData.get("name"), "Müşteri adı zorunludur."),
     companyName: cleanText(formData.get("company_name")),
@@ -31,19 +36,20 @@ function readPayload(formData: FormData) {
     notes: cleanText(formData.get("notes")),
     pipelineStage: enumValue(formData.get("pipeline_stage"), PIPELINE_STAGES, "lead"),
     nextFollowUpDate: cleanText(formData.get("next_follow_up_date")),
+    translations: parseContentTranslationsFromFormData(formData, "client", service.contentTranslations.getLocalizationContext(actor)),
   };
 }
 
 export async function createClientRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
-  service.createClient(actor, readPayload(formData));
+  service.createClient(actor, readPayload(formData, service, actor));
   revalidatePath("/clients");
 }
 
 export async function updateClientRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
   const id = requiredText(formData.get("id"), "Müşteri kaydı bulunamadı.");
-  service.updateClient(actor, id, readPayload(formData));
+  service.updateClient(actor, id, readPayload(formData, service, actor));
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
 }

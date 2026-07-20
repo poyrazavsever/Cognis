@@ -4,17 +4,36 @@ import { getSqliteConnection } from "@/server/db/client";
 import { DomainError } from "@/server/domain/errors";
 import { I18nService } from "@/server/i18n/service";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
+import { resolveFreelancerLocale } from "@/server/i18n/resolver";
+import { getClientI18nPayload } from "@/server/i18n/translator";
+import { I18nProvider } from "@/components/i18n/i18n-provider";
+import type { ContentTranslationRow } from "@/server/i18n/content";
+
+function buildTranslations(rows: ContentTranslationRow[] | undefined) {
+  if (!rows) return undefined;
+  const result: Record<string, Record<string, string>> = {};
+  for (const row of rows) {
+    if (!result[row.locale]) result[row.locale] = {};
+    result[row.locale][row.field] = row.value;
+  }
+  return result;
+}
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { actor, service } = await requireFreelancerBackend();
+  const { context, actor, service } = await requireFreelancerBackend();
   const i18n = new I18nService(getSqliteConnection().db);
   const locales = i18n.listLocales(actor).filter((locale) => locale.status === "active");
   const defaultLocale = i18n.getSettings(actor).defaultLocale;
+  
+  const resolvedLocale = await resolveFreelancerLocale(context);
+  const payload = getClientI18nPayload(resolvedLocale.locale, ["clients"]);
 
   let data: { client: ClientDetailData; activities: ClientActivity[] };
   try {
     const row = service.getClient(actor, id);
+    const clientTranslations = service.contentTranslations.list("client", id);
+    
     const client: ClientDetailData = {
       id: row.id,
       name: row.name,
@@ -27,14 +46,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       notes: row.notes,
       client_auth_id: row.authUserId,
       portal_locale: row.portalLocale ?? defaultLocale,
+      translations: buildTranslations(clientTranslations),
     };
-    const activities: ClientActivity[] = service.listClientActivities(actor, id).map((activity) => ({
+    
+    const rawActivities = service.listClientActivities(actor, id);
+    const activityTranslationsMap = service.contentTranslations.listBatch("client_activity", rawActivities.map(a => a.id));
+
+    const activities: ClientActivity[] = rawActivities.map((activity) => ({
       id: activity.id,
       type: activity.type,
       title: activity.title,
       content: activity.content,
       activity_date: activity.activityDate.toISOString(),
       created_at: activity.createdAt.toISOString(),
+      translations: buildTranslations(activityTranslationsMap.get(activity.id)),
     }));
 
     data = { client, activities };
@@ -43,5 +68,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     throw error;
   }
 
-  return <ClientDetailClient client={data.client} activities={data.activities} locales={locales} />;
+  return (
+    <I18nProvider payload={payload}>
+      <ClientDetailClient client={data.client} activities={data.activities} locales={locales} />
+    </I18nProvider>
+  );
 }

@@ -4,10 +4,11 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
 import { Card, CardContent, Badge, Button, Input, Textarea, Label } from "poyraz-ui/atoms";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, DialogDescription } from "poyraz-ui/molecules";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, DialogDescription, Tabs, TabsList, TabsTrigger, TabsContent } from "poyraz-ui/molecules";
 import { Phone, Mail, ExternalLink, Calendar, Plus, MessageSquare, UserPlus, Loader2, Copy } from "lucide-react";
 import { toast } from "poyraz-ui/molecules";
 import { addClientActivity } from "./actions";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 
 export type ClientDetailData = {
   id: string;
@@ -30,6 +31,7 @@ export type ClientActivity = {
   content: string | null;
   activity_date: string;
   created_at: string;
+  translations?: Record<string, Record<string, string>>;
 };
 
 export function ClientDetailClient({
@@ -44,6 +46,7 @@ export function ClientDetailClient({
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [portalLocale, setPortalLocale] = useState(client.portal_locale);
+  const t = useTranslations();
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -56,10 +59,10 @@ export function ClientDetailClient({
 
   const getActivityBadge = (type: string) => {
     switch (type) {
-      case "call": return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Arama</Badge>;
-      case "meeting": return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Toplantı</Badge>;
-      case "email": return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">E-posta</Badge>;
-      default: return <Badge variant="secondary">Not</Badge>;
+      case "call": return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">{t("clients.detail.activityTypes.call")}</Badge>;
+      case "meeting": return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">{t("clients.detail.activityTypes.meeting")}</Badge>;
+      case "email": return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">{t("clients.detail.activityTypes.email")}</Badge>;
+      default: return <Badge variant="secondary">{t("clients.detail.activityTypes.note")}</Badge>;
     }
   };
 
@@ -142,7 +145,7 @@ export function ClientDetailClient({
             <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
               <DialogTrigger asChild>
                 <Button effect="shine" variant="secondary" size="sm" className="gap-2 ml-2 border-dashed">
-                  <UserPlus className="h-4 w-4" /> Portal Hesabı Aç
+                  <UserPlus className="h-4 w-4" /> {t("clients.detail.createPortalAccount")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -155,11 +158,11 @@ export function ClientDetailClient({
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">E-posta Adresi</Label>
+                      <Label htmlFor="email">{t("clients.detail.email")}</Label>
                       <Input id="email" name="email" type="email" required defaultValue={client.email || ""} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Portal dili</Label>
+                      <Label>{t("clients.detail.portalLocale")}</Label>
                       <Select name="locale" defaultValue={portalLocale}>
                         <SelectTrigger>
                           <SelectValue placeholder="Dil seç" />
@@ -209,7 +212,7 @@ export function ClientDetailClient({
           {client.client_auth_id && (
             <>
               <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-sm flex items-center gap-1.5 ml-2">
-                <UserPlus className="h-3.5 w-3.5" /> Portal Aktif
+                <UserPlus className="h-3.5 w-3.5" /> {t("clients.detail.portalActive")}
               </Badge>
               <Select value={portalLocale} onValueChange={handlePortalLocaleChange}>
                 <SelectTrigger className="h-9 w-36">
@@ -233,7 +236,7 @@ export function ClientDetailClient({
         <div className="space-y-6">
           <Card>
             <CardContent className="p-5 space-y-4">
-              <h3 className="font-semibold text-foreground">İletişim Bilgileri</h3>
+              <h3 className="font-semibold text-foreground">{t("clients.detail.contactInfo")}</h3>
               <div className="space-y-3 text-sm">
                 {client.email ? (
                   <div className="flex items-center gap-3 text-muted-foreground">
@@ -264,7 +267,7 @@ export function ClientDetailClient({
 
           <Card>
             <CardContent className="p-5 space-y-4">
-              <h3 className="font-semibold text-foreground">Genel Notlar</h3>
+              <h3 className="font-semibold text-foreground">{t("clients.form.notes")}</h3>
               {client.notes ? (
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{client.notes}</p>
               ) : (
@@ -284,24 +287,24 @@ export function ClientDetailClient({
                 <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                   <DialogTrigger asChild>
                     <Button variant="default" effect="shine" size="sm" className="gap-2">
-                      <Plus className="h-4 w-4" /> Aktivite Ekle
+                      <Plus className="h-4 w-4" /> {t("clients.detail.addActivity")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <form action={handleAddActivity} className="space-y-4">
                       <DialogHeader>
-                        <DialogTitle>Yeni Aktivite Ekle</DialogTitle>
+                        <DialogTitle>{t("clients.detail.addActivity")}</DialogTitle>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                          <Label>Tip</Label>
+                          <Label>{t("clients.detail.activityType")}</Label>
                           <Select name="type" defaultValue="note">
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="note">Not</SelectItem>
-                              <SelectItem value="call">Arama</SelectItem>
-                              <SelectItem value="meeting">Toplantı</SelectItem>
-                              <SelectItem value="email">E-posta</SelectItem>
+                              <SelectItem value="note">{t("clients.detail.activityTypes.note")}</SelectItem>
+                              <SelectItem value="call">{t("clients.detail.activityTypes.call")}</SelectItem>
+                              <SelectItem value="meeting">{t("clients.detail.activityTypes.meeting")}</SelectItem>
+                              <SelectItem value="email">{t("clients.detail.activityTypes.email")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -310,17 +313,32 @@ export function ClientDetailClient({
                           <Input name="title" required placeholder="Aktivite özeti" />
                         </div>
                         <div className="grid gap-2">
-                          <Label>Tarih</Label>
+                          <Label>{t("clients.detail.activityDate")}</Label>
                           <Input name="activity_date" type="datetime-local" required defaultValue={new Date().toISOString().slice(0, 16)} />
                         </div>
-                        <div className="grid gap-2">
-                          <Label>İçerik (Opsiyonel)</Label>
-                          <Textarea name="content" rows={4} placeholder="Görüşme detayları..." />
-                        </div>
+                        <Tabs defaultValue={locales[0].code}>
+                          <TabsList className="mb-4">
+                            {locales.map((locale) => (
+                              <TabsTrigger key={locale.code} value={locale.code}>{locale.name}</TabsTrigger>
+                            ))}
+                          </TabsList>
+                          {locales.map((locale) => (
+                            <TabsContent key={locale.code} value={locale.code} className="space-y-4">
+                              <div className="grid gap-2">
+                                <Label>{t("clients.detail.activityTitle")} ({locale.code})</Label>
+                                <Input name={`i18n.${locale.code}.title`} required={locale.code === locales[0].code} />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label>{t("clients.detail.activityContent")} ({locale.code})</Label>
+                                <Textarea name={`i18n.${locale.code}.content`} rows={4} />
+                              </div>
+                            </TabsContent>
+                          ))}
+                        </Tabs>
                       </div>
                       <DialogFooter>
                         <Button variant="default" effect="shine" type="submit" disabled={isAddingActivity}>
-                          {isAddingActivity ? "Ekleniyor..." : "Ekle"}
+                          {isAddingActivity ? "..." : t("clients.detail.saveActivity")}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -331,7 +349,7 @@ export function ClientDetailClient({
               <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
                 {activities.length === 0 ? (
                   <div className="text-center py-10">
-                    <p className="text-muted-foreground">Henüz kaydedilmiş bir aktivite yok.</p>
+                    <p className="text-muted-foreground">{t("clients.detail.emptyActivities")}</p>
                   </div>
                 ) : (
                   activities.map((activity) => (
@@ -344,14 +362,14 @@ export function ClientDetailClient({
                       <Card className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] hover:border-primary/50 transition-colors">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-semibold text-foreground">{activity.title}</h4>
+                            <h4 className="font-semibold text-foreground">{activity.translations?.[locales[0].code]?.title ?? activity.title}</h4>
                             {getActivityBadge(activity.type)}
                           </div>
                           <time className="text-xs text-muted-foreground block mb-2 font-medium">
                             {format(new Date(activity.activity_date), "d MMM yyyy, HH:mm", { locale: getDocumentDateFnsLocale() })}
                           </time>
-                          {activity.content && (
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{activity.content}</p>
+                          {(activity.translations?.[locales[0].code]?.content ?? activity.content) && (
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{activity.translations?.[locales[0].code]?.content ?? activity.content}</p>
                           )}
                         </CardContent>
                       </Card>
