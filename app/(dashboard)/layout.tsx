@@ -19,20 +19,11 @@ export default async function DashboardLayout({
   const translator = createTranslator(resolvedLocale.locale, [
     "common",
     "navigation",
-    "dashboard",
-    "clients",
-    "projects",
-    "tasks",
-    "calendar",
-    "finance",
-    "journal",
-    "chat",
-    "settings",
     "status",
     "validation",
   ]);
   const t = translator.t;
-  const displayName = profile.displayName || user.name || user.email.split("@")[0] || "Neta Kullanıcısı";
+  const displayName = profile.displayName || user.name || user.email.split("@")[0] || t("navigation.account.defaultUser", { fallback: "Neta Kullanıcısı" });
 
   const shortName =
     displayName
@@ -55,15 +46,6 @@ export default async function DashboardLayout({
       i18n={getClientI18nPayload(resolvedLocale.locale, [
         "common",
         "navigation",
-        "dashboard",
-        "clients",
-        "projects",
-        "tasks",
-        "calendar",
-        "finance",
-        "journal",
-        "chat",
-        "settings",
         "status",
         "validation",
       ])}

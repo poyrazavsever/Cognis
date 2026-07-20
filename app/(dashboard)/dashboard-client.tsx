@@ -132,7 +132,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                                   <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                     <div className="flex items-center gap-1.5">
                                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-muted-foreground">{entry.name === 'income' ? 'Gelir' : 'Gider'}</span>
+                                      <span className="text-muted-foreground">{entry.name === 'income' ? t('dashboard.charts.income') : t('dashboard.charts.expense')}</span>
                                     </div>
                                     <span className="font-semibold text-foreground">
                                       {formatCurrency(Number(entry.value ?? 0))}
@@ -247,7 +247,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                       </p>
                     </div>
                     <Badge variant={project.status === 'completed' ? 'secondary' : 'default'} className="capitalize text-[10px] px-1.5 py-0">
-                      {project.status === 'completed' ? 'Tamamlandı' : project.status === 'active' ? 'Aktif' : 'Beklemede'}
+                      {project.status === 'completed' ? t('dashboard.status.completed') : project.status === 'active' ? t('dashboard.status.active') : t('dashboard.status.pending')}
                     </Badge>
                   </div>
                 </PendingLink>
@@ -274,7 +274,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">{client.company_name || "Bireysel"}</p>
+                    <p className="text-xs text-muted-foreground">{client.company_name || t("dashboard.clients.individual")}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(client.created_at).toLocaleDateString(getDocumentIntlLocale(), { month: "short", day: "numeric" })}

@@ -123,7 +123,7 @@ export function LanguageDetail({
               </div>
             </div>
             <Button asChild variant="secondary" effect="shine" className="gap-2">
-              <Link href="#translation-completion">
+              <Link href={`/settings/languages/${locale.code}/translations`}>
                 <Languages className="h-4 w-4" aria-hidden="true" />
                 {t("settings.languageDetail.actions.translations")}
               </Link>

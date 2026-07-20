@@ -72,12 +72,19 @@ export function LanguagesList({
               {t("settings.languages.description")}
             </p>
           </div>
-          <Button asChild variant="default" effect="shine" className="gap-2">
-            <Link href="/settings/languages/new">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              {t("settings.languages.actions.add")}
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="secondary" effect="shine" className="gap-2">
+              <Link href="/settings/languages/import-export">
+                İçe / Dışa Aktar
+              </Link>
+            </Button>
+            <Button asChild variant="default" effect="shine" className="gap-2">
+              <Link href="/settings/languages/new">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                {t("settings.languages.actions.add")}
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div
