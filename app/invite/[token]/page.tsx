@@ -9,6 +9,7 @@ import { Input, Label } from "poyraz-ui/atoms";
 import { Alert, AlertDescription } from "poyraz-ui/molecules";
 import { getPortalInvitationPreview } from "@/server/auth/invitations";
 import { getPublicBranding } from "@/server/branding/runtime";
+import { resolveInvitationLocale } from "@/server/i18n/resolver";
 import { createTranslator } from "@/server/i18n/translator";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,8 @@ export default async function InvitationPage({
     notFound();
   }
 
-  const t = createTranslator(invitation.locale, ["auth"]).t;
+  const resolvedLocale = await resolveInvitationLocale(invitation.locale);
+  const t = createTranslator(resolvedLocale.locale, ["auth"]).t;
   const query = await searchParams;
   const queryCode = query.code ?? null;
   const queryMessage = queryCode ? t(queryCode) : query.message;

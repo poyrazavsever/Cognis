@@ -1,13 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   acceptPortalInvitation,
-  getPortalInvitationPreview,
   PortalInvitationError,
 } from "@/server/auth/invitations";
-import { buildLocaleCookie } from "@/server/i18n/locale";
 
 function inviteErrorCode(error: unknown): string {
   if (!(error instanceof PortalInvitationError)) return "auth.messages.portalInviteFailed";
@@ -27,7 +24,5 @@ export async function acceptInvitation(formData: FormData) {
     redirect(`/invite/${encodeURIComponent(token)}?error=true&code=${inviteErrorCode(error)}`);
   }
 
-  const locale = getPortalInvitationPreview(token)?.locale ?? "tr";
-  (await cookies()).set(buildLocaleCookie(locale));
   redirect("/login?code=auth.invite.success");
 }

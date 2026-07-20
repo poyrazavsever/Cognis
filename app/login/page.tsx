@@ -1,16 +1,13 @@
 import { login } from "@/app/login/actions";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ErrorToaster } from "@/components/error-toaster";
-import { LocaleSelectForm } from "@/components/i18n/locale-select-form";
 import { LockKeyhole, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
 import { Input, Label } from "poyraz-ui/atoms";
 import { Alert, AlertDescription } from "poyraz-ui/molecules";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { getPublicBranding } from "@/server/branding/runtime";
-import { getSqliteConnection } from "@/server/db/client";
-import { ContentTranslationService } from "@/server/i18n/content";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolvePublicLocale } from "@/server/i18n/resolver";
 import { createTranslator } from "@/server/i18n/translator";
 import type { TranslationValues } from "@/lib/i18n";
 
@@ -40,9 +37,8 @@ export default async function LoginPage({
   const code = firstParam(resolvedParams?.code);
   const rawMessage = firstParam(resolvedParams?.message);
   const branding = getPublicBranding();
-  const locale = await resolveRequestLocale();
+  const locale = await resolvePublicLocale();
   const t = createTranslator(locale.locale, ["auth"]).t;
-  const localization = new ContentTranslationService(getSqliteConnection().db).getPublicLocalizationContext();
   const message = resolveAuthMessage(code, rawMessage, t);
   const marketing = {
     headline: t("auth.marketing.headline"),
@@ -78,7 +74,6 @@ export default async function LoginPage({
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
             ) : null}
-            <LocaleSelectForm label={t("auth.language")} value={locale.locale} locales={localization.locales} />
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
