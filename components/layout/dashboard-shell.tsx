@@ -35,7 +35,7 @@ export function DashboardShell({ branding, children, colorMode, i18n, labels, us
         homeHref="/"
         labels={labels}
         navGroups={navGroups}
-        settingsHref="/settings"
+        settingsHref="/settings/general"
         user={user}
       >
         {children}

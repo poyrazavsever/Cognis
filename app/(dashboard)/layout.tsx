@@ -2,7 +2,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { domainActorFromSession } from "@/server/auth/domain-actor";
 import { requireFreelancer } from "@/server/auth/session";
 import { getPublicBranding } from "@/server/branding/runtime";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { createTranslator, getClientI18nPayload } from "@/server/i18n/translator";
 import { getUserPreferences } from "@/server/settings/preferences";
 
@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   const { user, profile } = context;
   const branding = getPublicBranding();
   const preferences = getUserPreferences(domainActorFromSession(context));
-  const resolvedLocale = await resolveRequestLocale();
+  const resolvedLocale = await resolveFreelancerLocale(context);
   const translator = createTranslator(resolvedLocale.locale, [
     "common",
     "navigation",

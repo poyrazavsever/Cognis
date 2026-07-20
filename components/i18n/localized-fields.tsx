@@ -19,6 +19,10 @@ type LocalizedFieldsProps = {
   fields: ContentTranslationField[];
   values?: LocalizedFieldValues | null;
   fallbackValues?: Record<string, string | null | undefined>;
+  labels?: {
+    defaultBadge?: string;
+    missingRequired?: string;
+  };
 };
 
 export function LocalizedFields({
@@ -28,6 +32,7 @@ export function LocalizedFields({
   fields,
   values,
   fallbackValues,
+  labels,
 }: LocalizedFieldsProps) {
   const orderedLocales = useMemo(() => {
     const localeMap = new Map(locales.map((locale) => [locale.code, locale]));
@@ -66,8 +71,18 @@ export function LocalizedFields({
             onClick={() => setActiveLocale(locale.code)}
           >
             {locale.nativeName || locale.code}
-            {locale.code === defaultLocale ? <Badge variant="secondary">varsayılan</Badge> : null}
-            {missingRequiredLocales.has(locale.code) ? <span aria-hidden="true" className="text-amber-500">•</span> : null}
+            {locale.code === defaultLocale ? (
+              <Badge variant="secondary">{labels?.defaultBadge ?? "Default"}</Badge>
+            ) : null}
+            {missingRequiredLocales.has(locale.code) ? (
+              <span
+                aria-label={labels?.missingRequired}
+                aria-hidden={labels?.missingRequired ? undefined : true}
+                className="text-amber-500"
+              >
+                •
+              </span>
+            ) : null}
           </Button>
         ))}
       </div>

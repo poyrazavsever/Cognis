@@ -9,7 +9,7 @@ import {
 } from "@/lib/color-mode";
 import { Toaster } from "poyraz-ui/molecules";
 import { getPublicBranding } from "@/server/branding/runtime";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolveRootLocale } from "@/server/i18n/resolver";
 
 const colorModeScript = `(() => {
   const root = document.documentElement;
@@ -53,7 +53,7 @@ export default async function RootLayout({
   const colorMode = isColorMode(cookieColorMode)
     ? cookieColorMode
     : branding.defaultColorMode;
-  const locale = await resolveRequestLocale();
+  const locale = await resolveRootLocale();
 
   return (
     <html

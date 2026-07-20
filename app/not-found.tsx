@@ -1,11 +1,11 @@
 import { getPublicBranding } from "@/server/branding/runtime";
-import { resolveRequestLocale } from "@/server/i18n/resolver";
+import { resolveRootLocale } from "@/server/i18n/resolver";
 import { createTranslator } from "@/server/i18n/translator";
 import Link from "next/link";
 import { Button, Typography } from "poyraz-ui/atoms";
 
 export default async function NotFoundPage() {
-  const locale = await resolveRequestLocale();
+  const locale = await resolveRootLocale();
   const t = createTranslator(locale.locale, ["common"]).t;
   const branding = getPublicBranding();
 
