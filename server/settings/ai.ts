@@ -11,11 +11,13 @@ import { DomainError } from "../domain/errors";
 
 const inputSchema = z.object({
   provider: z.enum(["gemini", "openai", "groq", "ollama"]),
+  model: z.string().trim().max(200).optional(),
   apiKey: z.string().trim().max(4_096).optional(),
 });
 
 export type PublicAiSettings = {
   provider: AiProvider;
+  model: string | null;
   hasApiKey: boolean;
 };
 
@@ -29,6 +31,7 @@ export function getPublicAiSettings(actor: DomainActor): PublicAiSettings {
 
   return {
     provider: row?.provider ?? "gemini",
+    model: row?.model ?? null,
     hasApiKey: Boolean(row?.encryptedApiKey),
   };
 }
@@ -51,26 +54,31 @@ export function updateAiSettings(actor: DomainActor, input: unknown): PublicAiSe
     : parsed.data.apiKey
       ? encryptSecret(parsed.data.apiKey)
       : current?.encryptedApiKey ?? null;
+  const model = parsed.data.model || null;
 
   db.insert(userAiSettings)
     .values({
       ownerUserId: scope.ownerUserId,
       provider: parsed.data.provider,
-      model: null,
+      model,
       encryptedApiKey,
     })
     .onConflictDoUpdate({
       target: userAiSettings.ownerUserId,
       set: {
         provider: parsed.data.provider,
-        model: null,
+        model,
         encryptedApiKey,
         updatedAt: sqlNow(),
       },
     })
     .run();
 
-  return { provider: parsed.data.provider, hasApiKey: Boolean(encryptedApiKey) };
+  return {
+    provider: parsed.data.provider,
+    model,
+    hasApiKey: Boolean(encryptedApiKey),
+  };
 }
 
 export function getAiRuntimeSettings(actor: DomainActor): {

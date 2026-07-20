@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import type { ColorMode } from "@/lib/color-mode";
 import { getSqliteConnection } from "@/server/db/client";
-import { userPreferences } from "@/server/db/schema";
+import { instanceLocales, userPreferences } from "@/server/db/schema";
 import { assertEnabledActor, type DomainActor } from "@/server/domain/actor";
 import { DomainError } from "@/server/domain/errors";
 
@@ -82,6 +82,18 @@ export function updateLanguagePreference(
   }
 
   const { db } = getSqliteConnection();
+  const locale = db
+    .select({
+      code: instanceLocales.code,
+      status: instanceLocales.status,
+    })
+    .from(instanceLocales)
+    .where(eq(instanceLocales.code, parsed.data.language))
+    .get();
+  if (!locale || locale.status !== "active") {
+    throw new DomainError("VALIDATION_ERROR", "Dil tercihi aktif bir dil olmalıdır.");
+  }
+
   db.insert(userPreferences)
     .values({
       ownerUserId: actor.authUserId,

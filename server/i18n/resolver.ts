@@ -1,82 +1,118 @@
-import { cookies, headers } from "next/headers";
-import { cache } from "react";
-import { DEFAULT_LOCALE } from "../../lib/i18n";
-import { getSessionContextFromHeaders } from "../auth/session";
-import { getSqliteConnection } from "../db/client";
-import { clients, instanceI18nSettings, instanceLocales, userPreferences } from "../db/schema";
+import "server-only";
+
 import { eq } from "drizzle-orm";
-import { directionForLocale, LOCALE_COOKIE, normalizeLocaleCode } from "./locale";
+import { cache } from "react";
+import {
+  resolveLocalePolicy,
+  type LocaleResolution,
+} from "../../lib/i18n/locale-resolution";
+import type { SessionContext } from "../auth/session";
+import { getSessionContext } from "../auth/session";
+import { getSqliteConnection } from "../db/client";
+import {
+  clients,
+  instanceI18nSettings,
+  instanceLocales,
+  userPreferences,
+} from "../db/schema";
 
-export type ResolvedLocale = {
-  locale: string;
-  requestedLocale: string | null;
-  defaultLocale: string;
-  direction: "ltr" | "rtl";
-  source: "user" | "client" | "cookie" | "instance" | "fallback";
-};
+export type ResolvedLocale = LocaleResolution;
 
-export const resolveRequestLocale = cache(async (): Promise<ResolvedLocale> => {
-  const requestHeaders = await headers();
-  const cookieStore = await cookies();
-  const context = await getSessionContextFromHeaders(requestHeaders);
+type LocaleContext = ReturnType<typeof readLocaleContext>;
+
+export const resolvePublicLocale = cache(async (): Promise<ResolvedLocale> => {
+  return resolveFromContext(readLocaleContext(), []);
+});
+
+export async function resolveInvitationLocale(
+  invitationLocale: string | null | undefined,
+): Promise<ResolvedLocale> {
+  return resolveFromContext(readLocaleContext(), [
+    { locale: invitationLocale, source: "invitation" },
+  ]);
+}
+
+export async function resolveFreelancerLocale(
+  providedContext?: SessionContext,
+): Promise<ResolvedLocale> {
+  const context = providedContext ?? await getSessionContext();
+  const localeContext = readLocaleContext();
+  const preference = context
+    ? readUserPreference(localeContext, context.profile.authUserId)
+    : null;
+
+  return resolveFromContext(localeContext, [
+    { locale: preference, source: "user" },
+  ]);
+}
+
+export async function resolvePortalLocale(
+  providedContext?: SessionContext,
+): Promise<ResolvedLocale> {
+  const context = providedContext ?? await getSessionContext();
+  const localeContext = readLocaleContext();
+  const preference = context
+    ? readUserPreference(localeContext, context.profile.authUserId)
+    : null;
+  const clientDefault = context?.profile.clientId
+    ? localeContext.db
+      .select({ portalLocale: clients.portalLocale })
+      .from(clients)
+      .where(eq(clients.id, context.profile.clientId))
+      .get()?.portalLocale
+    : null;
+
+  return resolveFromContext(localeContext, [
+    { locale: preference, source: "user" },
+    { locale: clientDefault, source: "client" },
+  ]);
+}
+
+export const resolveRootLocale = cache(async (): Promise<ResolvedLocale> => {
+  const context = await getSessionContext();
+  if (!context) return resolvePublicLocale();
+  if (context.profile.role === "client") return resolvePortalLocale(context);
+  return resolveFreelancerLocale(context);
+});
+
+function readLocaleContext() {
   const { db } = getSqliteConnection();
-
-  const settings = db.select().from(instanceI18nSettings).where(eq(instanceI18nSettings.key, "default")).get();
-  const defaultLocale = settings?.defaultLocale ?? DEFAULT_LOCALE;
-  const cookieLocale = normalizeLocaleCode(cookieStore.get(LOCALE_COOKIE)?.value);
-  let requestedLocale: string | null = null;
-  let source: ResolvedLocale["source"] = "fallback";
-
-  if (context?.profile.role === "client" && context.profile.clientId) {
-    requestedLocale = normalizeLocaleCode(
-      db
-        .select({ portalLocale: clients.portalLocale })
-        .from(clients)
-        .where(eq(clients.id, context.profile.clientId))
-        .get()?.portalLocale,
-    );
-    source = requestedLocale ? "client" : source;
-  }
-
-  if (!requestedLocale && context) {
-    requestedLocale = normalizeLocaleCode(
-      db
-        .select({ language: userPreferences.language })
-        .from(userPreferences)
-        .where(eq(userPreferences.ownerUserId, context.profile.authUserId))
-        .get()?.language,
-    );
-    source = requestedLocale ? "user" : source;
-  }
-
-  if (!requestedLocale && cookieLocale) {
-    requestedLocale = cookieLocale;
-    source = "cookie";
-  }
-
-  if (!requestedLocale) {
-    requestedLocale = defaultLocale;
-    source = "instance";
-  }
-
-  const localeRow = db
+  const settings = db
+    .select({ defaultLocale: instanceI18nSettings.defaultLocale })
+    .from(instanceI18nSettings)
+    .where(eq(instanceI18nSettings.key, "default"))
+    .get();
+  const locales = db
     .select({
       code: instanceLocales.code,
       status: instanceLocales.status,
       textDirection: instanceLocales.textDirection,
     })
     .from(instanceLocales)
-    .where(eq(instanceLocales.code, requestedLocale))
-    .get();
-  const locale = localeRow && localeRow.status !== "archived"
-    ? localeRow.code
-    : defaultLocale || DEFAULT_LOCALE;
+    .all();
 
   return {
-    locale,
-    requestedLocale,
-    defaultLocale,
-    direction: directionForLocale(locale, localeRow?.textDirection),
-    source,
+    db,
+    defaultLocale: settings?.defaultLocale ?? "tr",
+    locales,
   };
-});
+}
+
+function readUserPreference(context: LocaleContext, authUserId: string) {
+  return context.db
+    .select({ language: userPreferences.language })
+    .from(userPreferences)
+    .where(eq(userPreferences.ownerUserId, authUserId))
+    .get()?.language ?? null;
+}
+
+function resolveFromContext(
+  context: LocaleContext,
+  candidates: Parameters<typeof resolveLocalePolicy>[0]["candidates"],
+) {
+  return resolveLocalePolicy({
+    activeLocales: context.locales,
+    defaultLocale: context.defaultLocale,
+    candidates,
+  });
+}

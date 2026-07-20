@@ -72,8 +72,53 @@ export type TranslationCompletion = {
   missingKeys: string[];
 };
 
+export type NamespaceCompletion = {
+  namespace: I18nNamespace;
+  translated: number;
+  total: number;
+  percent: number;
+  missingKeys: string[];
+};
+
+export type LocaleUsage = {
+  defaultSettings: number;
+  fallbacks: number;
+  userPreferences: number;
+  clients: number;
+  portalInvitations: number;
+  contentTranslations: number;
+};
+
+export type LocaleReadiness = {
+  canActivate: boolean;
+  canArchive: boolean;
+  canSetDefault: boolean;
+  missingCriticalKeys: string[];
+  archiveReferences: number;
+};
+
 const LOCALE_CODE_PATTERN = /^[a-z]{2}(?:-[A-Z]{2}[0-9]?)?$/;
 const BUILT_IN_LOCALES = new Set(["tr", "en"]);
+export const ACTIVATION_CRITICAL_KEYS = [
+  "common.error.title",
+  "common.error.description",
+  "common.actions.save",
+  "common.actions.cancel",
+  "auth.login.title",
+  "auth.login.email",
+  "auth.login.password",
+  "auth.login.submit",
+  "auth.messages.invalidCredentials",
+  "navigation.items.dashboard",
+  "navigation.items.settings",
+  "navigation.account.signOut",
+  "portal.dashboard.title",
+  "portal.projects.title",
+  "portal.tasks.title",
+  "portal.revisions.title",
+  "validation.required",
+  "validation.invalidLocale",
+] as const;
 
 export class I18nService {
   private readonly repository;
@@ -115,7 +160,7 @@ export class I18nService {
       nativeName: normalizeRequiredText(input.nativeName ?? input.name, "Yerel dil adı zorunludur."),
       fallbackLocale,
       textDirection: input.textDirection ?? "ltr",
-      status: input.status ?? "draft",
+      status: "draft",
       builtIn: false,
       sortOrder: input.sortOrder ?? 100,
     });
@@ -138,6 +183,13 @@ export class I18nService {
     this.assertValidFallback(locale.code, nextFallback);
 
     const nextStatus = input.status ?? locale.status;
+    if (
+      nextStatus === "active"
+      && locale.status !== "active"
+      && !locale.builtIn
+    ) {
+      this.assertLocaleCanBeActivated(locale.code);
+    }
     if (nextStatus === "archived") {
       this.assertLocaleCanBeArchived(locale.code);
     }
@@ -252,6 +304,61 @@ export class I18nService {
     });
   }
 
+  getNamespaceCompletion(actor: DomainActor, code: string): NamespaceCompletion[] {
+    requireOwnerScope(actor);
+    this.ensureBootstrap();
+    const locale = this.getExistingLocale(code);
+    const translations = this.translationKeysForLocale(locale.code);
+
+    return I18N_NAMESPACES.map((namespace) => {
+      const referenceKeys = Object.keys(flattenCatalog(trCatalog, [namespace]));
+      const missingKeys = referenceKeys.filter((key) => !translations.has(key));
+      const translated = referenceKeys.length - missingKeys.length;
+      return {
+        namespace,
+        translated,
+        total: referenceKeys.length,
+        percent: referenceKeys.length
+          ? Math.round((translated / referenceKeys.length) * 100)
+          : 100,
+        missingKeys,
+      };
+    });
+  }
+
+  getLocaleUsage(actor: DomainActor, code: string): LocaleUsage {
+    requireOwnerScope(actor);
+    this.ensureBootstrap();
+    const locale = this.getExistingLocale(code);
+    return this.repository.countLocaleReferences(locale.code);
+  }
+
+  getLocaleReadiness(actor: DomainActor, code: string): LocaleReadiness {
+    requireOwnerScope(actor);
+    this.ensureBootstrap();
+    const locale = this.getExistingLocale(code);
+    const settings = this.getSettings(actor);
+    const usage = this.getLocaleUsage(actor, locale.code);
+    const archiveReferences = Object.entries(usage)
+      .filter(([key]) => key !== "contentTranslations")
+      .reduce((total, [, value]) => total + value, 0);
+    const missingCriticalKeys = locale.builtIn
+      ? []
+      : ACTIVATION_CRITICAL_KEYS.filter(
+        (key) => !this.translationKeysForLocale(locale.code).has(key),
+      );
+
+    return {
+      canActivate: locale.status === "active" || missingCriticalKeys.length === 0,
+      canArchive: !locale.builtIn
+        && settings.defaultLocale !== locale.code
+        && archiveReferences === 0,
+      canSetDefault: locale.status === "active",
+      missingCriticalKeys,
+      archiveReferences,
+    };
+  }
+
   exportPackage(actor: DomainActor): I18nExportPackage {
     requireOwnerScope(actor);
     this.ensureBootstrap();
@@ -331,12 +438,20 @@ export class I18nService {
   private assertValidFallback(code: string, fallbackLocale: string | null): void {
     if (!fallbackLocale) return;
     if (fallbackLocale === code) {
-      throw new DomainError("VALIDATION_ERROR", "Dil kendi kendine fallback olamaz.");
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        "Dil kendi kendine fallback olamaz.",
+        { reason: "self_fallback" },
+      );
     }
 
     const fallback = this.repository.getLocale(fallbackLocale);
     if (!fallback || fallback.status === "archived") {
-      throw new DomainError("VALIDATION_ERROR", "Fallback dili aktif veya taslak bir dil olmalıdır.");
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        "Fallback dili aktif veya taslak bir dil olmalıdır.",
+        { reason: "invalid_fallback" },
+      );
     }
 
     const graph = new Map(
@@ -350,7 +465,11 @@ export class I18nService {
     let cursor: string | null = fallbackLocale;
     while (cursor) {
       if (cursor === code || seen.has(cursor)) {
-        throw new DomainError("VALIDATION_ERROR", "Fallback zinciri döngü oluşturamaz.");
+        throw new DomainError(
+          "VALIDATION_ERROR",
+          "Fallback zinciri döngü oluşturamaz.",
+          { reason: "fallback_loop" },
+        );
       }
       seen.add(cursor);
       cursor = graph.get(cursor) ?? null;
@@ -359,10 +478,41 @@ export class I18nService {
 
   private assertLocaleCanBeArchived(code: string): void {
     const references = this.repository.countLocaleReferences(code);
-    const referenceCount = Object.values(references).reduce((total, value) => total + value, 0);
+    const referenceCount = Object.entries(references)
+      .filter(([key]) => key !== "contentTranslations")
+      .reduce((total, [, value]) => total + value, 0);
     if (referenceCount > 0) {
       throw new DomainError("CONFLICT", "Kullanımda olan dil arşivlenemez.", references);
     }
+  }
+
+  private assertLocaleCanBeActivated(code: string): void {
+    const locale = this.getExistingLocale(code);
+    if (locale.builtIn) return;
+    const translatedKeys = this.translationKeysForLocale(locale.code);
+    const missingCriticalKeys = ACTIVATION_CRITICAL_KEYS.filter(
+      (key) => !translatedKeys.has(key),
+    );
+    if (missingCriticalKeys.length > 0) {
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        "Kritik arayüz çevirileri tamamlanmadan dil aktifleştirilemez.",
+        { missingCriticalKeys },
+      );
+    }
+  }
+
+  private translationKeysForLocale(code: string): Set<string> {
+    const builtIn = getBuiltInCatalog(code);
+    const keys = builtIn
+      ? Object.keys(flattenCatalog(builtIn, I18N_NAMESPACES))
+      : [];
+    for (const row of this.repository.listAllUiTranslations()) {
+      if (row.locale === code && row.value.trim()) {
+        keys.push(`${row.namespace}.${row.translationKey}`);
+      }
+    }
+    return new Set(keys);
   }
 }
 

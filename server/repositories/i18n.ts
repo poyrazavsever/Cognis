@@ -6,6 +6,7 @@ import {
   instanceLocales,
   portalInvitations,
   userPreferences,
+  contentTranslations,
 } from "../db/schema";
 import type { DomainDatabase } from "../domain/database";
 
@@ -146,6 +147,13 @@ export function createI18nRepository(db: DomainDatabase) {
           .select({ count: sql<number>`count(*)` })
           .from(portalInvitations)
           .where(eq(portalInvitations.locale, code))
+          .get()?.count ?? 0,
+      ),
+      contentTranslations: Number(
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(contentTranslations)
+          .where(eq(contentTranslations.locale, code))
           .get()?.count ?? 0,
       ),
     }),

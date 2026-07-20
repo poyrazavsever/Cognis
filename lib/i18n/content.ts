@@ -33,8 +33,8 @@ export const contentTranslationRegistry = {
     { name: "description", label: "Açıklama", kind: "textarea", maxLength: 20_000, placeholder: "Kapsam, not veya teslim kriterleri..." },
   ],
   branding: [
-    { name: "portalWelcome", label: "Portal karşılama metni", kind: "textarea", maxLength: 10_000 },
-    { name: "portalFooter", label: "Portal footer metni", kind: "textarea", maxLength: 5_000 },
+    { name: "portalWelcome", label: "Portal karşılama metni", kind: "textarea", maxLength: 2_000 },
+    { name: "portalFooter", label: "Portal footer metni", kind: "textarea", maxLength: 1_000 },
   ],
   calendar_event: [
     { name: "title", label: "Başlık", required: true, maxLength: 300 },

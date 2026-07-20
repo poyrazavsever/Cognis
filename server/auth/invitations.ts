@@ -545,28 +545,16 @@ export function setClientPortalLocale(
       .where(eq(clients.id, clientId))
       .run();
 
-    if (ownedClient.authUserId) {
-      tx.insert(userPreferences)
-        .values({
-          ownerUserId: ownedClient.authUserId,
-          language: locale,
-        })
-        .onConflictDoUpdate({
-          target: userPreferences.ownerUserId,
-          set: {
-            language: locale,
-            updatedAt: new Date().toISOString(),
-          },
-        })
-        .run();
-      tx.delete(session).where(eq(session.userId, ownedClient.authUserId)).run();
-    }
-
     tx.insert(authAuditEvents)
       .values({
         type: "client_locale_updated",
         authUserId: actor.user.id,
-        metadata: { clientId, locale, targetAuthUserId: ownedClient.authUserId },
+        metadata: {
+          clientId,
+          locale,
+          targetAuthUserId: ownedClient.authUserId,
+          userPreferencePreserved: Boolean(ownedClient.authUserId),
+        },
       })
       .run();
 
