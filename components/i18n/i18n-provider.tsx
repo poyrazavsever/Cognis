@@ -22,13 +22,16 @@ export function I18nProvider({
   messages,
 }: {
   children: ReactNode;
-  locale: string;
+  locale?: string;
   messages: Record<string, string>;
 }) {
-  const value = useMemo(
-    () => createTranslatorFromMessages(locale, messages),
-    [locale, messages],
-  );
+  const parentValue = useContext(I18nContext);
+
+  const value = useMemo(() => {
+    const finalLocale = locale ?? parentValue?.locale ?? "en";
+    const mergedMessages = parentValue ? { ...parentValue.messages, ...messages } : messages;
+    return createTranslatorFromMessages(finalLocale, mergedMessages);
+  }, [locale, messages, parentValue]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

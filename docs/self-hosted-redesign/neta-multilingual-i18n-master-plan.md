@@ -2,7 +2,7 @@
 title: Neta Çok Dilli Sistem V2 Ana Planı
 description: Ayarlar bilgi mimarisi, owner ve müşteri dil tercihleri, yönetilebilir arayüz çevirileri ve tüm dinamik içerik formları için sayfa bazlı uygulama planı.
 status: in_progress
-current_phase: "faz-12"
+current_phase: "faz-21"
 last_updated: 2026-07-20
 supersedes: "neta-multilingual-i18n-v1-legacy-plan.md"
 ---
@@ -687,167 +687,167 @@ Route: `/settings/languages/[locale]`
 
 Route: `/settings/languages/[locale]/translations`
 
-- [ ] Sayfa/modül bazlı navigation ve filtreleri uygula.
-- [ ] TR/EN kaynak, fallback preview ve hedef input'ları ayrıştır.
-- [ ] Dirty state, toplu kaydetme ve çıkış uyarısı ekle.
-- [ ] Eksik/değişmiş/portal kritik filtrelerini uygula.
-- [ ] Interpolation ve maksimum uzunluk doğrulamasını göster.
-- [ ] Reset override aksiyonunu güvenli hale getir.
-- [ ] Büyük katalogda pagination/virtualization performansını ölç.
+- [x] Sayfa/modül bazlı navigation ve filtreleri uygula.
+- [x] TR/EN kaynak, fallback preview ve hedef input'ları ayrıştır.
+- [x] Dirty state, toplu kaydetme ve çıkış uyarısı ekle.
+- [x] Eksik/değişmiş/portal kritik filtrelerini uygula.
+- [x] Interpolation ve maksimum uzunluk doğrulamasını göster.
+- [x] Reset override aksiyonunu güvenli hale getir.
+- [x] Büyük katalogda pagination/virtualization performansını ölç.
 
 Çıkış kriteri:
 
-- [ ] Teknik key bilmeyen owner çevirileri sayfa bazında tamamlayabiliyor.
+- [x] Teknik key bilmeyen owner çevirileri sayfa bazında tamamlayabiliyor.
 
 ### Faz 13 — Ayarlar / Dil içe-dışa aktarma
 
 Route: `/settings/languages/import-export`
 
-- [ ] Export kapsamı ve locale seçimini uygula.
-- [ ] Dosya upload, schema validation ve preview ekranı ekle.
-- [ ] Create/update/skip/conflict özetini göster.
-- [ ] Overwrite için açık confirmation iste.
-- [ ] Boyut, key allowlist, prototype pollution ve interpolation kontrollerini
+- [x] Export kapsamı ve locale seçimini uygula.
+- [x] Dosya upload, schema validation ve preview ekranı ekle.
+- [x] Create/update/skip/conflict özetini göster.
+- [x] Overwrite için açık confirmation iste.
+- [x] Boyut, key allowlist, prototype pollution ve interpolation kontrollerini
   uygula.
 
 Çıkış kriteri:
 
-- [ ] Import işlemi preview olmadan mutation yapmıyor.
+- [x] Import işlemi preview olmadan mutation yapmıyor.
 
 ### Faz 14 — Login sayfası
 
 Route: `/login`
 
-- [ ] Locale select component'ini kaldır.
-- [ ] Sayfayı yalnız public instance locale ile render et.
-- [ ] Form, marketing alanı, action error, toast ve accessibility metinlerini
+- [x] Locale select component'ini kaldır.
+- [x] Sayfayı yalnız public instance locale ile render et.
+- [x] Form, marketing alanı, action error, toast ve accessibility metinlerini
   tamamla.
-- [ ] Login action'ını stabil hata kodu + localized presentation modeline taşı.
-- [ ] Eski locale cookie ile regression testi ekle.
+- [x] Login action'ını stabil hata kodu + localized presentation modeline taşı.
+- [x] Eski locale cookie ile regression testi ekle.
 
 Çıkış kriteri:
 
-- [ ] Login ekranında hiçbir dil değiştirme kontrolü yok.
-- [ ] Login TR/EN katalog parity yüzde 100.
+- [x] Login ekranında hiçbir dil değiştirme kontrolü yok.
+- [x] Login TR/EN katalog parity yüzde 100.
 
 ### Faz 15 — İlk admin kayıt sayfası
 
 Route: `/register`
 
-- [ ] Locale select component'ini kaldır.
-- [ ] Sayfayı yalnız public instance locale ile render et.
-- [ ] İlk kurulum, kapalı kayıt, form ve action hata metinlerini tamamla.
-- [ ] Çift toast ve action/presentation tekrarlarını regression testine bağla.
+- [x] Locale select component'ini kaldır.
+- [x] Sayfayı yalnız public instance locale ile render et.
+- [x] İlk kurulum, kapalı kayıt, form ve action hata metinlerini tamamla.
+- [x] Çift toast ve action/presentation tekrarlarını regression testine bağla.
 
 Çıkış kriteri:
 
-- [ ] Register ekranında dil seçici ve hard-coded kullanıcı metni yok.
+- [x] Register ekranında dil seçici ve hard-coded kullanıcı metni yok.
 
 ### Faz 16 — Şifremi unuttum sayfası
 
 Route: `/forgot-password`
 
-- [ ] Sayfayı yalnız public instance locale ile render et.
-- [ ] Form, provider durumu, success/error ve geri dönüş metinlerini çevir.
-- [ ] Locale cookie'den etkilenmediğini test et.
+- [x] Sayfayı yalnız public instance locale ile render et.
+- [x] Form, provider durumu, success/error ve geri dönüş metinlerini çevir.
+- [x] Locale cookie'den etkilenmediğini test et.
 
 Çıkış kriteri:
 
-- [ ] Forgot-password TR/EN ve instance default davranışı tamamlandı.
+- [x] Forgot-password TR/EN ve instance default davranışı tamamlandı.
 
 ### Faz 17 — Şifre sıfırlama sayfası
 
 Route: `/reset-password`
 
-- [ ] Locale select component'ini kaldır.
-- [ ] Sayfayı yalnız public instance locale ile render et.
-- [ ] Token, form, validation, success/error ve accessibility metinlerini çevir.
-- [ ] Geçersiz/expired token state'lerini test et.
+- [x] Locale select component'ini kaldır.
+- [x] Sayfayı yalnız public instance locale ile render et.
+- [x] Token, form, validation, success/error ve accessibility metinlerini çevir.
+- [x] Geçersiz/expired token state'lerini test et.
 
 Çıkış kriteri:
 
-- [ ] Reset-password ekranında dil seçici ve sabit dil metni yok.
+- [x] Reset-password ekranında dil seçici ve sabit dil metni yok.
 
 ### Faz 18 — Dashboard shell ve ortak navigasyon
 
-- [ ] Freelancer ve portal sidebar metinlerini tamamla.
-- [ ] Account dropdown, logout, tooltip, mobile menu ve progress metinlerini
+- [x] Freelancer ve portal sidebar metinlerini tamamla.
+- [x] Account dropdown, logout, tooltip, mobile menu ve progress metinlerini
   tamamla.
-- [ ] Default Türkçe fallback label objelerini kaldır veya yalnız güvenli
+- [x] Default Türkçe fallback label objelerini kaldır veya yalnız güvenli
   developer fallback'e dönüştür.
-- [ ] Root layout'a tüm namespace'leri göndermeyi bırak.
-- [ ] Settings bağlantılarını yeni route'lara bağla.
+- [x] Root layout'a tüm namespace'leri göndermeyi bırak.
+- [x] Settings bağlantılarını yeni route'lara bağla.
 
 Çıkış kriteri:
 
-- [ ] Shell'de hard-coded kullanıcı metni ve raw key yok.
+- [x] Shell'de hard-coded kullanıcı metni ve raw key yok.
 
 ### Faz 19 — Dashboard ana sayfası
 
 Route: `/`
 
-- [ ] Header, tarih filtresi, stats, chart, recent list ve empty state'leri çevir.
-- [ ] Tarih, para, sayı, mood ve yüzde formatlarını locale-aware yap.
-- [ ] Loading/error bileşenlerini tamamla.
-- [ ] Dashboard client component hard-coded metin taramasını sıfırla.
+- [x] Header, tarih filtresi, stats, chart, recent list ve empty state'leri çevir.
+- [x] Tarih, para, sayı, mood ve yüzde formatlarını locale-aware yap.
+- [x] Loading/error bileşenlerini tamamla.
+- [x] Dashboard client component hard-coded metin taramasını sıfırla.
 
 Çıkış kriteri:
 
-- [ ] Dashboard TR ve EN'de görsel/metinsel olarak eksiksiz.
+- [x] Dashboard TR ve EN'de görsel/metinsel olarak eksiksiz.
 
 ### Faz 20 — Analizler sayfası
 
 Route: `/analytics`
 
-- [ ] Tüm kart, grafik, filtre, tooltip ve empty state metinlerini çevir.
-- [ ] Sayı, tarih ve para formatlarını locale-aware yap.
-- [ ] Loading state'i çevir.
+- [x] Tüm kart, grafik, filtre, tooltip ve empty state metinlerini çevir.
+- [x] Sayı, tarih ve para formatlarını locale-aware yap.
+- [x] Loading state'i çevir.
 
 Çıkış kriteri:
 
-- [ ] Analiz sayfasında sabit kullanıcı metni kalmadı.
+- [x] Analiz sayfasında sabit kullanıcı metni kalmadı.
 
 ### Faz 21 — Takvim sayfası ve etkinlik formu
 
 Route: `/calendar`
 
-- [ ] Takvim header, gün/ay adları, filtreler, kartlar ve event actions'ı çevir.
-- [ ] Etkinlik create/edit formunda title/description için aktif dil tab'ları
+- [x] Takvim header, gün/ay adları, filtreler, kartlar ve event actions'ı çevir.
+- [x] Etkinlik create/edit formunda title/description için aktif dil tab'ları
   ekle.
-- [ ] Type label, validation, toast ve confirmation metinlerini çevir.
-- [ ] Calendar event translation CRUD ve backfill'i tamamla.
+- [x] Type label, validation, toast ve confirmation metinlerini çevir.
+- [x] Calendar event translation CRUD ve backfill'i tamamla.
 
 Çıkış kriteri:
 
-- [ ] Etkinlik metinleri tüm aktif dillerde ayrı saklanıyor.
+- [x] Etkinlik metinleri tüm aktif dillerde ayrı saklanıyor.
 
 ### Faz 22 — Müşteriler liste sayfası ve müşteri formu
 
 Route: `/clients`
 
-- [ ] Header, stats, filtre, kart/liste, empty state ve aksiyonları çevir.
-- [ ] Müşteri notes alanı için aktif dil tab'ları ekle.
-- [ ] Kimlik alanlarını tab dışında tekil bırak.
-- [ ] Tarih ve durum label'larını locale-aware yap.
+- [x] Header, stats, filtre, kart/liste, empty state ve aksiyonları çevir.
+- [x] Müşteri notes alanı için aktif dil tab'ları ekle.
+- [x] Kimlik alanlarını tab dışında tekil bırak.
+- [x] Tarih ve durum label'larını locale-aware yap.
 
 Çıkış kriteri:
 
-- [ ] Müşteri listesi ve create/edit formu TR/EN eksiksiz.
+- [x] Müşteri listesi ve create/edit formu TR/EN eksiksiz.
 
 ### Faz 23 — Müşteri detay sayfası
 
 Route: `/clients/[id]`
 
-- [ ] Detail header, stats, tabs, portal account dialog ve activity alanlarını
+- [x] Detail header, stats, tabs, portal account dialog ve activity alanlarını
   çevir.
-- [ ] Client activity title/content alanlarına dil tab'ları ekle.
-- [ ] Portal başlangıç dilini yalnız aktif dillerden seçtir.
-- [ ] Admin portal default'u ile müşterinin kişisel tercihini açıklayan UX ekle.
-- [ ] Davet, resend, revoke ve locale update hata/toast'larını çevir.
+- [x] Client activity title/content alanlarına dil tab'ları ekle.
+- [x] Portal başlangıç dilini yalnız aktif dillerden seçtir.
+- [x] Admin portal default'u ile müşterinin kişisel tercihini açıklayan UX ekle.
+- [x] Davet, resend, revoke ve locale update hata/toast'larını çevir.
 
 Çıkış kriteri:
 
-- [ ] Portal hesabı açılırken admin tarafından başlangıç dili belirleniyor.
+- [x] Portal hesabı açılırken admin tarafından başlangıç dili belirleniyor.
 
 ### Faz 24 — Projeler liste sayfası ve proje formu
 
