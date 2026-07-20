@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "@/components/i18n/i18n-provider";
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
 import { Card, CardContent } from "poyraz-ui/atoms";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "poyraz-ui/molecules";
 import {
@@ -24,6 +26,7 @@ type AnalyticsClientProps = {
 const COLORS = ["var(--poyraz-primary)", "var(--poyraz-destructive)", "#eab308", "#3b82f6", "#8b5cf6"];
 
 export function AnalyticsClient({ data }: AnalyticsClientProps) {
+  const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,28 +40,36 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
   const { projectIncomeData, completedTasks, activeTasks } = data.metrics;
   
   const taskStatusData = [
-    { name: "Tamamlanan", value: completedTasks },
-    { name: "Devam Eden", value: activeTasks }
+    { name: t("analytics.tasks.completed"), value: completedTasks },
+    { name: t("analytics.tasks.ongoing"), value: activeTasks }
   ];
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat(getDocumentIntlLocale(), {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Performans ve Finans Analizi
+            {t("analytics.title")}
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
           <Select value={data.range} onValueChange={handleRangeChange}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Tarih aralığı" />
+              <SelectValue placeholder={t("analytics.range.placeholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="this_week">Bu Hafta</SelectItem>
-              <SelectItem value="this_month">Bu Ay</SelectItem>
-              <SelectItem value="this_year">Bu Yıl</SelectItem>
+              <SelectItem value="this_week">{t("analytics.range.thisWeek")}</SelectItem>
+              <SelectItem value="this_month">{t("analytics.range.thisMonth")}</SelectItem>
+              <SelectItem value="this_year">{t("analytics.range.thisYear")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -67,7 +78,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">
-            <h3 className="mb-6 text-sm font-semibold text-foreground">Proje Bazlı Gelir Dağılımı</h3>
+            <h3 className="mb-6 text-sm font-semibold text-foreground">{t("analytics.sections.incomeDistribution")}</h3>
             <div className="h-[300px] w-full">
               {projectIncomeData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -86,7 +97,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value) => `₺${Number(value ?? 0)}`}
+                      formatter={(value) => formatCurrency(Number(value ?? 0))}
                       contentStyle={{ 
                         backgroundColor: 'var(--poyraz-background)',
                         borderColor: 'var(--poyraz-border)',
@@ -97,7 +108,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Veri bulunamadı.</div>
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{t("analytics.empty")}</div>
               )}
             </div>
           </CardContent>
@@ -105,7 +116,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
 
         <Card>
           <CardContent className="p-6">
-            <h3 className="mb-6 text-sm font-semibold text-foreground">Görev Durumu Analizi</h3>
+            <h3 className="mb-6 text-sm font-semibold text-foreground">{t("analytics.sections.taskStatus")}</h3>
             <div className="h-[300px] w-full">
                <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={taskStatusData}>
@@ -124,7 +135,7 @@ export function AnalyticsClient({ data }: AnalyticsClientProps) {
                                 <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                   <div className="flex items-center gap-1.5">
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                    <span className="text-muted-foreground">Görev Sayısı</span>
+                                    <span className="text-muted-foreground">{t("analytics.tasks.count")}</span>
                                   </div>
                                   <span className="font-semibold text-foreground">
                                     {entry.value}

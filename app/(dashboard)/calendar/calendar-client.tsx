@@ -21,6 +21,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   toast,
 } from "poyraz-ui/molecules";
 import { Clock, Pencil, Plus, Trash2 } from "lucide-react";
@@ -49,6 +53,7 @@ export type CalendarEventItem = {
   clientName: string | null;
   projectName: string | null;
   taskTitle: string | null;
+  translations?: Record<string, Record<string, string>>;
 };
 
 const typeLabels = {
@@ -72,9 +77,10 @@ type CalendarClientProps = {
   clients: CalendarRelationOption[];
   projects: CalendarRelationOption[];
   tasks: CalendarTaskOption[];
+  activeLocales: { code: string; name: string }[];
 };
 
-export function CalendarClient({ events, clients, projects, tasks }: CalendarClientProps) {
+export function CalendarClient({ events, clients, projects, tasks, activeLocales }: CalendarClientProps) {
   const t = useTranslations();
   const [monthDate, setMonthDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
@@ -102,6 +108,7 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
           clients={clients}
           projects={projects}
           tasks={tasks}
+          activeLocales={activeLocales}
         />
       </div>
 
@@ -113,7 +120,7 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                 <h2 className="text-lg font-semibold text-foreground">
                   {formatMonth(monthDate)}
                 </h2>
-                <p className="text-sm text-muted-foreground">{events.length} etkinlik</p>
+                <p className="text-sm text-muted-foreground">{t("common.itemsCount", { count: events.length })}</p>
               </div>
               <div className="flex gap-2">
                 <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(-1)}>
@@ -186,7 +193,7 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                   {formatDateLabel(selectedDate)}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {selectedEvents.length} etkinlik
+                  {t("common.itemsCount", { count: selectedEvents.length })}
                 </p>
               </div>
               <CalendarEventDialog
@@ -195,15 +202,16 @@ export function CalendarClient({ events, clients, projects, tasks }: CalendarCli
                 clients={clients}
                 projects={projects}
                 tasks={tasks}
+                activeLocales={activeLocales}
               />
-              <EventList events={selectedEvents} clients={clients} projects={projects} tasks={tasks} />
+              <EventList events={selectedEvents} clients={clients} projects={projects} tasks={tasks} activeLocales={activeLocales} />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="space-y-3 p-4">
               <h2 className="text-base font-semibold text-foreground">Yaklaşan etkinlikler</h2>
-              <EventList events={upcomingEvents} clients={clients} projects={projects} tasks={tasks} compact />
+              <EventList events={upcomingEvents} clients={clients} projects={projects} tasks={tasks} activeLocales={activeLocales} compact />
             </CardContent>
           </Card>
         </div>
@@ -217,14 +225,17 @@ function EventList({
   clients,
   projects,
   tasks,
+  activeLocales,
   compact = false,
 }: {
   events: CalendarEventItem[];
   clients: CalendarRelationOption[];
   projects: CalendarRelationOption[];
   tasks: CalendarTaskOption[];
+  activeLocales: { code: string; name: string }[];
   compact?: boolean;
 }) {
+  const t = useTranslations();
   if (events.length === 0) {
     return <p className="text-sm text-muted-foreground">Etkinlik yok.</p>;
   }
@@ -246,16 +257,16 @@ function EventList({
                 </div>
               ) : null}
             </div>
-            <Badge className={typeClasses[event.type]}>{typeLabels[event.type]}</Badge>
+            <Badge className={typeClasses[event.type]}>{t(`calendar.types.${event.type}` as any)}</Badge>
           </div>
           {!compact ? (
             <div className="mt-3 flex gap-2">
-              <CalendarEventDialog mode="edit" event={event} clients={clients} projects={projects} tasks={tasks} />
+              <CalendarEventDialog mode="edit" event={event} clients={clients} projects={projects} tasks={tasks} activeLocales={activeLocales} />
               <form action={deleteCalendarEventRecord}>
                 <input type="hidden" name="id" value={event.id} />
                 <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
                   <Trash2 className="h-4 w-4" />
-                  Sil
+                  {t("calendar.delete.confirm")}
                 </Button>
               </form>
             </div>
@@ -273,6 +284,7 @@ function CalendarEventDialog({
   clients,
   projects,
   tasks,
+  activeLocales,
 }: {
   mode: "create" | "edit";
   event?: CalendarEventItem;
@@ -280,7 +292,9 @@ function CalendarEventDialog({
   clients: CalendarRelationOption[];
   projects: CalendarRelationOption[];
   tasks: CalendarTaskOption[];
+  activeLocales: { code: string; name: string }[];
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action = mode === "create" ? createCalendarEventRecord : updateCalendarEventRecord;
@@ -290,12 +304,12 @@ function CalendarEventDialog({
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "Etkinlik eklendi." : "Etkinlik güncellendi.");
+      toast.success(mode === "create" ? t("calendar.messages.created") : t("calendar.messages.updated"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Etkinlik kaydedilirken beklenmeyen bir hata oluştu.",
+          : t("calendar.errors.saveFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -307,25 +321,25 @@ function CalendarEventDialog({
       <DialogTrigger asChild>
         <Button effect="shine" className="gap-2" variant={mode === "create" ? "default" : "secondary"}>
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {mode === "create" ? "Etkinlik ekle" : "Düzenle"}
+          {mode === "create" ? t("calendar.actions.add") : t("calendar.form.editTitle")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden p-0 sm:max-h-[min(680px,calc(100dvh-4rem))] sm:max-w-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
         <form action={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {event ? <input type="hidden" name="id" value={event.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
-            <DialogTitle>{mode === "create" ? "Yeni etkinlik" : "Etkinliği düzenle"}</DialogTitle>
-            <DialogDescription>Takvim etkinliğini proje, görev veya müşteriyle ilişkilendir.</DialogDescription>
+            <DialogTitle>{mode === "create" ? t("calendar.form.createTitle") : t("calendar.form.editTitle")}</DialogTitle>
+            <DialogDescription>{t("calendar.description")}</DialogDescription>
           </DialogHeader>
 
           <div className="tiny-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <EventFormFields event={event} defaultDate={defaultDate} clients={clients} projects={projects} tasks={tasks} />
+            <EventFormFields event={event} defaultDate={defaultDate} clients={clients} projects={projects} tasks={tasks} activeLocales={activeLocales} />
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-              {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Etkinliği ekle" : "Değişiklikleri kaydet"}
+              {isSubmitting ? "..." : t("calendar.form.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -340,55 +354,83 @@ function EventFormFields({
   clients,
   projects,
   tasks,
+  activeLocales,
 }: {
   event?: CalendarEventItem;
   defaultDate?: string;
   clients: CalendarRelationOption[];
   projects: CalendarRelationOption[];
   tasks: CalendarTaskOption[];
+  activeLocales: { code: string; name: string }[];
 }) {
+  const t = useTranslations();
   const startsAt = event?.starts_at ? toDateTimeLocal(event.starts_at) : `${defaultDate || toDateKey(new Date())}T09:00`;
 
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label>Başlık</Label>
-        <Input name="title" defaultValue={event?.title || ""} required placeholder="Örn. Müşteri toplantısı" />
-      </div>
-      <div className="grid gap-2">
-        <Label>Açıklama</Label>
-        <Textarea name="description" defaultValue={event?.description || ""} rows={3} />
-      </div>
+      {activeLocales.length > 1 ? (
+        <Tabs defaultValue={activeLocales[0].code}>
+          <TabsList className="mb-4">
+            {activeLocales.map((locale) => (
+              <TabsTrigger key={locale.code} value={locale.code}>{locale.name}</TabsTrigger>
+            ))}
+          </TabsList>
+          {activeLocales.map((locale) => (
+            <TabsContent key={locale.code} value={locale.code} className="space-y-4">
+              <div className="grid gap-2">
+                <Label>{t("calendar.form.title")} ({locale.code})</Label>
+                <Input name={`i18n.${locale.code}.title`} defaultValue={event?.translations?.[locale.code]?.title ?? ""} required={locale.code === activeLocales[0].code} />
+              </div>
+              <div className="grid gap-2">
+                <Label>{t("calendar.form.description")} ({locale.code})</Label>
+                <Textarea name={`i18n.${locale.code}.description`} defaultValue={event?.translations?.[locale.code]?.description ?? ""} rows={3} />
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-2">
+            <Label>{t("calendar.form.title")}</Label>
+            <Input name="title" defaultValue={event?.title || ""} required />
+          </div>
+          <div className="grid gap-2">
+            <Label>{t("calendar.form.description")}</Label>
+            <Textarea name="description" defaultValue={event?.description || ""} rows={3} />
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
-        <SelectField name="type" label="Tür" defaultValue={event?.type || "focus"}>
-          <SelectItem value="meeting">Toplantı</SelectItem>
-          <SelectItem value="focus">Odak</SelectItem>
-          <SelectItem value="deadline">Deadline</SelectItem>
-          <SelectItem value="personal">Kişisel</SelectItem>
-          <SelectItem value="finance">Finans</SelectItem>
+        <SelectField name="type" label={t("calendar.form.type") ?? "Tür"} defaultValue={event?.type || "focus"}>
+          <SelectItem value="meeting">{t("calendar.types.meeting")}</SelectItem>
+          <SelectItem value="focus">{t("calendar.types.focus")}</SelectItem>
+          <SelectItem value="deadline">{t("calendar.types.deadline")}</SelectItem>
+          <SelectItem value="personal">{t("calendar.types.personal")}</SelectItem>
+          <SelectItem value="finance">{t("calendar.types.finance")}</SelectItem>
         </SelectField>
-        <SelectField name="client_id" label="Müşteri" defaultValue={event?.client_id || "__none"}>
-          <SelectItem value="__none">Müşteri yok</SelectItem>
+        <SelectField name="client_id" label={t("calendar.form.client")} defaultValue={event?.client_id || "__none"}>
+          <SelectItem value="__none">{t("calendar.form.selectClient")}</SelectItem>
           {clients.map((client) => <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>)}
         </SelectField>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <SelectField name="project_id" label="Proje" defaultValue={event?.project_id || "__none"}>
-          <SelectItem value="__none">Proje yok</SelectItem>
+        <SelectField name="project_id" label={t("calendar.form.project")} defaultValue={event?.project_id || "__none"}>
+          <SelectItem value="__none">{t("calendar.form.selectProject")}</SelectItem>
           {projects.map((project) => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}
         </SelectField>
-        <SelectField name="task_id" label="Görev" defaultValue={event?.task_id || "__none"}>
-          <SelectItem value="__none">Görev yok</SelectItem>
+        <SelectField name="task_id" label={t("calendar.form.task")} defaultValue={event?.task_id || "__none"}>
+          <SelectItem value="__none">{t("calendar.form.selectTask")}</SelectItem>
           {tasks.map((task) => <SelectItem key={task.id} value={task.id}>{task.title}</SelectItem>)}
         </SelectField>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label>Başlangıç</Label>
+          <Label>{t("calendar.form.start")}</Label>
           <Input name="starts_at" type="datetime-local" defaultValue={startsAt} required />
         </div>
         <div className="grid gap-2">
-          <Label>Bitiş</Label>
+          <Label>{t("calendar.form.end")}</Label>
           <Input name="ends_at" type="datetime-local" defaultValue={event?.ends_at ? toDateTimeLocal(event.ends_at) : ""} />
         </div>
       </div>
