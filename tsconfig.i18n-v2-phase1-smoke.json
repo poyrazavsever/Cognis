@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.phase2-smoke.json",
+  "compilerOptions": {
+    "outDir": ".next/i18n-v2-phase1-smoke-dist"
+  },
+  "include": [
+    "scripts/i18n-v2-phase1-smoke.ts",
+    "lib/i18n/locale-resolution.ts"
+  ],
+  "exclude": ["node_modules"]
+}

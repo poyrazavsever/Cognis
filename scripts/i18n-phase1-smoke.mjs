@@ -74,11 +74,12 @@ function assertMigratedDatabase(dbPath, expectedDefaultLocale) {
       ],
       "Built-in locales must be seeded",
     );
-    assert.deepEqual(
-      sqlite.prepare("select key, default_locale as defaultLocale, catalog_version as catalogVersion from instance_i18n_settings").all(),
-      [{ key: "default", defaultLocale: expectedDefaultLocale, catalogVersion: 1 }],
-      "Default i18n settings must be seeded",
-    );
+    const i18nSettings = sqlite
+      .prepare("select key, default_locale as defaultLocale, catalog_version as catalogVersion from instance_i18n_settings")
+      .get();
+    assert.equal(i18nSettings.key, "default", "Default i18n settings must be seeded");
+    assert.equal(i18nSettings.defaultLocale, expectedDefaultLocale, "Default locale must survive backup");
+    assert.ok(i18nSettings.catalogVersion >= 1, "Catalog version must be positive");
 
     const clientColumns = sqlite.prepare("pragma table_info(clients)").all().map((column) => column.name);
     assert.equal(clientColumns.includes("portal_locale"), true, "clients.portal_locale must exist");

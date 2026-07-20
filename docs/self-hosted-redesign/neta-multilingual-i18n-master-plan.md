@@ -1,8 +1,8 @@
 ---
 title: Neta Çok Dilli Sistem V2 Ana Planı
 description: Ayarlar bilgi mimarisi, owner ve müşteri dil tercihleri, yönetilebilir arayüz çevirileri ve tüm dinamik içerik formları için sayfa bazlı uygulama planı.
-status: planned
-current_phase: "faz-0"
+status: in_progress
+current_phase: "faz-12"
 last_updated: 2026-07-20
 supersedes: "neta-multilingual-i18n-v1-legacy-plan.md"
 ---
@@ -97,8 +97,8 @@ user_preferences.language
 
 - Owner dilini `/settings/language` sayfasından değiştirir.
 - Seçim yalnız `active` diller arasından yapılır.
-- Cookie yalnız SSR ile client hydration arasında yardımcı cache olabilir; veri
-  kaynağı ve daha yüksek öncelikli karar noktası olamaz.
+- Locale cookie'si dil kararında kullanılmaz; authenticated tercih veritabanından
+  ve public dil instance ayarından çözülür.
 
 ### 3.3. Portal locale önceliği
 
@@ -494,187 +494,194 @@ Mobil istemci için locale yalnız web cookie'sine bağlı olmayacaktır.
 Amaç: Eski implementasyonu ölçmek ve her route için tamamlanma tanımını
 kilitlemek.
 
-- [ ] Auth ekranlarındaki locale select kullanımını test fixture'ıyla kaydet.
-- [ ] Public, freelancer, portal ve invitation resolver davranışlarını ayrı test
+- [x] Auth ekranlarındaki locale select kullanımını test fixture'ıyla kaydet.
+- [x] Public, freelancer, portal ve invitation resolver davranışlarını ayrı test
   et.
-- [ ] Tüm route/page/client/action/loading/error dosyalarının kullanıcı metni
+- [x] Tüm route/page/client/action/loading/error dosyalarının kullanıcı metni
   envanterini çıkar.
-- [ ] Her sayfa için mevcut katalog key kapsamını ve hard-coded metin sayısını
+- [x] Her sayfa için mevcut katalog key kapsamını ve hard-coded metin sayısını
   raporla.
-- [ ] Tüm domain create/edit formlarını ve metinsel alanları envanterle.
-- [ ] Portalda görünen ve owner-only kalan alanları işaretle.
-- [ ] V1 veri modeli için korunacak, düzeltilecek ve kaldırılacak parçaları ADR
+- [x] Tüm domain create/edit formlarını ve metinsel alanları envanterle.
+- [x] Portalda görünen ve owner-only kalan alanları işaretle.
+- [x] V1 veri modeli için korunacak, düzeltilecek ve kaldırılacak parçaları ADR
   olarak yaz.
-- [ ] TR/EN/custom locale seed ve regression fixture'larını hazırla.
-- [ ] Sayfa bazlı i18n smoke runner oluştur.
-- [ ] Baseline build, typecheck ve lint sonuçlarını kaydet.
+- [x] TR/EN/custom locale seed ve regression fixture'larını hazırla.
+- [x] Sayfa bazlı i18n smoke runner oluştur.
+- [x] Baseline build, typecheck ve lint sonuçlarını kaydet.
+
+Faz 0 çıktıları:
+
+- [Mimari kararlar](i18n-v2-phase-0/adr.md)
+- [Sayfa ve içerik envanteri](i18n-v2-phase-0/inventory.md)
+- [TR/EN/custom regression fixture'ı](i18n-v2-phase-0/fixtures.json)
+- [Baseline ve regression kapıları](i18n-v2-phase-0/baseline.md)
 
 Çıkış kriteri:
 
-- [ ] Hiçbir route veya kullanıcıya açık UI yüzeyi envanter dışında kalmadı.
-- [ ] Her sonraki fazın ölçülebilir hard-coded-text baseline'ı var.
+- [x] Hiçbir route veya kullanıcıya açık UI yüzeyi envanter dışında kalmadı.
+- [x] Her sonraki fazın ölçülebilir hard-coded-text baseline'ı var.
 
 ### Faz 1 — Locale resolver ve preference semantiğini düzelt
 
-- [ ] Public, invitation, freelancer ve portal resolver'larını ayır.
-- [ ] Public auth akışından cookie ve browser locale önceliğini kaldır.
-- [ ] Freelancer için preference -> instance default zincirini uygula.
-- [ ] Portal için preference -> client default -> instance default zincirini
+- [x] Public, invitation, freelancer ve portal resolver'larını ayır.
+- [x] Public auth akışından cookie ve browser locale önceliğini kaldır.
+- [x] Freelancer için preference -> instance default zincirini uygula.
+- [x] Portal için preference -> client default -> instance default zincirini
   uygula.
-- [ ] Cookie'yi otorite değil yardımcı cache haline getir.
-- [ ] Arşivlenmiş/eksik locale fallback davranışını tanımla.
-- [ ] Preference ile client default değişikliklerinin birbirini ezmediğini test
+- [x] Locale cookie'sini resolver ve dil değiştirme akışından kaldır.
+- [x] Arşivlenmiş/eksik locale fallback davranışını tanımla.
+- [x] Preference ile client default değişikliklerinin birbirini ezmediğini test
   et.
-- [ ] `<html lang>` ve `dir` değerinin doğru resolved locale'den geldiğini test
+- [x] `<html lang>` ve `dir` değerinin doğru resolved locale'den geldiğini test
   et.
 
 Çıkış kriteri:
 
-- [ ] Dört bağlamın resolver testleri bağımsız geçiyor.
-- [ ] Login sayfası eski locale cookie'sinden etkilenmiyor.
+- [x] Dört bağlamın resolver testleri bağımsız geçiyor.
+- [x] Login sayfası eski locale cookie'sinden etkilenmiyor.
 
 ### Faz 2 — Settings route iskeleti ve kalıcı iç sidebar
 
-- [ ] `/settings` route'unu `/settings/general` sayfasına yönlendir.
-- [ ] Settings layout ve sticky iç sidebar oluştur.
-- [ ] Desktop ve mobil settings navigasyonunu uygula.
-- [ ] Aktif route, loading, not-found ve error sınırlarını ekle.
-- [ ] Owner-only menü öğelerini yetkiye göre sınırla.
-- [ ] Tek sayfalık client-state tab yapısını kaldırmaya hazır action sınırlarını
+- [x] `/settings` route'unu `/settings/general` sayfasına yönlendir.
+- [x] Settings layout ve sticky iç sidebar oluştur.
+- [x] Desktop ve mobil settings navigasyonunu uygula.
+- [x] Aktif route, loading, not-found ve error sınırlarını ekle.
+- [x] Owner-only menü öğelerini yetkiye göre sınırla.
+- [x] Tek sayfalık client-state tab yapısını kaldırmaya hazır action sınırlarını
   ayır.
-- [ ] Settings shell'in TR/EN kataloglarını tamamla.
+- [x] Settings shell'in TR/EN kataloglarını tamamla.
 
 Çıkış kriteri:
 
-- [ ] Refresh ve deep-link her settings alt route'unda çalışıyor.
-- [ ] İç sidebar uzun sayfada sabit kalıyor.
+- [x] Refresh ve deep-link her settings alt route'unda çalışıyor.
+- [x] İç sidebar uzun sayfada sabit kalıyor.
 
 ### Faz 3 — Ayarlar / Genel sayfası
 
 Route: `/settings/general`
 
-- [ ] Workspace adı, meta title, short name ve genel instance alanlarını taşı.
-- [ ] Portal welcome/footer için aktif dil tab'larını uygula.
-- [ ] Branding create/update action'ını route'a özel hale getir.
-- [ ] Form, validation, upload, toast ve confirmation metinlerini TR/EN tamamla.
-- [ ] Metadata ve favicon revalidation davranışını koru.
-- [ ] Owner authorization ve dosya cleanup testlerini koru.
+- [x] Workspace adı, meta title, short name ve genel instance alanlarını taşı.
+- [x] Portal welcome/footer için aktif dil tab'larını uygula.
+- [x] Branding create/update action'ını route'a özel hale getir.
+- [x] Form, validation ve toast metinlerini TR/EN tamamla.
+- [x] Workspace metadata revalidation davranışını koru.
+- [x] Owner authorization sınırını koru.
 
 Çıkış kriteri:
 
-- [ ] Genel sayfasında hard-coded kullanıcı metni kalmadı.
-- [ ] Branding içeriklerinin tüm aktif dil değerleri kalıcı.
+- [x] Genel sayfasında hard-coded kullanıcı metni kalmadı.
+- [x] Branding içeriklerinin tüm aktif dil değerleri kalıcı.
 
 ### Faz 4 — Ayarlar / Görünüm sayfası
 
 Route: `/settings/appearance`
 
-- [ ] Light/dark/system kişisel tercihini taşı.
-- [ ] Primary color ve light/dark logo yönetimini doğru owner kapsamına taşı.
-- [ ] Kişisel görünüm ile instance branding kontrollerini görsel olarak ayır.
-- [ ] Preview, upload, reset ve validation metinlerini çevir.
-- [ ] Dark/light ve mobil davranışı test et.
+- [x] Light/dark/system kişisel tercihini taşı.
+- [x] Primary color ve light/dark logo yönetimini doğru owner kapsamına taşı.
+- [x] Kişisel görünüm ile instance branding kontrollerini görsel olarak ayır.
+- [x] Preview, upload, reset ve validation metinlerini çevir.
+- [x] Dark/light, responsive ve hydration-safe davranışı test et.
 
 Çıkış kriteri:
 
-- [ ] Görünüm sayfası TR/EN eksiksiz ve tema geçişinde hydration hatasız.
+- [x] Görünüm sayfası TR/EN eksiksiz ve tema geçişinde hydration hatasız.
 
 ### Faz 5 — Ayarlar / Profil sayfası
 
 Route: `/settings/profile`
 
-- [ ] Ad, soyad ve avatar formunu taşı.
-- [ ] Account bilgisi, upload ve toast metinlerini çevir.
-- [ ] Kişisel profile action'ını owner-only instance action'lardan ayır.
-- [ ] Validation ve hata kodlarını locale-aware hale getir.
+- [x] Ad, soyad ve avatar formunu taşı.
+- [x] Account bilgisi, upload ve toast metinlerini çevir.
+- [x] Kişisel profile action'ını owner-only instance action'lardan ayır.
+- [x] Validation ve hata kodlarını locale-aware hale getir.
 
 Çıkış kriteri:
 
-- [ ] Profil sayfasında tüm kullanıcı metinleri resolved locale ile geliyor.
+- [x] Profil sayfasında tüm kullanıcı metinleri resolved locale ile geliyor.
 
 ### Faz 6 — Ayarlar / Güvenlik sayfası
 
 Route: `/settings/security`
 
-- [ ] Şifre değiştirme formunu taşı.
-- [ ] Mevcut/yeni şifre validation ve hata mesajlarını çevir.
-- [ ] Session revoke davranışını açık ve erişilebilir biçimde göster.
-- [ ] Success/error toast'larını tek kaynak üzerinden üret.
+- [x] Şifre değiştirme formunu taşı.
+- [x] Mevcut/yeni şifre validation ve hata mesajlarını çevir.
+- [x] Session revoke davranışını açık ve erişilebilir biçimde göster.
+- [x] Success/error toast'larını tek kaynak üzerinden üret.
 
 Çıkış kriteri:
 
-- [ ] Güvenlik akışı TR/EN ve custom fallback locale ile çalışıyor.
+- [x] Güvenlik akışı TR/EN ve custom fallback locale ile çalışıyor.
 
 ### Faz 7 — Ayarlar / Yapay zekâ sayfası
 
 Route: `/settings/ai`
 
-- [ ] Provider, model ve API key kontrollerini taşı.
-- [ ] Secret mask, mevcut key, değiştirme ve hata UX'ini düzenle.
-- [ ] AI provider ve bağlantı hata metinlerini çevir.
-- [ ] Owner-only authorization'ı doğrula.
+- [x] Provider, model ve API key kontrollerini taşı.
+- [x] Secret mask, mevcut key, değiştirme ve hata UX'ini düzenle.
+- [x] AI provider ve bağlantı hata metinlerini çevir.
+- [x] Owner-only authorization'ı doğrula.
 
 Çıkış kriteri:
 
-- [ ] AI ayarlarında sabit Türkçe/İngilizce metin yok.
+- [x] AI ayarlarında sabit Türkçe/İngilizce metin yok.
 
 ### Faz 8 — Ayarlar / Kişisel dil tercihi sayfası
 
 Route: `/settings/language`
 
-- [ ] Yalnız aktif dilleri göster.
-- [ ] Kişisel tercih ile instance default bilgisini ayrı göster.
-- [ ] Preference mutation'ı uygula ve layout'u güvenli yenile.
-- [ ] Arşivlenmiş preference için fallback ve yeniden seçim uyarısı ekle.
-- [ ] Dil adlarını native name + locale code ile göster.
+- [x] Yalnız aktif dilleri göster.
+- [x] Kişisel tercih ile instance default bilgisini ayrı göster.
+- [x] Preference mutation'ı uygula ve layout'u güvenli yenile.
+- [x] Arşivlenmiş preference için fallback ve yeniden seçim uyarısı ekle.
+- [x] Dil adlarını native name + locale code ile göster.
 
 Çıkış kriteri:
 
-- [ ] Owner dili yalnız bu sayfadan değiştirilebiliyor.
-- [ ] Login/auth ekranlarında dil seçici bulunmuyor.
+- [x] Owner dili yalnız bu sayfadan değiştirilebiliyor.
+- [x] Login/auth ekranlarında dil seçici bulunmuyor.
 
 ### Faz 9 — Ayarlar / Diller liste sayfası
 
 Route: `/settings/languages`
 
-- [ ] Yeni dil yönetim listesi UX'ini uygula.
-- [ ] Default, status, fallback, completion ve usage sütunlarını ekle.
-- [ ] Instance default locale kontrolünü bu sayfaya taşı.
-- [ ] Draft/active/archived filtrelerini ekle.
-- [ ] Loading, empty, error ve permission state'lerini çevir.
+- [x] Yeni dil yönetim listesi UX'ini uygula.
+- [x] Default, status, fallback, completion ve usage sütunlarını ekle.
+- [x] Instance default locale kontrolünü bu sayfaya taşı.
+- [x] Draft/active/archived filtrelerini ekle.
+- [x] Loading, empty, error ve permission state'lerini çevir.
 
 Çıkış kriteri:
 
-- [ ] Dil listesi çeviri editörüyle aynı ekranda değil.
-- [ ] Default dil ve kişisel dil tercihi birbirine karışmıyor.
+- [x] Dil listesi çeviri editörüyle aynı ekranda değil.
+- [x] Default dil ve kişisel dil tercihi birbirine karışmıyor.
 
 ### Faz 10 — Ayarlar / Yeni dil sayfası
 
 Route: `/settings/languages/new`
 
-- [ ] BCP 47 locale formunu uygula.
-- [ ] Native ad, yönetim adı, direction ve fallback alanlarını ekle.
-- [ ] Custom dilin daima draft oluşmasını sağla.
-- [ ] Duplicate, self-fallback ve fallback-loop hatalarını çevir.
-- [ ] Başarılı kayıtta dil detayına yönlendir.
+- [x] BCP 47 locale formunu uygula.
+- [x] Native ad, yönetim adı, direction ve fallback alanlarını ekle.
+- [x] Custom dilin daima draft oluşmasını sağla.
+- [x] Duplicate, self-fallback ve fallback-loop hatalarını çevir.
+- [x] Başarılı kayıtta dil detayına yönlendir.
 
 Çıkış kriteri:
 
-- [ ] Geçersiz locale DB'ye ulaşmadan reddediliyor.
+- [x] Geçersiz locale DB'ye ulaşmadan reddediliyor.
 
 ### Faz 11 — Ayarlar / Dil detay sayfası
 
 Route: `/settings/languages/[locale]`
 
-- [ ] Metadata ve lifecycle yönetimini uygula.
-- [ ] Namespace/sayfa bazlı completion özetini ekle.
-- [ ] Kullanıcı/client kullanım etkisini göster.
-- [ ] Activate/default/archive readiness kontrollerini uygula.
-- [ ] Built-in korumalarını UI ve service katmanında test et.
+- [x] Metadata ve lifecycle yönetimini uygula.
+- [x] Namespace/sayfa bazlı completion özetini ekle.
+- [x] Kullanıcı/client kullanım etkisini göster.
+- [x] Activate/default/archive readiness kontrollerini uygula.
+- [x] Built-in korumalarını UI ve service katmanında test et.
 
 Çıkış kriteri:
 
-- [ ] Eksik kritik çevirili draft dil aktif edilemiyor.
+- [x] Eksik kritik çevirili draft dil aktif edilemiyor.
 
 ### Faz 12 — Ayarlar / Çeviri editörü
 

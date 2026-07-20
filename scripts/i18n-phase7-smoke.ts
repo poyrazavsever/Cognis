@@ -56,8 +56,10 @@ assert.equal(loginActions.includes("E-posta veya"), false, "login action must no
 const inviteActions = fs.readFileSync(path.join(process.cwd(), "app", "invite", "[token]", "actions.ts"), "utf8");
 assert.equal(inviteActions.includes("message=${encodeURIComponent"), false, "invite action redirects must use stable codes");
 
-const localeApi = fs.readFileSync(path.join(process.cwd(), "app", "api", "i18n", "locale", "route.ts"), "utf8");
-assert.equal(localeApi.includes("Dil kodu"), false, "locale API must not embed Turkish validation messages");
-assert.equal(localeApi.includes("messageKey"), true, "locale API must expose messageKey for localized clients");
+assert.equal(
+  fs.existsSync(path.join(process.cwd(), "app", "api", "i18n", "locale", "route.ts")),
+  false,
+  "The obsolete locale-cookie API must remain removed",
+);
 
 console.log("I18n phase 7 auth/error/a11y smoke passed.");

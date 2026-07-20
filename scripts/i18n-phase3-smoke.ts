@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { getSqliteConnection } from "../server/db/client";
 import type { DomainActor } from "../server/domain/actor";
 import { DomainError } from "../server/domain/errors";
-import { I18nService } from "../server/i18n/service";
+import {
+  ACTIVATION_CRITICAL_KEYS,
+  I18nService,
+} from "../server/i18n/service";
 
 const owner: DomainActor = {
   authUserId: "phase3-owner",
@@ -61,6 +64,8 @@ assert.equal(
   true,
 );
 
+assertDomainError(() => service.updateLocale(owner, "fr", { status: "active" }), "VALIDATION_ERROR");
+completeCriticalTranslations(service, "fr");
 service.updateLocale(owner, "fr", { status: "active" });
 assert.equal(service.setDefaultLocale(owner, "fr").defaultLocale, "fr");
 assertDomainError(() => service.archiveLocale(owner, "fr"), "CONFLICT");
@@ -69,4 +74,16 @@ console.log("I18n phase 3 settings smoke passed.");
 
 function assertDomainError(run: () => unknown, code: DomainError["code"]): void {
   assert.throws(run, (error) => error instanceof DomainError && error.code === code);
+}
+
+function completeCriticalTranslations(service: I18nService, locale: string) {
+  for (const fullKey of ACTIVATION_CRITICAL_KEYS) {
+    const [namespace, ...keyParts] = fullKey.split(".");
+    service.upsertUiTranslation(owner, {
+      locale,
+      namespace,
+      key: keyParts.join("."),
+      value: `${locale}:${fullKey}`,
+    });
+  }
 }

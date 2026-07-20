@@ -4,7 +4,10 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../server/db/schema";
 import type { DomainActor } from "../server/domain/actor";
 import { DomainError } from "../server/domain/errors";
-import { I18nService } from "../server/i18n/service";
+import {
+  ACTIVATION_CRITICAL_KEYS,
+  I18nService,
+} from "../server/i18n/service";
 
 const databasePath = process.argv[2];
 assert.ok(databasePath, "Database path is required");
@@ -84,6 +87,7 @@ try {
   service.createLocale(owner, { code: "es", name: "Spanish", fallbackLocale: "fr" });
   assertDomainError(() => service.updateLocale(owner, "fr", { fallbackLocale: "es" }), "VALIDATION_ERROR");
   assertDomainError(() => service.setDefaultLocale(owner, "fr"), "VALIDATION_ERROR");
+  completeCriticalTranslations(service, "fr");
 
   const activeFrench = service.updateLocale(owner, "fr", { status: "active" });
   assert.equal(activeFrench.status, "active");
@@ -91,13 +95,18 @@ try {
   assertDomainError(() => service.archiveLocale(owner, "fr"), "CONFLICT");
   assertDomainError(() => service.archiveLocale(owner, "en"), "CONFLICT");
 
-  service.createLocale(owner, {
+  const italian = service.createLocale(owner, {
     code: "it",
     name: "Italian",
     nativeName: "Italiano",
     status: "active",
     fallbackLocale: "en",
   });
+  assert.equal(italian.status, "draft", "Custom locales must always start as draft");
+  assert.equal(service.getLocaleReadiness(owner, "it").canActivate, false);
+  completeCriticalTranslations(service, "it");
+  assert.equal(service.getLocaleReadiness(owner, "it").canActivate, true);
+  service.updateLocale(owner, "it", { status: "active" });
   db.insert(schema.clients).values({
     id: "i18n-client",
     ownerUserId: owner.authUserId,
@@ -106,6 +115,10 @@ try {
     portalLocale: "it",
   }).run();
   assertDomainError(() => service.archiveLocale(owner, "it"), "CONFLICT");
+  assert.ok(
+    service.getNamespaceCompletion(owner, "it").some((item) => item.namespace === "portal"),
+  );
+  assert.equal(service.getLocaleUsage(owner, "it").clients, 1);
 
   db.insert(schema.contentTranslations).values({
     entityType: "project",
@@ -129,4 +142,16 @@ try {
 
 function assertDomainError(run: () => unknown, code: DomainError["code"]): void {
   assert.throws(run, (error) => error instanceof DomainError && error.code === code);
+}
+
+function completeCriticalTranslations(service: I18nService, locale: string) {
+  for (const fullKey of ACTIVATION_CRITICAL_KEYS) {
+    const [namespace, ...keyParts] = fullKey.split(".");
+    service.upsertUiTranslation(owner, {
+      locale,
+      namespace,
+      key: keyParts.join("."),
+      value: `${locale}:${fullKey}`,
+    });
+  }
 }

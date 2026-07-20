@@ -4,7 +4,10 @@ import { getSqliteConnection } from "../server/db/client";
 import type { DomainActor } from "../server/domain/actor";
 import { DomainService } from "../server/services/domain";
 import { ContentTranslationService } from "../server/i18n/content";
-import { I18nService } from "../server/i18n/service";
+import {
+  ACTIVATION_CRITICAL_KEYS,
+  I18nService,
+} from "../server/i18n/service";
 
 const { db } = getSqliteConnection();
 const owner: DomainActor = {
@@ -34,11 +37,18 @@ if (!i18n.listLocales(owner).some((locale) => locale.code === "fr")) {
     name: "French",
     nativeName: "Français",
     fallbackLocale: "en",
-    status: "active",
   });
-} else {
-  i18n.updateLocale(owner, "fr", { status: "active" });
 }
+for (const fullKey of ACTIVATION_CRITICAL_KEYS) {
+  const [namespace, ...keyParts] = fullKey.split(".");
+  i18n.upsertUiTranslation(owner, {
+    locale: "fr",
+    namespace,
+    key: keyParts.join("."),
+    value: `fr:${fullKey}`,
+  });
+}
+i18n.updateLocale(owner, "fr", { status: "active" });
 
 const domain = new DomainService(db, (() => {
   let next = 0;
