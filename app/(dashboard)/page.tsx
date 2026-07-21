@@ -15,7 +15,7 @@ export default async function DashboardPage({
 }) {
   const context = await requireFreelancer();
   const resolvedLocale = await resolveFreelancerLocale(context);
-  const payload = getClientI18nPayload(resolvedLocale.locale, ["dashboard"]);
+  const payload = getClientI18nPayload(resolvedLocale.locale, ["dashboard", "common"]);
 
   const params = await searchParams;
   const range = parseDashboardRange(params.range);

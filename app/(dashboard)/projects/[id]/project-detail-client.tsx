@@ -12,6 +12,7 @@ import {
   updateTaskStatusRecord,
 } from "@/app/(dashboard)/tasks/actions";
 import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import { PendingLink } from "@/components/ui/pending-link";
 import { PendingSubmitButton } from "@/components/ui/pending-submit-button";
 import { contentTranslationRegistry } from "@/lib/i18n/content";
@@ -132,19 +133,6 @@ type ProjectDetailClientProps = {
   };
 };
 
-const typeLabels = {
-  client_project: "Müşteri projesi",
-  side_project: "Side project",
-};
-
-const statusLabels = {
-  planning: "Planlama",
-  active: "Aktif",
-  paused: "Duraklatıldı",
-  completed: "Tamamlandı",
-  cancelled: "İptal edildi",
-};
-
 const statusClasses = {
   planning: "border-blue-200 bg-blue-50 text-blue-700",
   active: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -160,18 +148,18 @@ const priorityClasses = {
   urgent: "border-rose-200 bg-rose-50 text-rose-700",
 };
 
-const sectionLabels: Record<ProjectPlanningSectionItem["category"], string> = {
-  overview: "Genel bakış",
-  problem: "Çözdüğü problem",
-  goal: "Amaç",
-  audience: "Hedef kitle",
-  scope: "Kapsam",
-  design_system: "Design system",
-  color_palette: "Renk paleti",
-  typography: "Tipografi",
-  assets: "Görsel varlıklar",
-  notes: "Notlar",
-};
+const sectionCategoryOptions: ProjectPlanningSectionItem["category"][] = [
+  "overview",
+  "problem",
+  "goal",
+  "audience",
+  "scope",
+  "design_system",
+  "color_palette",
+  "typography",
+  "assets",
+  "notes",
+];
 
 const planningCategories: ProjectPlanningSectionItem["category"][] = [
   "overview",
@@ -197,6 +185,7 @@ export function ProjectDetailClient({
   revisions,
   localization,
 }: ProjectDetailClientProps) {
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState<"planning" | "design" | "tasks" | "finance" | "revisions">(
     "planning",
   );
@@ -221,7 +210,7 @@ export function ProjectDetailClient({
           <Button size="sm" effect="shine" asChild variant="secondary" className="gap-2 px-0 text-muted-foreground">
             <PendingLink href="/projects" className="flex items-center gap-2" showSpinner>
               <ArrowLeft className="h-4 w-4" />
-              Projelere dön
+              {t("projects.detail.backToProjects")}
             </PendingLink>
           </Button>
           <div>
@@ -230,7 +219,7 @@ export function ProjectDetailClient({
                 {project.name}
               </h1>
               <Badge className={statusClasses[project.status]}>
-                {statusLabels[project.status]}
+                {t(`projects.status.${project.status}`)}
               </Badge>
             </div>
           </div>
@@ -246,9 +235,9 @@ export function ProjectDetailClient({
                 variant="secondary"
                 className="gap-2"
                 idleIcon={<CheckCircle2 className="h-4 w-4" />}
-                pendingChildren="Tamamlanıyor"
+                pendingChildren={t("projects.detail.completing")}
               >
-                Tamamla
+                {t("projects.detail.complete")}
               </PendingSubmitButton>
             </form>
           ) : null}
@@ -271,27 +260,27 @@ export function ProjectDetailClient({
               </div>
             ) : (
               <div className="flex aspect-[16/7] items-center justify-center rounded-t-sm border-b border-dashed border-border bg-muted/30 text-muted-foreground">
-                Kapak görseli yok
+                {t("projects.card.noCover")}
               </div>
             )}
             <div className="grid gap-4 p-5 md:grid-cols-2">
-              <InfoItem label="Tür" value={typeLabels[project.type]} icon={FolderKanban} />
+              <InfoItem label={t("projects.detail.type")} value={t(`projects.types.${project.type}`)} icon={FolderKanban} />
               <InfoItem
-                label="Müşteri"
-                value={project.clientName || "Bağımsız side project"}
+                label={t("projects.detail.client")}
+                value={project.clientName || t("projects.detail.independent")}
                 icon={Target}
               />
               <InfoItem
-                label="Deadline"
-                value={project.due_date ? formatDate(project.due_date) : "Deadline yok"}
+                label={t("projects.detail.deadline")}
+                value={project.due_date ? formatDate(project.due_date) : t("projects.detail.noDeadline")}
                 icon={CalendarDays}
               />
               <InfoItem
-                label="Bütçe"
+                label={t("projects.detail.budget")}
                 value={
                   project.budget_amount
                     ? formatCurrency(project.budget_amount, project.currency)
-                    : "Bütçe yok"
+                    : t("projects.detail.noBudget")
                 }
                 icon={Wallet}
               />
@@ -300,10 +289,10 @@ export function ProjectDetailClient({
         </Card>
 
         <div className="grid gap-4">
-          <StatCard label="İlerleme" value={`${project.progress}%`} icon={Target} />
-          <StatCard label="Görev" value={`${doneTaskCount}/${tasks.length}`} icon={ClipboardList} />
+          <StatCard label={t("projects.detail.progressLabel")} value={`${project.progress}%`} icon={Target} />
+          <StatCard label={t("projects.detail.taskLabel")} value={`${doneTaskCount}/${tasks.length}`} icon={ClipboardList} />
           <StatCard
-            label="Net finans"
+            label={t("projects.detail.netFinance")}
             value={formatCurrency(incomeTotal - expenseTotal, project.currency)}
             icon={Wallet}
           />
@@ -312,19 +301,19 @@ export function ProjectDetailClient({
 
       <div className="flex flex-wrap gap-2 rounded-sm border border-border p-1">
         <TabButton active={activeTab === "planning"} onClick={() => setActiveTab("planning")}>
-          Planlama
+          {t("projects.detail.planning")}
         </TabButton>
         <TabButton active={activeTab === "design"} onClick={() => setActiveTab("design")}>
-          Design system
+          {t("projects.detail.designSystem")}
         </TabButton>
         <TabButton active={activeTab === "tasks"} onClick={() => setActiveTab("tasks")}>
-          Görevler
+          {t("projects.detail.tasks")}
         </TabButton>
         <TabButton active={activeTab === "finance"} onClick={() => setActiveTab("finance")}>
-          Finans
+          {t("projects.detail.finance")}
         </TabButton>
         <TabButton active={activeTab === "revisions"} onClick={() => setActiveTab("revisions")}>
-          Revizyonlar
+          {t("projects.detail.revisions")}
           {revisions.filter(r => r.status === 'pending').length > 0 && (
             <Badge variant="secondary" className="ml-2 px-1 py-0 h-4 text-[10px]">
               {revisions.filter(r => r.status === 'pending').length}
@@ -336,8 +325,8 @@ export function ProjectDetailClient({
       {activeTab === "planning" ? (
         <SectionGrid
           projectId={project.id}
-          title="Planlama alanları"
-          description="Problem, amaç, hedef kitle, kapsam ve proje notlarını burada tut."
+          title={t("projects.detail.planningTitle")}
+          description={t("projects.detail.planningDesc")}
           sections={planningSections}
           defaultCategory="overview"
           localization={localization}
@@ -347,8 +336,8 @@ export function ProjectDetailClient({
       {activeTab === "design" ? (
         <SectionGrid
           projectId={project.id}
-          title="Design system"
-          description="Renk paleti, tipografi, görsel dil ve asset notlarını proje kaynağına bağla."
+          title={t("projects.detail.designTitle")}
+          description={t("projects.detail.designDesc")}
           sections={designSections}
           defaultCategory="design_system"
           localization={localization}
@@ -371,6 +360,7 @@ function RevisionsPanel({
   projectId: string;
   revisions: ProjectRevisionItem[];
 }) {
+  const t = useTranslations();
   const [isUpdating, setIsUpdating] = useState(false);
 
   async function handleStatusChange(
@@ -395,9 +385,9 @@ function RevisionsPanel({
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
-        <h2 className="text-lg font-semibold">Müşteri Revizyon Talepleri</h2>
+        <h2 className="text-lg font-semibold">{t("projects.detail.revisionsTitle")}</h2>
         {revisions.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Bu proje için henüz bir revizyon talebi oluşturulmamış.</p>
+          <p className="text-muted-foreground text-sm">{t("projects.detail.revisionsEmpty")}</p>
         ) : (
           <div className="space-y-4">
             {revisions.map(rev => (
@@ -420,10 +410,10 @@ function RevisionsPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">Bekliyor</SelectItem>
-                      <SelectItem value="in_progress">İşleniyor</SelectItem>
-                      <SelectItem value="completed">Tamamlandı</SelectItem>
-                      <SelectItem value="rejected">Reddedildi</SelectItem>
+                      <SelectItem value="pending">{t("projects.status.pending")}</SelectItem>
+                      <SelectItem value="in_progress">{t("projects.status.in_progress")}</SelectItem>
+                      <SelectItem value="completed">{t("projects.status.completed")}</SelectItem>
+                      <SelectItem value="rejected">{t("projects.status.rejected")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -452,6 +442,7 @@ function SectionGrid({
   defaultCategory: ProjectPlanningSectionItem["category"];
   localization: ProjectDetailClientProps["localization"];
 }) {
+  const t = useTranslations();
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
@@ -472,10 +463,9 @@ function SectionGrid({
         ) : (
           <div className="flex min-h-52 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
             <FileText className="h-9 w-9 text-muted-foreground" />
-            <h3 className="mt-4 text-base font-semibold text-foreground">Henüz kayıt yok</h3>
+            <h3 className="mt-4 text-base font-semibold text-foreground">{t("projects.detail.noRecords")}</h3>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Bu proje için ilk planlama veya design system alanını ekleyerek proje bilgisini
-              görevlerden bağımsız hale getir.
+              {t("projects.detail.noRecordsDesc")}
             </p>
           </div>
         )}
@@ -491,12 +481,13 @@ function PlanningSectionCard({
   section: ProjectPlanningSectionItem;
   localization: ProjectDetailClientProps["localization"];
 }) {
+  const t = useTranslations();
   return (
     <Card className="transition-colors hover:border-primary/30">
       <CardContent className="flex h-full flex-col gap-4 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <Badge>{sectionLabels[section.category]}</Badge>
+            <Badge>{t(`projects.sections.${section.category}`)}</Badge>
             <h3 className="mt-3 text-base font-semibold text-foreground">{section.title}</h3>
           </div>
           <div className="flex gap-2">
@@ -508,13 +499,13 @@ function PlanningSectionCard({
                 variant="secondary"
                 className="px-3 text-rose-600"
                 idleIcon={<Trash2 className="h-4 w-4" />}
-                aria-label="Sil"
+                aria-label={t("projects.detail.delete")}
               />
             </form>
           </div>
         </div>
         <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-          {section.content || "İçerik eklenmedi."}
+          {section.content || t("projects.detail.noContent")}
         </p>
       </CardContent>
     </Card>
@@ -534,6 +525,7 @@ function SectionDialog({
   section?: ProjectPlanningSectionItem;
   localization: ProjectDetailClientProps["localization"];
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action =
@@ -560,7 +552,7 @@ function SectionDialog({
           className="gap-2 px-3"
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {mode === "create" ? "Alan ekle" : null}
+          {mode === "create" ? t("projects.detail.addPlan") : null}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
@@ -569,24 +561,24 @@ function SectionDialog({
           {section ? <input type="hidden" name="id" value={section.id} /> : null}
           <DialogHeader>
             <DialogTitle>
-              {mode === "create" ? "Planlama alanı ekle" : "Planlama alanını düzenle"}
+              {mode === "create" ? t("projects.detail.planCreateTitle") : t("projects.detail.planEditTitle")}
             </DialogTitle>
             <DialogDescription>
-              Projenin görev dışı bilgisini yapılandırılmış alanlarda sakla.
+              {t("projects.detail.planDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label>Kategori</Label>
+              <Label>{t("projects.detail.category")}</Label>
               <Select name="category" defaultValue={section?.category || defaultCategory || "overview"}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Kategori seç" />
+                  <SelectValue placeholder={t("projects.detail.categorySelect")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(sectionLabels).map(([value, label]) => (
+                  {sectionCategoryOptions.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {label}
+                      {t(`projects.sections.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -596,7 +588,13 @@ function SectionDialog({
               idPrefix={`section-${section?.id || "new"}`}
               defaultLocale={localization.defaultLocale}
               locales={localization.locales}
-              fields={contentTranslationRegistry.planning_section}
+              fields={contentTranslationRegistry.planning_section.map((field) => ({
+                ...field,
+                label: t(`projects.detail.planFields.${field.name}`),
+                placeholder: "placeholder" in field && typeof field.placeholder === "string"
+                  ? t(`projects.detail.planPlaceholders.${field.name}`)
+                  : undefined,
+              }))}
               values={section?.translations}
               fallbackValues={{
                 title: section?.title,
@@ -604,7 +602,7 @@ function SectionDialog({
               }}
             />
             <div className="grid gap-2">
-              <Label htmlFor={`section-order-${section?.id || "new"}`}>Sıra</Label>
+              <Label htmlFor={`section-order-${section?.id || "new"}`}>{t("projects.detail.sortOrder")}</Label>
               <Input
                 id={`section-order-${section?.id || "new"}`}
                 name="sort_order"
@@ -616,7 +614,7 @@ function SectionDialog({
 
           <DialogFooter>
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
-              {isSubmitting ? "Kaydediliyor" : "Kaydet"}
+              {isSubmitting ? t("projects.detail.saving") : t("projects.detail.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -636,6 +634,7 @@ function TaskPanel({
   tasks: ProjectDetailTaskItem[];
   localization: ProjectDetailClientProps["localization"];
 }) {
+  const t = useTranslations();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [statusOverrides, setStatusOverrides] = useState<
     Partial<Record<string, ProjectDetailTaskItem["status"]>>
@@ -665,7 +664,7 @@ function TaskPanel({
           toast.error(
             error instanceof Error
               ? error.message
-              : "Görev durumu güncellenemedi.",
+              : t("projects.detail.taskUpdateFailed"),
           );
         })
         .finally(() => {
@@ -693,9 +692,9 @@ function TaskPanel({
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Proje görevleri</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t("projects.detail.tasksTitle")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Bu proje ile bağlantılı görevler aynı task modülünden beslenir.
+              {t("projects.detail.tasksDesc")}
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -707,7 +706,7 @@ function TaskPanel({
                 onClick={() => setView("list")}
               >
                 <LayoutList className="h-4 w-4" />
-                Liste
+                {t("projects.detail.list")}
               </Button>
               <Button size="sm" effect="shine"
                 type="button"
@@ -716,7 +715,7 @@ function TaskPanel({
                 onClick={() => setView("kanban")}
               >
                 <KanbanSquare className="h-4 w-4" />
-                Kanban
+                {t("projects.detail.kanban")}
               </Button>
             </div>
             <ProjectTaskDialog projectId={projectId} clientId={clientId} localization={localization} />
@@ -726,10 +725,10 @@ function TaskPanel({
         {localTasks.length > 0 && view === "list" ? (
           <div className="overflow-hidden rounded-sm border border-border">
             <div className="hidden grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground lg:grid">
-              <span>Görev</span>
-              <span>Öncelik</span>
-              <span>Son tarih</span>
-              <span className="text-right">İşlem</span>
+              <span>{t("projects.detail.colTask")}</span>
+              <span>{t("projects.detail.colPriority")}</span>
+              <span>{t("projects.detail.colDue")}</span>
+              <span className="text-right">{t("projects.detail.colAction")}</span>
             </div>
             <div className="divide-y divide-border">
               {localTasks.map((task) => (
@@ -749,22 +748,18 @@ function TaskPanel({
                         {task.title}
                       </div>
                       {task.is_public_to_client && (
-                        <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50">Müşteriye Açık</Badge>
+                        <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50">{t("projects.detail.taskPublic")}</Badge>
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {task.status === "done"
-                        ? "Tamamlandı"
-                        : task.status === "in_progress"
-                          ? "Devam ediyor"
-                          : "Yapılacak"}
+                      {t(`projects.status.${task.status}`)}
                     </div>
                   </div>
                   <div>
-                    <Badge className={priorityClasses[task.priority]}>{task.priority}</Badge>
+                    <Badge className={priorityClasses[task.priority]}>{t(`tasks.priority.${task.priority}`)}</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {task.due_at ? formatDateTime(task.due_at) : "Yok"}
+                    {task.due_at ? formatDateTime(task.due_at) : t("projects.detail.taskNone")}
                   </div>
                   <div className="flex justify-start lg:justify-end">
                     {task.status !== "done" ? (
@@ -781,7 +776,7 @@ function TaskPanel({
                         ) : (
                           <CheckCircle2 className="h-4 w-4" />
                         )}
-                        {pendingTaskIds.has(task.id) ? "Tamamlanıyor" : "Tamamla"}
+                        {pendingTaskIds.has(task.id) ? t("projects.detail.completing") : t("projects.detail.complete")}
                       </Button>
                     ) : null}
                   </div>
@@ -800,7 +795,7 @@ function TaskPanel({
         ) : null}
 
         {localTasks.length === 0 ? (
-          <EmptyPanel icon={ClipboardList} title="Bu projeye bağlı görev yok" />
+          <EmptyPanel icon={ClipboardList} title={t("projects.detail.noTasks")} />
         ) : null}
       </CardContent>
     </Card>
@@ -816,6 +811,7 @@ function ProjectTaskKanban({
   pendingTaskIds: Set<string>;
   onTaskStatusChange: (taskId: string, status: ProjectDetailTaskItem["status"]) => void;
 }) {
+  const t = useTranslations();
   const columns = ["todo", "in_progress", "done"] as const;
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
@@ -850,7 +846,7 @@ function ProjectTaskKanban({
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">
-                {getTaskStatusLabel(status)}
+                {t(`projects.status.${status}`)}
               </h3>
               <Badge>{columnTasks.length}</Badge>
             </div>
@@ -871,11 +867,11 @@ function ProjectTaskKanban({
                     <div>
                       <div className="font-medium text-foreground">{task.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {task.due_at ? formatDateTime(task.due_at) : "Son tarih yok"}
+                        {task.due_at ? formatDateTime(task.due_at) : t("projects.detail.noDeadline")}
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <Badge className={priorityClasses[task.priority]}>{task.priority}</Badge>
+                      <Badge className={priorityClasses[task.priority]}>{t(`tasks.priority.${task.priority}`)}</Badge>
                       {task.status !== "done" ? (
                         <Button
                           size="icon-sm"
@@ -884,8 +880,8 @@ function ProjectTaskKanban({
                           variant="secondary"
                           disabled={pendingTaskIds.has(task.id)}
                           aria-busy={pendingTaskIds.has(task.id)}
-                          title="Tamamla"
-                          aria-label="Tamamla"
+                          title={t("projects.detail.complete")}
+                          aria-label={t("projects.detail.complete")}
                           onClick={() => onTaskStatusChange(task.id, "done")}
                         >
                           {pendingTaskIds.has(task.id) ? (
@@ -908,6 +904,7 @@ function ProjectTaskKanban({
 }
 
 function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progressType, setProgressType] = useState<"manual" | "auto">(project.progress_type);
@@ -932,35 +929,35 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
       <DialogTrigger asChild>
         <Button effect="shine" variant="secondary" className="gap-2 px-3">
           <Settings2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Ayarlar</span>
+          <span className="hidden sm:inline">{t("projects.detail.settings")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form action={handleSubmit} className="space-y-5">
           <DialogHeader>
-            <DialogTitle>Proje ayarları</DialogTitle>
+            <DialogTitle>{t("projects.detail.settingsTitle")}</DialogTitle>
             <DialogDescription>
-              İlerleme hesaplama yöntemi ve revizyon kotasını belirle.
+              {t("projects.detail.settingsDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label>İlerleme Hesaplama</Label>
+              <Label>{t("projects.detail.progressType")}</Label>
               <Select value={progressType} onValueChange={(val: "manual" | "auto") => setProgressType(val)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manual">Manuel (Elle girilir)</SelectItem>
-                  <SelectItem value="auto">Otomatik (Görevlere göre)</SelectItem>
+                  <SelectItem value="manual">{t("projects.detail.progressManual")}</SelectItem>
+                  <SelectItem value="auto">{t("projects.detail.progressAuto")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {progressType === "manual" && (
               <div className="grid gap-2">
-                <Label>İlerleme Durumu (%)</Label>
+                <Label>{t("projects.detail.progressValue")}</Label>
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
@@ -975,24 +972,24 @@ function ProjectSettingsDialog({ project }: { project: ProjectDetail }) {
               </div>
             )}
             {progressType === "auto" && (
-              <p className="text-xs text-muted-foreground">İlerleme yüzdesi &quot;Görevler&quot; sekmesindeki görevlerin tamamlanma durumuna göre otomatik hesaplanacaktır.</p>
+              <p className="text-xs text-muted-foreground">{t("projects.detail.progressAutoHint")}</p>
             )}
 
             <div className="grid gap-2">
-              <Label>Müşteri Revizyon Kotası</Label>
+              <Label>{t("projects.detail.revisionQuota")}</Label>
               <Input
                 type="number"
                 min="0"
                 value={revisionQuota}
                 onChange={(e) => setRevisionQuota(Number(e.target.value))}
               />
-              <p className="text-xs text-muted-foreground">Müşterinin portal üzerinden talep edebileceği toplam revizyon hakkı.</p>
+              <p className="text-xs text-muted-foreground">{t("projects.detail.revisionQuotaHint")}</p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
+              {isSubmitting ? t("projects.detail.saving") : t("projects.detail.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -1011,6 +1008,7 @@ function ProjectTaskDialog({
   clientId: string | null;
   localization: ProjectDetailClientProps["localization"];
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -1030,7 +1028,7 @@ function ProjectTaskDialog({
       <DialogTrigger asChild>
         <Button variant="default" effect="shine" className="gap-2 px-3">
           <Plus className="h-4 w-4" />
-          Görev ekle
+          {t("projects.detail.addTask")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
@@ -1038,9 +1036,9 @@ function ProjectTaskDialog({
           <input type="hidden" name="project_id" value={projectId} />
           {clientId ? <input type="hidden" name="client_id" value={clientId} /> : null}
           <DialogHeader>
-            <DialogTitle>Projeye görev ekle</DialogTitle>
+            <DialogTitle>{t("projects.detail.addTaskTitle")}</DialogTitle>
             <DialogDescription>
-              Yeni görev bu proje ile ilişkilendirilerek görev modülüne kaydedilir.
+              {t("projects.detail.addTaskDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1049,33 +1047,39 @@ function ProjectTaskDialog({
               idPrefix="project-task"
               defaultLocale={localization.defaultLocale}
               locales={localization.locales}
-              fields={contentTranslationRegistry.task}
+              fields={contentTranslationRegistry.task.map((field) => ({
+                ...field,
+                label: t(`tasks.fields.${field.name}`),
+                placeholder: "placeholder" in field && typeof field.placeholder === "string"
+                  ? t(`tasks.placeholders.${field.name}`)
+                  : undefined,
+              }))}
             />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Durum</Label>
+                <Label>{t("projects.form.status")}</Label>
                 <Select name="status" defaultValue="todo">
                   <SelectTrigger>
-                    <SelectValue placeholder="Durum seç" />
+                    <SelectValue placeholder={t("projects.form.statusPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todo">Yapılacak</SelectItem>
-                    <SelectItem value="in_progress">Devam ediyor</SelectItem>
-                    <SelectItem value="done">Tamamlandı</SelectItem>
+                    <SelectItem value="todo">{t("projects.status.todo")}</SelectItem>
+                    <SelectItem value="in_progress">{t("projects.status.in_progress")}</SelectItem>
+                    <SelectItem value="done">{t("projects.status.done")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Öncelik</Label>
+                <Label>{t("projects.detail.colPriority")}</Label>
                 <Select name="priority" defaultValue="medium">
                   <SelectTrigger>
-                    <SelectValue placeholder="Öncelik seç" />
+                    <SelectValue placeholder={t("tasks.form.priorityPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Düşük</SelectItem>
-                    <SelectItem value="medium">Orta</SelectItem>
-                    <SelectItem value="high">Yüksek</SelectItem>
-                    <SelectItem value="urgent">Acil</SelectItem>
+                    <SelectItem value="low">{t("tasks.priority.low")}</SelectItem>
+                    <SelectItem value="medium">{t("tasks.priority.medium")}</SelectItem>
+                    <SelectItem value="high">{t("tasks.priority.high")}</SelectItem>
+                    <SelectItem value="urgent">{t("tasks.priority.urgent")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1093,37 +1097,37 @@ function ProjectTaskDialog({
                   htmlFor="is_public_to_client"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Müşteri Portalında Göster
+                  {t("projects.detail.publicToClient")}
                 </label>
                 <p className="text-[13px] text-muted-foreground">
-                  Eğer müşteri hesabı varsa, bu görev müşteri portalındaki proje detayında da görünür olur.
+                  {t("projects.detail.publicToClientHint")}
                 </p>
               </div>
             </div>
 
             <div className="grid gap-5 md:grid-cols-3">
               <div className="grid gap-2">
-                <Label htmlFor="project-task-due">Son tarih</Label>
+                <Label htmlFor="project-task-due">{t("projects.detail.colDue")}</Label>
                 <Input id="project-task-due" name="due_at" type="datetime-local" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="project-task-estimated">Tahmini süre</Label>
+                <Label htmlFor="project-task-estimated">{t("projects.detail.estimatedTime")}</Label>
                 <Input
                   id="project-task-estimated"
                   name="estimated_minutes"
                   type="number"
                   min="0"
-                  placeholder="Dakika"
+                  placeholder={t("projects.detail.minutes")}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="project-task-actual">Gerçekleşen süre</Label>
+                <Label htmlFor="project-task-actual">{t("projects.detail.actualTime")}</Label>
                 <Input
                   id="project-task-actual"
                   name="actual_minutes"
                   type="number"
                   min="0"
-                  placeholder="Dakika"
+                  placeholder={t("projects.detail.minutes")}
                 />
               </div>
             </div>
@@ -1132,7 +1136,7 @@ function ProjectTaskDialog({
           <DialogFooter>
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="gap-2">
               <Plus className="h-4 w-4" />
-              {isSubmitting ? "Kaydediliyor" : "Görevi ekle"}
+              {isSubmitting ? t("projects.detail.saving") : t("projects.detail.submitTask")}
             </Button>
           </DialogFooter>
         </form>
@@ -1142,13 +1146,14 @@ function ProjectTaskDialog({
 }
 
 function FinancePanel({ transactions }: { transactions: ProjectFinanceItem[] }) {
+  const t = useTranslations();
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Finans bağlantıları</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("projects.detail.financeTitle")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Bu projeye bağlanan gelir ve gider kayıtları.
+            {t("projects.detail.financeDesc")}
           </p>
         </div>
 
@@ -1158,7 +1163,7 @@ function FinancePanel({ transactions }: { transactions: ProjectFinanceItem[] }) 
               <div key={transaction.id} className="flex flex-col gap-2 p-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="font-medium text-foreground">
-                    {transaction.category || (transaction.type === "income" ? "Gelir" : "Gider")}
+                    {transaction.category || (transaction.type === "income" ? t("projects.detail.income") : t("projects.detail.expense"))}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {formatDate(transaction.transaction_date)} · {transaction.payment_status}
@@ -1178,7 +1183,7 @@ function FinancePanel({ transactions }: { transactions: ProjectFinanceItem[] }) 
             ))}
           </div>
         ) : (
-          <EmptyPanel icon={Wallet} title="Bu projeye bağlı finans kaydı yok" />
+          <EmptyPanel icon={Wallet} title={t("projects.detail.noFinance")} />
         )}
       </CardContent>
     </Card>
@@ -1284,11 +1289,7 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-function getTaskStatusLabel(status: ProjectDetailTaskItem["status"]) {
-  if (status === "done") return "Tamamlandı";
-  if (status === "in_progress") return "Devam ediyor";
-  return "Yapılacak";
-}
+// Removed function since it's localized inline now or no longer needed
 
 function formatCurrency(value: number, currency: string) {
   return new Intl.NumberFormat(getDocumentIntlLocale(), {

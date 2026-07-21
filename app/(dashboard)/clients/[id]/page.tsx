@@ -27,12 +27,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const defaultLocale = i18n.getSettings(actor).defaultLocale;
   
   const resolvedLocale = await resolveFreelancerLocale(context);
-  const payload = getClientI18nPayload(resolvedLocale.locale, ["clients"]);
+  const payload = getClientI18nPayload(resolvedLocale.locale, ["clients", "common"]);
 
   let data: { client: ClientDetailData; activities: ClientActivity[] };
   try {
     const row = service.getClient(actor, id);
-    const clientTranslations = service.contentTranslations.list("client", id);
+    const clientTranslationsMap = service.contentTranslations.listBatch("client", [id]);
     
     const client: ClientDetailData = {
       id: row.id,
@@ -46,7 +46,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       notes: row.notes,
       client_auth_id: row.authUserId,
       portal_locale: row.portalLocale ?? defaultLocale,
-      translations: buildTranslations(clientTranslations),
+      translations: buildTranslations(clientTranslationsMap.get(id) ?? []),
     };
     
     const rawActivities = service.listClientActivities(actor, id);
@@ -69,8 +69,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <I18nProvider payload={payload}>
-      <ClientDetailClient client={data.client} activities={data.activities} locales={locales} />
+    <I18nProvider {...payload}>
+      <ClientDetailClient client={data.client} activities={data.activities} locales={locales} currentLocale={resolvedLocale.locale} />
     </I18nProvider>
   );
 }

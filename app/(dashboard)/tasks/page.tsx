@@ -3,6 +3,8 @@ import { getSqliteConnection } from "@/server/db/client";
 import { ContentTranslationService, type ContentTranslationRow } from "@/server/i18n/content";
 import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
+import { getClientI18nPayload } from "@/server/i18n/translator";
+import { I18nProvider } from "@/components/i18n/i18n-provider";
 
 export default async function TasksPage() {
   const locale = await resolveFreelancerLocale();
@@ -55,7 +57,13 @@ export default async function TasksPage() {
     .filter((project) => project.status !== "cancelled")
     .map(({ id, name, clientId }) => ({ id, name, client_id: clientId }));
 
-  return <TasksClient tasks={tasks} clients={clients} projects={projects} localization={localization} />;
+  const i18nPayload = await getClientI18nPayload(locale.locale, ["tasks", "projects", "common"]);
+
+  return (
+    <I18nProvider {...i18nPayload}>
+      <TasksClient tasks={tasks} clients={clients} projects={projects} localization={localization} />
+    </I18nProvider>
+  );
 }
 
 function toLocalizedValues(rows: ContentTranslationRow[]) {

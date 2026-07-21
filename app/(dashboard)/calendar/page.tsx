@@ -20,7 +20,7 @@ function buildTranslations(rows: ContentTranslationRow[] | undefined) {
 export default async function CalendarPage() {
   const { context, actor, service } = await requireFreelancerBackend();
   const resolvedLocale = await resolveFreelancerLocale(context);
-  const payload = getClientI18nPayload(resolvedLocale.locale, ["calendar"]);
+  const payload = getClientI18nPayload(resolvedLocale.locale, ["calendar", "common"]);
   
   const i18n = new I18nService(getSqliteConnection().db);
   const activeLocales = i18n.listLocales(actor).filter(l => l.status !== "archived").map(l => ({ code: l.code, name: l.nativeName }));
@@ -61,7 +61,7 @@ export default async function CalendarPage() {
     .map(({ id, title }) => ({ id, title }));
 
   return (
-    <I18nProvider payload={payload}>
+    <I18nProvider {...payload}>
       <CalendarClient events={events} clients={clientOptions} projects={projectOptions} tasks={taskOptions} activeLocales={activeLocales} />
     </I18nProvider>
   );

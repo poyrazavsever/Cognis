@@ -22,7 +22,7 @@ export async function addClientActivity(clientId: string, formData: FormData) {
   service.addClientActivity(actor, {
     clientId,
     type,
-    title: defaultTitle || requiredText(formData.get("title"), "Aktivite başlığı zorunludur."),
+    title: defaultTitle || requiredText(formData.get("title"), "clients.detail.activityTitleRequired"),
     content: defaultContent || cleanText(formData.get("content")),
     activityDate: optionalDate(formData.get("activity_date")) ?? new Date(),
     translations,

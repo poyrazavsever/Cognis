@@ -12,11 +12,14 @@ import { DomainError } from "@/server/domain/errors";
 import { ContentTranslationService, type ContentTranslationRow } from "@/server/i18n/content";
 import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
+import { getClientI18nPayload } from "@/server/i18n/translator";
+import { I18nProvider } from "@/components/i18n/i18n-provider";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const locale = await resolveFreelancerLocale();
-  const { actor, service } = await requireFreelancerBackend();
+  const { context, actor, service } = await requireFreelancerBackend();
+  const locale = await resolveFreelancerLocale(context);
+  const payload = getClientI18nPayload(locale.locale, ["projects", "tasks", "common"]);
   const content = new ContentTranslationService(getSqliteConnection().db);
   const localization = content.getLocalizationContext(actor);
 
@@ -120,15 +123,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     throw error;
   }
 
+  const i18nPayload = await getClientI18nPayload(locale.locale, ["projects", "tasks", "common"]);
+
   return (
-    <ProjectDetailClient
-      project={data.project}
-      sections={data.sections}
-      tasks={data.tasks}
-      financeTransactions={data.financeTransactions}
-      revisions={data.revisions}
-      localization={localization}
-    />
+    <I18nProvider {...i18nPayload}>
+      <ProjectDetailClient
+        project={data.project}
+        sections={data.sections}
+        tasks={data.tasks}
+        financeTransactions={data.financeTransactions}
+        revisions={data.revisions}
+        localization={localization}
+      />
+    </I18nProvider>
   );
 }
 

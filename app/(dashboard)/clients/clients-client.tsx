@@ -621,15 +621,14 @@ function PhoneInput({ id, name, defaultValue }: { id: string; name: string; defa
 }
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+  const t = useTranslations();
   return (
     <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
       <Users className="h-10 w-10 text-muted-foreground" />
       <h3 className="mt-4 text-lg font-semibold text-foreground">
-        {hasQuery ? "Aramana uygun müşteri yok" : "Henüz müşteri eklenmedi"}
+        {hasQuery ? t("clients.empty.noMatchTitle") : t("clients.empty.noClientTitle")}
       </h3>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        İlk müşterini ekleyerek potansiyel satışlarını takip etmeye başla.
-      </p>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">{t("clients.empty.noClientDesc")}</p>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export type ClientDetailData = {
   notes: string | null;
   client_auth_id: string | null;
   portal_locale: string;
+  translations?: Record<string, Record<string, string>>;
 };
 
 export type ClientActivity = {
@@ -38,10 +39,12 @@ export function ClientDetailClient({
   client,
   activities,
   locales,
+  currentLocale,
 }: {
   client: ClientDetailData;
   activities: ClientActivity[];
   locales: Array<{ code: string; nativeName: string; name: string }>;
+  currentLocale: string;
 }) {
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -95,13 +98,13 @@ export function ClientDetailClient({
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Kullanıcı oluşturulamadı.");
+        throw new Error(data.error || "clients.detail.portalInviteFailed");
       }
       setInvitationUrl(data.invitation.invitationUrl);
       setPortalLocale(data.invitation.locale ?? locale);
-      toast.success("Güvenli portal daveti oluşturuldu.");
+      toast.success(t("clients.detail.portalInviteCreated"));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Davet oluşturulamadı.");
+      toast.error(resolveTranslatedError(t, error, "clients.detail.portalInviteFailed"));
     } finally {
       setIsCreatingUser(false);
     }
@@ -116,11 +119,11 @@ export function ClientDetailClient({
         body: JSON.stringify({ locale: nextLocale }),
       });
       const data = await response.json();
-      if (!response.ok || data.error) throw new Error(data.error || "Portal dili güncellenemedi.");
-      toast.success("Portal dili güncellendi.");
+      if (!response.ok || data.error) throw new Error(data.error || "clients.detail.portalLocaleUpdateFailed");
+      toast.success(t("clients.detail.portalLocaleUpdated"));
     } catch (error) {
       setPortalLocale(client.portal_locale);
-      toast.error(error instanceof Error ? error.message : "Portal dili güncellenemedi.");
+      toast.error(resolveTranslatedError(t, error, "clients.detail.portalLocaleUpdateFailed"));
     }
   }
 
@@ -151,21 +154,21 @@ export function ClientDetailClient({
               <DialogContent>
                 <form onSubmit={handleCreateUser}>
                   <DialogHeader>
-                    <DialogTitle>Müşteri Portalına Davet Et</DialogTitle>
+                    <DialogTitle>{t("clients.detail.invitePortal")}</DialogTitle>
                     <DialogDescription>
-                      Müşterin bağlantıyı açıp kendi şifresini belirler. Davet 72 saat geçerlidir ve yalnızca bir kez kullanılabilir.
+                      {t("clients.detail.portalInviteDescription")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">{t("clients.detail.email")}</Label>
+                      <Label htmlFor="email">{t("clients.form.email")}</Label>
                       <Input id="email" name="email" type="email" required defaultValue={client.email || ""} />
                     </div>
                     <div className="space-y-2">
                       <Label>{t("clients.detail.portalLocale")}</Label>
                       <Select name="locale" defaultValue={portalLocale}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Dil seç" />
+                          <SelectValue placeholder={t("clients.detail.portalLocalePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           {locales.map((locale) => (
@@ -178,31 +181,31 @@ export function ClientDetailClient({
                     </div>
                     {invitationUrl ? (
                       <div className="space-y-2">
-                        <Label htmlFor="invitation-url">Davet bağlantısı</Label>
+                        <Label htmlFor="invitation-url">{t("clients.detail.invitationUrl")}</Label>
                         <div className="flex gap-2">
                           <Input id="invitation-url" value={invitationUrl} readOnly />
                           <Button effect="shine"
                             type="button"
                             variant="secondary"
                             size="icon"
-                            aria-label="Davet bağlantısını kopyala"
+                            aria-label={t("clients.detail.copyInvitationUrl")}
                             onClick={async () => {
                               await navigator.clipboard.writeText(invitationUrl);
-                              toast.success("Davet bağlantısı kopyalandı.");
+                              toast.success(t("clients.detail.invitationUrlCopied"));
                             }}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">Bağlantı yalnızca bu ekranda düz metin olarak gösterilir.</p>
+                        <p className="text-xs text-muted-foreground">{t("clients.detail.invitationUrlHelp")}</p>
                       </div>
                     ) : null}
                   </div>
                   <DialogFooter>
-                    <Button effect="shine" type="button" variant="secondary" onClick={() => setCreateUserOpen(false)}>İptal</Button>
+                    <Button effect="shine" type="button" variant="secondary" onClick={() => setCreateUserOpen(false)}>{t("clients.form.cancel")}</Button>
                     <Button variant="default" effect="shine" type="submit" disabled={isCreatingUser || Boolean(invitationUrl)}>
                       {isCreatingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Davet Oluştur
+                      {t("clients.detail.createInvitation")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -216,7 +219,7 @@ export function ClientDetailClient({
               </Badge>
               <Select value={portalLocale} onValueChange={handlePortalLocaleChange}>
                 <SelectTrigger className="h-9 w-36">
-                  <SelectValue placeholder="Portal dili" />
+                  <SelectValue placeholder={t("clients.detail.portalLocalePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {locales.map((locale) => (
@@ -259,7 +262,7 @@ export function ClientDetailClient({
                   </div>
                 ) : null}
                 {!client.email && !client.phone && !client.website && (
-                  <p className="text-muted-foreground italic">İletişim bilgisi girilmemiş.</p>
+                  <p className="text-muted-foreground italic">{t("clients.detail.noContact")}</p>
                 )}
               </div>
             </CardContent>
@@ -271,7 +274,7 @@ export function ClientDetailClient({
               {client.notes ? (
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{client.notes}</p>
               ) : (
-                <p className="text-sm text-muted-foreground italic">Müşteriye ait genel not bulunmuyor.</p>
+                <p className="text-sm text-muted-foreground italic">{t("clients.detail.noNotes")}</p>
               )}
             </CardContent>
           </Card>
@@ -282,7 +285,7 @@ export function ClientDetailClient({
           <Card>
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-foreground">Aktivite Geçmişi</h3>
+                <h3 className="font-semibold text-foreground">{t("clients.detail.activityHistory")}</h3>
                 
                 <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                   <DialogTrigger asChild>
@@ -307,10 +310,6 @@ export function ClientDetailClient({
                               <SelectItem value="email">{t("clients.detail.activityTypes.email")}</SelectItem>
                             </SelectContent>
                           </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Başlık</Label>
-                          <Input name="title" required placeholder="Aktivite özeti" />
                         </div>
                         <div className="grid gap-2">
                           <Label>{t("clients.detail.activityDate")}</Label>
@@ -362,14 +361,14 @@ export function ClientDetailClient({
                       <Card className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] hover:border-primary/50 transition-colors">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-semibold text-foreground">{activity.translations?.[locales[0].code]?.title ?? activity.title}</h4>
+                            <h4 className="font-semibold text-foreground">{activity.translations?.[currentLocale]?.title ?? activity.title}</h4>
                             {getActivityBadge(activity.type)}
                           </div>
                           <time className="text-xs text-muted-foreground block mb-2 font-medium">
                             {format(new Date(activity.activity_date), "d MMM yyyy, HH:mm", { locale: getDocumentDateFnsLocale() })}
                           </time>
-                          {(activity.translations?.[locales[0].code]?.content ?? activity.content) && (
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{activity.translations?.[locales[0].code]?.content ?? activity.content}</p>
+                          {(activity.translations?.[currentLocale]?.content ?? activity.content) && (
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{activity.translations?.[currentLocale]?.content ?? activity.content}</p>
                           )}
                         </CardContent>
                       </Card>
@@ -383,4 +382,14 @@ export function ClientDetailClient({
       </div>
     </div>
   );
+}
+
+function resolveTranslatedError(
+  t: ReturnType<typeof useTranslations>,
+  error: unknown,
+  fallbackKey: string,
+) {
+  if (!(error instanceof Error)) return t(fallbackKey);
+  if (/^clients\./.test(error.message)) return t(error.message);
+  return error.message || t(fallbackKey);
 }

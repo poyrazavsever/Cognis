@@ -20,7 +20,7 @@ function buildTranslations(rows: ContentTranslationRow[] | undefined) {
 export default async function ClientsPage() {
   const { context, actor, service } = await requireFreelancerBackend();
   const resolvedLocale = await resolveFreelancerLocale(context);
-  const payload = getClientI18nPayload(resolvedLocale.locale, ["clients"]);
+  const payload = getClientI18nPayload(resolvedLocale.locale, ["clients", "common"]);
   
   const i18n = new I18nService(getSqliteConnection().db);
   const activeLocales = i18n.listLocales(actor).filter(l => l.status !== "archived").map(l => ({ code: l.code, name: l.nativeName }));
@@ -78,7 +78,7 @@ export default async function ClientsPage() {
   });
 
   return (
-    <I18nProvider payload={payload}>
+    <I18nProvider {...payload}>
       <ClientsClient
         clients={clients}
         totalRevenue={clients.reduce((sum, client) => sum + client.revenueTotal, 0)}

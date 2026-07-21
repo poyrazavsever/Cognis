@@ -73,18 +73,18 @@ export type ProjectListItem = {
   translations?: LocalizedFieldValues;
 };
 
-const typeLabels = {
-  client_project: "Müşteri projesi",
-  side_project: "Side project",
-};
+const typeLabels = (t: any) => ({
+  client_project: t("projects.types.client"),
+  side_project: t("projects.types.side"),
+});
 
-const statusLabels = {
-  planning: "Planlama",
-  active: "Aktif",
-  paused: "Duraklatıldı",
-  completed: "Tamamlandı",
-  cancelled: "İptal edildi",
-};
+const statusLabels = (t: any) => ({
+  planning: t("projects.status.planning"),
+  active: t("projects.status.active"),
+  paused: t("projects.status.paused"),
+  completed: t("projects.status.completed"),
+  cancelled: t("projects.status.cancelled"),
+});
 
 const statusClasses = {
   planning: "border-blue-200 bg-blue-50 text-blue-700",
@@ -108,9 +108,11 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const normalizedQuery = query.trim().toLowerCase();
+  const types = typeLabels(t);
+
   const filteredProjects = normalizedQuery
     ? projects.filter((project) =>
-        [project.name, project.description, project.clientName, typeLabels[project.type]]
+        [project.name, project.description, project.clientName, types[project.type]]
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(normalizedQuery)),
       )
@@ -140,7 +142,7 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
 
       <div className="grid gap-3 md:grid-cols-4">
         <StatCard label={t("projects.stats.active")} value={activeCount.toString()} icon={FolderKanban} tone="green" />
-        <StatCard label="Side project" value={sideProjectCount.toString()} icon={Target} tone="blue" />
+        <StatCard label={t("projects.stats.side")} value={sideProjectCount.toString()} icon={Target} tone="blue" />
         <StatCard label={t("projects.stats.progress")} value={`${averageProgress}%`} icon={CheckCircle2} tone="amber" />
         <StatCard label={t("projects.stats.budget")} value={formatCurrency(totalBudget)} icon={Wallet} tone="red" />
       </div>
@@ -149,16 +151,16 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Proje listesi</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("projects.list.title")}</h2>
               <p className="text-sm text-muted-foreground">
-                {filteredProjects.length} kayıt görüntüleniyor.
+                {t("projects.list.count", { count: filteredProjects.length })}
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Proje, müşteri veya açıklama ara"
+                placeholder={t("projects.list.search")}
                 className="sm:w-80"
               />
               <div className="flex rounded-sm border border-border p-1">
@@ -169,7 +171,7 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
                   onClick={() => setView("grid")}
                 >
                   <LayoutGrid className="h-4 w-4" />
-                  Kart
+                  {t("projects.list.grid")}
                 </Button>
                 <Button size="sm" effect="shine"
                   type="button"
@@ -178,7 +180,7 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
                   onClick={() => setView("list")}
                 >
                   <List className="h-4 w-4" />
-                  Liste
+                  {t("projects.list.list")}
                 </Button>
               </div>
             </div>
@@ -195,11 +197,11 @@ export function ProjectsClient({ projects, clients, localization }: ProjectsClie
               <div className="overflow-x-auto rounded-sm border border-border">
                 <div className="min-w-[800px]">
                   <div className="grid grid-cols-[1.5fr_1fr_1fr_0.8fr_1fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground">
-                    <span>Proje</span>
-                    <span>Tür</span>
-                    <span>Durum</span>
-                    <span>İlerleme</span>
-                    <span className="text-right">İşlem</span>
+                    <span>{t("projects.list.columns.project")}</span>
+                    <span>{t("projects.list.columns.type")}</span>
+                    <span>{t("projects.list.columns.status")}</span>
+                    <span className="text-center">{t("projects.list.columns.budgetDeadline")}</span>
+                    <span className="sr-only">İşlemler</span>
                   </div>
                   <div className="divide-y divide-border">
                     {filteredProjects.map((project) => (
@@ -227,6 +229,7 @@ function ProjectCard({
   clients: ProjectClientOption[];
   localization: ProjectsClientProps["localization"];
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const [isNavigating, startNavigation] = useTransition();
   const detailHref = `/projects/${project.id}`;
@@ -273,10 +276,12 @@ function ProjectCard({
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-foreground">{project.name}</h3>
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-              {project.description || "Açıklama eklenmedi."}
+              {project.description || t("projects.card.noDescription")}
             </p>
           </div>
-          <Badge className={statusClasses[project.status]}>{statusLabels[project.status]}</Badge>
+          <Badge variant="outline" className={statusClasses[project.status]}>
+            {statusLabels(t)[project.status]}
+          </Badge>
         </div>
 
         <ProjectMeta project={project} />
@@ -284,7 +289,7 @@ function ProjectCard({
 
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
           <div className="text-xs text-muted-foreground">
-            {project.doneTaskCount}/{project.taskCount} görev tamamlandı
+            {t("projects.card.taskProgress", { done: project.doneTaskCount, total: project.taskCount })}
           </div>
           <ProjectActions project={project} clients={clients} localization={localization} showDetail={false} />
         </div>
@@ -294,6 +299,7 @@ function ProjectCard({
 }
 
 function ProjectCover({ project }: { project: ProjectListItem }) {
+  const t = useTranslations();
   if (project.coverImageUrl) {
     return (
       <div className="relative aspect-video overflow-hidden rounded-sm border border-border bg-muted">
@@ -311,7 +317,7 @@ function ProjectCover({ project }: { project: ProjectListItem }) {
 
   return (
     <div className="flex aspect-video items-center justify-center rounded-sm border border-dashed border-border bg-muted/30 text-sm text-muted-foreground">
-      Kapak görseli yok
+      {t("projects.card.noCover")}
     </div>
   );
 }
@@ -325,17 +331,18 @@ function ProjectRow({
   clients: ProjectClientOption[];
   localization: ProjectsClientProps["localization"];
 }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-4 px-4 py-4 grid-cols-[1.5fr_1fr_1fr_0.8fr_1fr] items-center">
       <div className="min-w-0">
         <div className="font-medium text-foreground">{project.name}</div>
         <div className="truncate text-sm text-muted-foreground">
-          {project.clientName || "Bağımsız side project"}
+          {project.clientName || t("projects.card.noClient")}
         </div>
       </div>
-      <div className="text-sm text-muted-foreground">{typeLabels[project.type]}</div>
+      <div className="text-sm text-muted-foreground">{typeLabels(t)[project.type]}</div>
       <div>
-        <Badge className={statusClasses[project.status]}>{statusLabels[project.status]}</Badge>
+        <Badge variant="outline" className={statusClasses[project.status]}>{statusLabels(t)[project.status]}</Badge>
       </div>
       <div>
         <ProgressBar progress={project.progress} compact />
@@ -348,15 +355,16 @@ function ProjectRow({
 }
 
 function ProjectMeta({ project }: { project: ProjectListItem }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-2 text-sm text-muted-foreground">
-      <div>{typeLabels[project.type]}</div>
-      <div>{project.clientName || "Müşteri bağlantısı yok"}</div>
+      <div>{typeLabels(t)[project.type]}</div>
+      <div>{project.clientName || t("projects.card.noClient")}</div>
       <div className="flex items-center gap-2">
         <CalendarDays className="h-4 w-4" />
-        {project.due_date ? formatDate(project.due_date) : "Deadline yok"}
+        {project.due_date ? formatDate(project.due_date) : t("projects.card.noDeadline")}
       </div>
-      <div>{project.budget_amount ? formatCurrency(project.budget_amount) : "Bütçe yok"}</div>
+      <div>{project.budget_amount ? formatCurrency(project.budget_amount) : t("projects.card.noBudget")}</div>
     </div>
   );
 }
@@ -372,6 +380,7 @@ function ProjectActions({
   localization: ProjectsClientProps["localization"];
   showDetail: boolean;
 }) {
+  const t = useTranslations();
   return (
     <div
       className="flex gap-2"
@@ -384,8 +393,8 @@ function ProjectActions({
           effect="shine"
           asChild
           variant="secondary"
-          title="Detaya git"
-          aria-label="Detaya git"
+          title={t("projects.actions.detail")}
+          aria-label={t("projects.actions.detail")}
         >
           <PendingLink href={`/projects/${project.id}`} className="flex h-full w-full items-center justify-center" showSpinner>
             <Eye className="h-4 w-4" />
@@ -399,8 +408,8 @@ function ProjectActions({
           <PendingSubmitButton
             size="icon"
             variant="secondary"
-            title="Tamamla"
-            aria-label="Tamamla"
+            title={t("projects.actions.complete")}
+            aria-label={t("projects.actions.complete")}
             idleIcon={<CheckCircle2 className="h-4 w-4" />}
           >
           </PendingSubmitButton>
@@ -423,6 +432,7 @@ function ProjectDialog({
   localization: ProjectsClientProps["localization"];
   iconOnly?: boolean;
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectType, setProjectType] = useState(project?.type || "client_project");
@@ -434,12 +444,12 @@ function ProjectDialog({
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "Proje eklendi." : "Proje güncellendi.");
+      toast.success(mode === "create" ? t("projects.messages.created") : t("projects.messages.updated"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Proje kaydedilirken beklenmeyen bir hata oluştu.",
+          : t("projects.errors.saveFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -453,20 +463,20 @@ function ProjectDialog({
           variant={mode === "create" ? "default" : "secondary"}
           size={iconOnly ? "icon" : "default"}
           className={iconOnly ? undefined : "min-w-24 gap-2 px-3"}
-          title={mode === "create" ? "Proje ekle" : "Düzenle"}
-          aria-label={mode === "create" ? "Proje ekle" : "Düzenle"}
+          title={mode === "create" ? t("projects.actions.add") : t("projects.actions.edit")}
+          aria-label={mode === "create" ? t("projects.actions.add") : t("projects.actions.edit")}
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {iconOnly ? null : mode === "create" ? "Proje ekle" : "Düzenle"}
+          {iconOnly ? null : mode === "create" ? t("projects.actions.add") : t("projects.actions.edit")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden p-0 sm:max-h-[min(680px,calc(100dvh-4rem))] sm:max-w-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
         <form action={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {project ? <input type="hidden" name="id" value={project.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
-            <DialogTitle>{mode === "create" ? "Yeni proje" : "Projeyi düzenle"}</DialogTitle>
+            <DialogTitle>{mode === "create" ? t("projects.form.createTitle") : t("projects.form.editTitle")}</DialogTitle>
             <DialogDescription>
-              Müşteri projelerini ve kişisel side projectleri aynı modelde takip et.
+              {t("projects.form.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -484,10 +494,10 @@ function ProjectDialog({
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
-                ? "Kaydediliyor"
+                ? t("projects.form.submitting")
                 : mode === "create"
-                  ? "Projeyi ekle"
-                  : "Değişiklikleri kaydet"}
+                  ? t("projects.form.submitCreate")
+                  : t("projects.form.submitEdit")}
             </Button>
           </DialogFooter>
         </form>
@@ -497,6 +507,7 @@ function ProjectDialog({
 }
 
 function CoverImageInput({ project }: { project?: ProjectListItem }) {
+  const t = useTranslations();
   const inputId = `cover-${project?.id || "new"}`;
   const [previewUrl, setPreviewUrl] = useState(project?.coverImageUrl || "");
 
@@ -528,7 +539,7 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
 
   return (
     <div className="grid gap-3">
-      <Label htmlFor={inputId}>Kapak görseli</Label>
+      <Label htmlFor={inputId}>{t("projects.form.coverImage")}</Label>
       <label
         htmlFor={inputId}
         className="group relative flex aspect-16/7 cursor-pointer items-center justify-center overflow-hidden rounded-sm border border-dashed border-border bg-muted/20 transition-colors hover:border-primary/50 hover:bg-primary/5"
@@ -548,15 +559,15 @@ function CoverImageInput({ project }: { project?: ProjectListItem }) {
               <ImageIcon className="h-6 w-6" />
             </div>
             <div className="text-center">
-              <div className="text-sm font-medium">Kapak görseli seç</div>
-              <div className="text-xs">PNG, JPG, WebP veya GIF</div>
+              <div className="text-sm font-medium">{t("projects.form.coverImageSelect")}</div>
+              <div className="text-xs">{t("projects.form.coverImageFormat")}</div>
             </div>
           </div>
         )}
 
         {previewUrl ? (
           <div className="absolute inset-x-0 bottom-0 bg-background/90 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
-            Görseli değiştirmek için tıkla.
+            {t("projects.form.coverImageChange")}
           </div>
         ) : null}
       </label>
@@ -585,6 +596,7 @@ function ProjectFormFields({
   projectType: ProjectListItem["type"];
   onProjectTypeChange: (value: ProjectListItem["type"]) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-4">
       <CoverImageInput project={project} />
@@ -593,7 +605,7 @@ function ProjectFormFields({
         idPrefix={`project-${project?.id || "new"}`}
         defaultLocale={localization.defaultLocale}
         locales={localization.locales}
-        fields={contentTranslationRegistry.project}
+        fields={contentTranslationRegistry.project.map((f: any) => ({ ...f, label: (t as any)(`projects.fields.${f.name}`) || f.label, placeholder: f.placeholder ? (t as any)(`projects.placeholders.${f.name}`) || f.placeholder : undefined }))}
         values={project?.translations}
         fallbackValues={{
           name: project?.name,
@@ -604,30 +616,30 @@ function ProjectFormFields({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label>Tür</Label>
+          <Label>{t("projects.form.type")}</Label>
           <Select
             name="type"
             value={projectType}
             onValueChange={(value) => onProjectTypeChange(value as ProjectListItem["type"])}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Tür seç" />
+              <SelectValue placeholder={t("projects.form.typePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="client_project">Müşteri projesi</SelectItem>
-              <SelectItem value="side_project">Side project</SelectItem>
+              <SelectItem value="client_project">{t("projects.types.client")}</SelectItem>
+              <SelectItem value="side_project">{t("projects.types.side")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label>Müşteri</Label>
+          <Label>{t("projects.form.client")}</Label>
           <Select
             name="client_id"
             defaultValue={project?.client_id || ""}
             disabled={projectType === "side_project"}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Müşteri seç" />
+              <SelectValue placeholder={t("projects.form.clientPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {clients.map((client) => (
@@ -642,33 +654,33 @@ function ProjectFormFields({
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-2">
-          <Label>Durum</Label>
+          <Label>{t("projects.form.status")}</Label>
           <Select name="status" defaultValue={project?.status || "planning"}>
             <SelectTrigger>
-              <SelectValue placeholder="Durum seç" />
+              <SelectValue placeholder={t("projects.form.statusPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="planning">Planlama</SelectItem>
-              <SelectItem value="active">Aktif</SelectItem>
-              <SelectItem value="paused">Duraklatıldı</SelectItem>
-              <SelectItem value="completed">Tamamlandı</SelectItem>
-              <SelectItem value="cancelled">İptal edildi</SelectItem>
+              <SelectItem value="planning">{t("projects.status.planning")}</SelectItem>
+              <SelectItem value="active">{t("projects.status.active")}</SelectItem>
+              <SelectItem value="paused">{t("projects.status.paused")}</SelectItem>
+              <SelectItem value="completed">{t("projects.status.completed")}</SelectItem>
+              <SelectItem value="cancelled">{t("projects.status.cancelled")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`start-${project?.id || "new"}`}>Başlangıç</Label>
+          <Label htmlFor={`start-${project?.id || "new"}`}>{t("projects.form.startDate")}</Label>
           <Input id={`start-${project?.id || "new"}`} name="start_date" type="date" defaultValue={project?.start_date || ""} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`due-${project?.id || "new"}`}>Deadline</Label>
+          <Label htmlFor={`due-${project?.id || "new"}`}>{t("projects.form.dueDate")}</Label>
           <Input id={`due-${project?.id || "new"}`} name="due_date" type="date" defaultValue={project?.due_date || ""} />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-2">
-          <Label htmlFor={`budget-${project?.id || "new"}`}>Bütçe / beklenen gelir</Label>
+          <Label htmlFor={`budget-${project?.id || "new"}`}>{t("projects.form.budget")}</Label>
           <Input
             id={`budget-${project?.id || "new"}`}
             name="budget_amount"
@@ -680,11 +692,11 @@ function ProjectFormFields({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`currency-${project?.id || "new"}`}>Para birimi</Label>
+          <Label htmlFor={`currency-${project?.id || "new"}`}>{t("projects.form.currency")}</Label>
           <Input id={`currency-${project?.id || "new"}`} name="currency" defaultValue={project?.currency || "USD"} maxLength={3} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`progress-${project?.id || "new"}`}>İlerleme (%)</Label>
+          <Label htmlFor={`progress-${project?.id || "new"}`}>{t("projects.form.progress")}</Label>
           <div className="flex items-center gap-3">
             <Input
               id={`progress-${project?.id || "new"}`}
@@ -710,11 +722,12 @@ function ProjectFormFields({
 }
 
 function ProgressBar({ progress, compact = false }: { progress: number; compact?: boolean }) {
+  const t = useTranslations();
   return (
     <div className="space-y-2">
       {!compact ? (
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>İlerleme</span>
+          <span>{t("projects.card.progress")}</span>
           <span>{progress}%</span>
         </div>
       ) : null}
@@ -729,17 +742,14 @@ function ProgressBar({ progress, compact = false }: { progress: number; compact?
 }
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+  const t = useTranslations();
   return (
-    <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
-      <FolderKanban className="h-10 w-10 text-muted-foreground" />
-      <h3 className="mt-4 text-lg font-semibold text-foreground">
-        {hasQuery ? "Aramana uygun proje yok" : "Henüz proje eklenmedi"}
-      </h3>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        {hasQuery
-          ? "Arama metnini sadeleştirerek tekrar deneyebilirsin."
-          : "İlk müşteri projen veya side project kaydınla operasyon akışını kurmaya başlayabilirsin."}
-      </p>
+    <div className="flex flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-border py-12 text-center">
+      <FolderKanban className="h-8 w-8 text-muted-foreground/50" />
+      <div className="text-sm font-medium text-foreground">{t("projects.empty.title")}</div>
+      <div className="max-w-xs text-xs text-muted-foreground">
+        {t("projects.empty.description")}
+      </div>
     </div>
   );
 }
@@ -761,6 +771,7 @@ function formatCurrency(value: number) {
 }
 
 function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -793,9 +804,7 @@ function AIProjectRiskDialog({ projectId }: { projectId?: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button effect="shine" variant="secondary" className="gap-2">
-          <Brain className="h-4 w-4" />
-          AI Risk Analizi
-        </Button>
+          <Brain className="h-4 w-4" />{t("projects.actions.ai")}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>

@@ -3,10 +3,13 @@ import { getSqliteConnection } from "@/server/db/client";
 import { ContentTranslationService, type ContentTranslationRow } from "@/server/i18n/content";
 import { resolveFreelancerLocale } from "@/server/i18n/resolver";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
+import { getClientI18nPayload } from "@/server/i18n/translator";
+import { I18nProvider } from "@/components/i18n/i18n-provider";
 
 export default async function ProjectsPage() {
-  const locale = await resolveFreelancerLocale();
-  const { actor, service } = await requireFreelancerBackend();
+  const { context, actor, service } = await requireFreelancerBackend();
+  const locale = await resolveFreelancerLocale(context);
+  const payload = getClientI18nPayload(locale.locale, ["projects", "common"]);
   const content = new ContentTranslationService(getSqliteConnection().db);
   const localization = content.getLocalizationContext(actor);
   const projectRows = service.listProjects(actor);
@@ -58,7 +61,13 @@ export default async function ProjectsPage() {
     .sort((a, b) => a.name.localeCompare(b.name, locale.locale))
     .map(({ id, name }) => ({ id, name }));
 
-  return <ProjectsClient projects={projects} clients={clients} localization={localization} />;
+  const i18nPayload = await getClientI18nPayload(locale.locale, ["projects", "tasks", "common"]);
+
+  return (
+    <I18nProvider {...i18nPayload}>
+      <ProjectsClient projects={projects} clients={clients} localization={localization} />
+    </I18nProvider>
+  );
 }
 
 function toLocalizedValues(rows: ContentTranslationRow[]) {

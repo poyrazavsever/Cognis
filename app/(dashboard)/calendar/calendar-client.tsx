@@ -123,15 +123,9 @@ export function CalendarClient({ events, clients, projects, tasks, activeLocales
                 <p className="text-sm text-muted-foreground">{t("common.itemsCount", { count: events.length })}</p>
               </div>
               <div className="flex gap-2">
-                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(-1)}>
-                  Önceki
-                </Button>
-                <Button effect="shine" type="button" variant="secondary" onClick={() => setMonthDate(new Date())}>
-                  Bugün
-                </Button>
-                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(1)}>
-                  Sonraki
-                </Button>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(-1)}>{t("calendar.navigation.previous")}</Button>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => setMonthDate(new Date())}>{t("calendar.navigation.today")}</Button>
+                <Button effect="shine" type="button" variant="secondary" onClick={() => shiftMonth(1)}>{t("calendar.navigation.next")}</Button>
               </div>
             </div>
 
@@ -210,7 +204,7 @@ export function CalendarClient({ events, clients, projects, tasks, activeLocales
 
           <Card>
             <CardContent className="space-y-3 p-4">
-              <h2 className="text-base font-semibold text-foreground">Yaklaşan etkinlikler</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("calendar.upcoming")}</h2>
               <EventList events={upcomingEvents} clients={clients} projects={projects} tasks={tasks} activeLocales={activeLocales} compact />
             </CardContent>
           </Card>
@@ -237,7 +231,7 @@ function EventList({
 }) {
   const t = useTranslations();
   if (events.length === 0) {
-    return <p className="text-sm text-muted-foreground">Etkinlik yok.</p>;
+    return <p className="text-sm text-muted-foreground">{t("calendar.noEvents")}</p>;
   }
 
   return (

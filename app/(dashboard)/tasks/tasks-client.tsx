@@ -126,7 +126,7 @@ export function TasksClient({ tasks, clients, projects, localization }: TasksCli
           toast.error(
             error instanceof Error
               ? error.message
-              : "Görev durumu güncellenemedi.",
+              : t("tasks.messages.updateFailed") || "Görev durumu güncellenemedi.",
           );
         })
         .finally(() => {
@@ -211,35 +211,35 @@ export function TasksClient({ tasks, clients, projects, localization }: TasksCli
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <StatCard label="Toplam görev" value={localTasks.length.toString()} />
-        <StatCard label="Tamamlanan" value={doneCount.toString()} />
-        <StatCard label="Geciken" value={overdueCount.toString()} />
-        <StatCard label="Acil" value={urgentCount.toString()} />
+        <StatCard label={t("tasks.stats.total")} value={localTasks.length.toString()} />
+        <StatCard label={t("tasks.stats.completed")} value={doneCount.toString()} />
+        <StatCard label={t("tasks.stats.overdue")} value={overdueCount.toString()} />
+        <StatCard label={t("tasks.stats.urgent")} value={urgentCount.toString()} />
       </div>
 
       <Card>
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Görev listesi</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("tasks.list.title")}</h2>
               <p className="text-sm text-muted-foreground">
-                {filteredTasks.length} kayıt görüntüleniyor.
+                {t("tasks.list.showing", { count: filteredTasks.length.toString() })}
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Görev, proje veya müşteri ara"
+                placeholder={t("tasks.list.search")}
                 className="sm:w-80"
               />
               <Select value={projectFilter} onValueChange={setProjectFilter}>
                 <SelectTrigger className="sm:w-56">
-                  <SelectValue placeholder="Proje filtrele" />
+                  <SelectValue placeholder={t("tasks.list.filterProject")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all">Tüm projeler</SelectItem>
-                  <SelectItem value="__none">Projesiz görevler</SelectItem>
+                  <SelectItem value="__all">{t("tasks.list.allProjects")}</SelectItem>
+                  <SelectItem value="__none">{t("tasks.list.noProject")}</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
@@ -255,7 +255,7 @@ export function TasksClient({ tasks, clients, projects, localization }: TasksCli
                   onClick={() => setView("list")}
                 >
                   <LayoutList className="h-4 w-4" />
-                  Liste
+                  {t("tasks.list.viewList")}
                 </Button>
                 <Button size="sm" effect="shine"
                   type="button"
@@ -264,7 +264,7 @@ export function TasksClient({ tasks, clients, projects, localization }: TasksCli
                   onClick={() => setView("kanban")}
                 >
                   <KanbanSquare className="h-4 w-4" />
-                  Kanban
+                  {t("tasks.list.viewKanban")}
                 </Button>
               </div>
             </div>
@@ -318,15 +318,16 @@ function TaskList({
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className="overflow-x-auto rounded-sm border border-border">
       <div className="min-w-[800px]">
         <div className="grid grid-cols-[1.5fr_1fr_1fr_0.8fr_1fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground">
-          <span>Görev</span>
-          <span>Bağlantı</span>
-          <span>Öncelik</span>
-          <span>Son tarih</span>
-          <span className="text-right">İşlem</span>
+          <span>{t("tasks.col.task")}</span>
+          <span>{t("tasks.col.relation")}</span>
+          <span>{t("tasks.col.priority")}</span>
+          <span>{t("tasks.col.due")}</span>
+          <span className="text-right">{t("tasks.col.action")}</span>
         </div>
         <div className="divide-y divide-border">
         {tasks.map((task) => (
@@ -364,6 +365,7 @@ function TaskRow({
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-4 px-4 py-4 grid-cols-[1.5fr_1fr_1fr_0.8fr_1fr] items-center">
       <div className="min-w-0">
@@ -371,20 +373,20 @@ function TaskRow({
           {task.title}
         </div>
         <div className="truncate text-sm text-muted-foreground">
-          {statusLabels[task.status]}
+          {t(`tasks.status.${task.status}`)}
         </div>
       </div>
       <div className="text-sm text-muted-foreground">
-        <div>{task.projectName || "Proje yok"}</div>
-        <div>{task.clientName || "Müşteri yok"}</div>
+        <div>{task.projectName || t("tasks.row.noProject")}</div>
+        <div>{task.clientName || t("tasks.row.noClient")}</div>
       </div>
       <div>
         <Badge className={priorityClasses[task.priority]}>
-          {priorityLabels[task.priority]}
+          {t(`tasks.priority.${task.priority}`)}
         </Badge>
       </div>
       <div className={isOverdue(task) ? "text-sm font-medium text-rose-600" : "text-sm text-muted-foreground"}>
-        {task.due_at ? formatDateTime(task.due_at) : "Yok"}
+        {task.due_at ? formatDateTime(task.due_at) : t("tasks.row.noDue")}
       </div>
       <TaskActions
         task={task}
@@ -416,6 +418,7 @@ function TaskKanban({
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
 }) {
+  const t = useTranslations();
   const columns = ["todo", "in_progress", "done"] as const;
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
@@ -449,7 +452,7 @@ function TaskKanban({
             onDrop={() => handleDrop(status)}
           >
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">{statusLabels[status]}</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t(`tasks.status.${status}`)}</h3>
               <Badge>{columnTasks.length}</Badge>
             </div>
             <div className="space-y-3">
@@ -469,12 +472,12 @@ function TaskKanban({
                     <div>
                       <div className="font-medium text-foreground">{task.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {task.projectName || task.clientName || "Bağlantı yok"}
+                        {task.projectName || task.clientName || t("tasks.col.relation")}
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <Badge className={priorityClasses[task.priority]}>
-                        {priorityLabels[task.priority]}
+                        {t(`tasks.priority.${task.priority}`)}
                       </Badge>
                       <TaskActions
                         task={task}
@@ -517,6 +520,7 @@ function TaskActions({
   onTaskDelete: (taskId: string) => void;
   onTaskStatusChange: (taskId: string, status: TaskListItem["status"]) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className={compact ? "flex justify-end gap-1" : "flex justify-start gap-2 lg:justify-end"}>
       <TaskDialog mode="edit" task={task} clients={clients} projects={projects} localization={localization} />
@@ -534,7 +538,7 @@ function TaskActions({
           ) : (
             <CheckCircle2 className="h-4 w-4" />
           )}
-          {!compact ? (isPending ? "Tamamlanıyor" : "Tamamla") : null}
+          {!compact ? (isPending ? t("projects.detail.completing") : t("projects.detail.complete")) : null}
         </Button>
       ) : null}
       <Button effect="shine"
@@ -568,6 +572,7 @@ function TaskDialog({
   projects: TaskRelationOption[];
   localization: TasksClientProps["localization"];
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action = mode === "create" ? createTaskRecord : updateTaskRecord;
@@ -578,12 +583,12 @@ function TaskDialog({
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "Görev eklendi." : "Görev güncellendi.");
+      toast.success(mode === "create" ? t("tasks.messages.added") : t("tasks.messages.updated"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Görev kaydedilirken beklenmeyen bir hata oluştu.",
+          : t("tasks.messages.saveFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -598,16 +603,16 @@ function TaskDialog({
           className="min-w-24 gap-2 px-3"
         >
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {mode === "create" ? "Görev ekle" : "Düzenle"}
+          {mode === "create" ? t("tasks.form.add") : t("tasks.form.edit")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden p-0 sm:max-h-[min(680px,calc(100dvh-4rem))] sm:max-w-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
         <form action={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {task ? <input type="hidden" name="id" value={task.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
-            <DialogTitle>{mode === "create" ? "Yeni görev" : "Görevi düzenle"}</DialogTitle>
+            <DialogTitle>{mode === "create" ? t("tasks.form.createTitle") : t("tasks.form.editTitle")}</DialogTitle>
             <DialogDescription>
-              Görevi proje, müşteri, öncelik ve son tarih bilgileriyle kaydet.
+              {t("tasks.form.desc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -619,10 +624,10 @@ function TaskDialog({
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               {isSubmitting
-                ? "Kaydediliyor"
+                ? t("tasks.form.saving")
                 : mode === "create"
-                  ? "Görevi ekle"
-                  : "Değişiklikleri kaydet"}
+                  ? t("tasks.form.submitAdd")
+                  : t("tasks.form.submitEdit")}
             </Button>
           </DialogFooter>
         </form>
@@ -642,6 +647,7 @@ function TaskFormFields({
   projects: TaskRelationOption[];
   localization: TasksClientProps["localization"];
 }) {
+  const t = useTranslations();
   const [clientId, setClientId] = useState(task?.client_id || "__none");
   const [projectId, setProjectId] = useState(task?.project_id || "__none");
   const selectedProject =
@@ -681,7 +687,7 @@ function TaskFormFields({
         idPrefix={`task-${task?.id || "new"}`}
         defaultLocale={localization.defaultLocale}
         locales={localization.locales}
-        fields={contentTranslationRegistry.task}
+        fields={contentTranslationRegistry.task.map((f: any) => ({ ...f, label: (t as any)(`tasks.fields.${f.name}`) || f.label, placeholder: f.placeholder ? (t as any)(`tasks.placeholders.${f.name}`) || f.placeholder : undefined }))}
         values={task?.translations}
         fallbackValues={{
           title: task?.title,
@@ -690,22 +696,22 @@ function TaskFormFields({
       />
 
       <div className="grid gap-4 md:grid-cols-2">
-        <SelectField name="status" label="Durum" defaultValue={task?.status || "todo"}>
-          <SelectItem value="todo">Yapılacak</SelectItem>
-          <SelectItem value="in_progress">Devam ediyor</SelectItem>
-          <SelectItem value="done">Tamamlandı</SelectItem>
+        <SelectField name="status" label={t("tasks.form.status")} defaultValue={task?.status || "todo"}>
+          <SelectItem value="todo">{t("tasks.status.todo")}</SelectItem>
+          <SelectItem value="in_progress">{t("tasks.status.in_progress")}</SelectItem>
+          <SelectItem value="done">{t("tasks.status.done")}</SelectItem>
         </SelectField>
-        <SelectField name="priority" label="Öncelik" defaultValue={task?.priority || "medium"}>
-          <SelectItem value="low">Düşük</SelectItem>
-          <SelectItem value="medium">Orta</SelectItem>
-          <SelectItem value="high">Yüksek</SelectItem>
-          <SelectItem value="urgent">Acil</SelectItem>
+        <SelectField name="priority" label={t("tasks.form.priority")} defaultValue={task?.priority || "medium"}>
+          <SelectItem value="low">{t("tasks.priority.low")}</SelectItem>
+          <SelectItem value="medium">{t("tasks.priority.medium")}</SelectItem>
+          <SelectItem value="high">{t("tasks.priority.high")}</SelectItem>
+          <SelectItem value="urgent">{t("tasks.priority.urgent")}</SelectItem>
         </SelectField>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label>Müşteri</Label>
+          <Label>{t("tasks.form.client")}</Label>
           {shouldLockClient ? <input type="hidden" name="client_id" value={clientId} /> : null}
           <Select
             name="client_id"
@@ -714,10 +720,10 @@ function TaskFormFields({
             disabled={shouldLockClient}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Müşteri seç" />
+              <SelectValue placeholder={t("tasks.form.selectClient")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">Müşteri yok</SelectItem>
+              <SelectItem value="__none">{t("tasks.form.noClient")}</SelectItem>
               {clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
@@ -727,13 +733,13 @@ function TaskFormFields({
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label>Proje</Label>
+          <Label>{t("tasks.form.project")}</Label>
           <Select name="project_id" value={projectId} onValueChange={handleProjectChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Proje seç" />
+              <SelectValue placeholder={t("tasks.form.selectProject")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">Proje yok</SelectItem>
+              <SelectItem value="__none">{t("tasks.form.noProject")}</SelectItem>
               {filteredProjects.map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   {project.name}
@@ -746,7 +752,7 @@ function TaskFormFields({
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-2">
-          <Label htmlFor={`due-${task?.id || "new"}`}>Son tarih</Label>
+          <Label htmlFor={`due-${task?.id || "new"}`}>{t("tasks.form.due")}</Label>
           <Input
             id={`due-${task?.id || "new"}`}
             name="due_at"
@@ -755,25 +761,25 @@ function TaskFormFields({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`estimated-${task?.id || "new"}`}>Tahmini süre</Label>
+          <Label htmlFor={`estimated-${task?.id || "new"}`}>{t("tasks.form.estimated")}</Label>
           <Input
             id={`estimated-${task?.id || "new"}`}
             name="estimated_minutes"
             type="number"
             min="0"
             defaultValue={task?.estimated_minutes ?? ""}
-            placeholder="Dakika"
+            placeholder={t("tasks.form.minutes")}
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor={`actual-${task?.id || "new"}`}>Gerçekleşen süre</Label>
+          <Label htmlFor={`actual-${task?.id || "new"}`}>{t("tasks.form.actual")}</Label>
           <Input
             id={`actual-${task?.id || "new"}`}
             name="actual_minutes"
             type="number"
             min="0"
             defaultValue={task?.actual_minutes ?? ""}
-            placeholder="Dakika"
+            placeholder={t("tasks.form.minutes")}
           />
         </div>
       </div>
@@ -792,12 +798,13 @@ function SelectField({
   defaultValue: string;
   children: React.ReactNode;
 }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>
       <Select name={name} defaultValue={defaultValue}>
         <SelectTrigger>
-          <SelectValue placeholder={`${label} seç`} />
+          <SelectValue placeholder={t("tasks.form.select", { label })} />
         </SelectTrigger>
         <SelectContent>{children}</SelectContent>
       </Select>
@@ -822,16 +829,17 @@ function StatCard({ label, value }: { label: string; value: string }) {
 }
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+  const t = useTranslations();
   return (
     <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
       <CheckCircle2 className="h-10 w-10 text-muted-foreground" />
       <h3 className="mt-4 text-lg font-semibold text-foreground">
-        {hasQuery ? "Aramana uygun görev yok" : "Henüz görev eklenmedi"}
+        {hasQuery ? t("tasks.empty.noMatchTitle") : t("tasks.empty.noTaskTitle")}
       </h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         {hasQuery
-          ? "Arama metnini sadeleştirerek tekrar deneyebilirsin."
-          : "İlk görevini ekleyerek proje ve müşteri operasyonunu takip etmeye başlayabilirsin."}
+          ? t("tasks.empty.noMatchDesc")
+          : t("tasks.empty.noTaskDesc")}
       </p>
     </div>
   );
