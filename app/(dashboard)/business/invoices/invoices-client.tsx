@@ -1,11 +1,9 @@
 "use client";
 
 import { getDocumentIntlLocale } from "@/lib/i18n/browser";
-import { useState } from "react";
-import { format } from "date-fns";
-import { getDocumentDateFnsLocale } from "@/lib/i18n/date-fns";
-import { Plus, MoreHorizontal, FileEdit, Trash2, Send, Download, CheckCircle2 } from "lucide-react";
-import { Button, Card, CardContent, Badge } from "poyraz-ui/atoms";
+import { useTranslations } from "@/components/i18n/i18n-provider";
+import { CheckCircle2, Download, FileEdit, MoreHorizontal, Plus, Send, Trash2 } from "lucide-react";
+import { Badge, Button, Card, CardContent } from "poyraz-ui/atoms";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,60 +25,38 @@ export type InvoiceRow = {
 };
 
 export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency }).format(amount);
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "draft":
-        return <Badge variant="secondary">Taslak</Badge>;
-      case "sent":
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20">Gönderildi</Badge>;
-      case "paid":
-        return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20">Ödendi</Badge>;
-      case "overdue":
-        return <Badge variant="destructive">Gecikmiş</Badge>;
-      case "cancelled":
-        return <Badge variant="outline" className="opacity-50">İptal</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const t = useTranslations();
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex w-full flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Faturalar</h1>
-        </div>
-        <Button variant="default" effect="shine" onClick={() => setIsAddModalOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> Yeni Fatura
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("business.invoices.title")}</h1>
+        <Button variant="default" effect="shine" className="gap-2">
+          <Plus className="h-4 w-4" /> {t("business.invoices.actions.add")}
         </Button>
       </div>
 
       <Card>
         <CardContent className="p-0">
-          <div className="rounded-md border border-border">
+          <div className="rounded-sm border border-border">
             <div className="relative w-full overflow-auto">
               <table className="w-full caption-bottom text-sm">
                 <thead className="[&_tr]:border-b">
-                  <tr className="border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Fatura No</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Müşteri</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tutar</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Durum</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Düzenlenme Tarihi</th>
-                    <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">İşlemler</th>
+                  <tr className="border-b border-border transition-colors hover:bg-muted/50">
+                    <TableHead>{t("business.invoices.table.number")}</TableHead>
+                    <TableHead>{t("business.common.client")}</TableHead>
+                    <TableHead>{t("business.common.amount")}</TableHead>
+                    <TableHead>{t("business.common.status")}</TableHead>
+                    <TableHead>{t("business.invoices.table.issueDate")}</TableHead>
+                    <TableHead>{t("business.invoices.table.dueDate")}</TableHead>
+                    <TableHead className="text-right">{t("business.common.actions")}</TableHead>
                   </tr>
                 </thead>
                 <tbody className="[&_tr:last-child]:border-0">
                   {invoices.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="h-24 text-center text-muted-foreground">
-                        Henüz hiç fatura bulunmuyor.
+                      <td colSpan={7} className="h-32 text-center text-muted-foreground">
+                        {t("business.invoices.empty")}
                       </td>
                     </tr>
                   ) : (
@@ -88,48 +64,17 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
                       <tr key={invoice.id} className="border-b border-border transition-colors hover:bg-muted/50">
                         <td className="p-4 align-middle font-medium text-foreground">
                           {invoice.invoice_number}
-                          {invoice.projectName && (
-                            <div className="text-xs text-muted-foreground font-normal mt-0.5">{invoice.projectName}</div>
-                          )}
+                          {invoice.projectName ? (
+                            <div className="mt-0.5 text-xs font-normal text-muted-foreground">{invoice.projectName}</div>
+                          ) : null}
                         </td>
-                        <td className="p-4 align-middle text-muted-foreground">
-                          {invoice.clientName || "-"}
-                        </td>
-                        <td className="p-4 align-middle font-medium">
-                          {formatCurrency(invoice.amount, invoice.currency)}
-                        </td>
-                        <td className="p-4 align-middle">
-                          {getStatusBadge(invoice.status)}
-                        </td>
-                        <td className="p-4 align-middle text-muted-foreground">
-                          {invoice.issue_date ? format(new Date(invoice.issue_date), "dd MMM yyyy", { locale: getDocumentDateFnsLocale() }) : "-"}
-                        </td>
+                        <td className="p-4 align-middle text-muted-foreground">{invoice.clientName || "-"}</td>
+                        <td className="p-4 align-middle font-medium">{formatCurrency(invoice.amount, invoice.currency)}</td>
+                        <td className="p-4 align-middle"><InvoiceStatusBadge status={invoice.status} /></td>
+                        <td className="p-4 align-middle text-muted-foreground">{invoice.issue_date ? formatDate(invoice.issue_date) : "-"}</td>
+                        <td className="p-4 align-middle text-muted-foreground">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</td>
                         <td className="p-4 align-middle text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="icon-sm" effect="shine" variant="secondary" >
-                                <span className="sr-only">Menüyü aç</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="cursor-pointer">
-                                <FileEdit className="mr-2 h-4 w-4" /> Düzenle
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer">
-                                <Download className="mr-2 h-4 w-4" /> PDF İndir
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer">
-                                <Send className="mr-2 h-4 w-4" /> Gönder
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer text-emerald-500 focus:text-emerald-500">
-                                <CheckCircle2 className="mr-2 h-4 w-4" /> Ödendi İşaretle
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" /> Sil
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <InvoiceMenu />
                         </td>
                       </tr>
                     ))
@@ -140,20 +85,59 @@ export function InvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
           </div>
         </CardContent>
       </Card>
-      
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <Card className="w-full max-w-md">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-bold mb-4 text-foreground">Yeni Fatura Ekle</h3>
-              <p className="text-sm text-muted-foreground mb-6">Bu özellik şu an geliştirme aşamasındadır.</p>
-              <div className="flex justify-end">
-                <Button effect="shine" variant="secondary" onClick={() => setIsAddModalOpen(false)}>Kapat</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
+}
+
+function InvoiceMenu() {
+  const t = useTranslations();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="icon-sm" effect="shine" variant="secondary">
+          <span className="sr-only">{t("business.common.openMenu")}</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem className="cursor-pointer">
+          <FileEdit className="mr-2 h-4 w-4" /> {t("business.common.edit")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">
+          <Download className="mr-2 h-4 w-4" /> {t("business.invoices.actions.download")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">
+          <Send className="mr-2 h-4 w-4" /> {t("business.invoices.actions.send")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer text-emerald-500 focus:text-emerald-500">
+          <CheckCircle2 className="mr-2 h-4 w-4" /> {t("business.invoices.actions.markPaid")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+          <Trash2 className="mr-2 h-4 w-4" /> {t("business.common.delete")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function InvoiceStatusBadge({ status }: { status: InvoiceRow["status"] }) {
+  const t = useTranslations();
+  if (status === "draft") return <Badge variant="secondary">{t("business.invoices.status.draft")}</Badge>;
+  if (status === "sent") return <Badge className="border-blue-500/20 bg-blue-500/10 text-blue-500">{t("business.invoices.status.sent")}</Badge>;
+  if (status === "paid") return <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-500">{t("business.invoices.status.paid")}</Badge>;
+  if (status === "overdue") return <Badge variant="destructive">{t("business.invoices.status.overdue")}</Badge>;
+  return <Badge variant="outline" className="opacity-70">{t("business.invoices.status.cancelled")}</Badge>;
+}
+
+function TableHead({ className = "", children }: { className?: string; children: React.ReactNode }) {
+  return <th className={`h-12 px-4 text-left align-middle font-medium text-muted-foreground ${className}`}>{children}</th>;
+}
+
+function formatCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat(getDocumentIntlLocale(), { style: "currency", currency }).format(amount);
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
