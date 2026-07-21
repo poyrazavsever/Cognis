@@ -975,6 +975,8 @@ export const trCatalog = {
     "languageDetail.namespaces.status": "Durumlar",
     "languageDetail.namespaces.validation": "Doğrulama",
     "languageDetail.namespaces.api": "API",
+    "languageDetail.namespaces.analytics": "Analizler",
+    "languageDetail.namespaces.business": "İş",
     "languageDetail.dialog.cancel": "Vazgeç",
     "languageDetail.dialog.activate.title": "Dili aktifleştir",
     "languageDetail.dialog.activate.description": "{language} aktif dil seçimlerinde ve içerik formlarında gösterilecek.",

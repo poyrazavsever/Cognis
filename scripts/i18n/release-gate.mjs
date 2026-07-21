@@ -2,6 +2,44 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+const i18nNamespaces = [
+  "common",
+  "auth",
+  "navigation",
+  "dashboard",
+  "clients",
+  "projects",
+  "tasks",
+  "calendar",
+  "finance",
+  "journal",
+  "chat",
+  "settings",
+  "portal",
+  "status",
+  "validation",
+  "api",
+  "analytics",
+  "business",
+];
+const requiredDynamicKeys = [
+  ...i18nNamespaces.map((namespace) => `settings.languageDetail.namespaces.${namespace}`),
+  ...["light", "dark", "system"].flatMap((mode) => [
+    `settings.appearance.theme.${mode}.label`,
+    `settings.appearance.theme.${mode}.description`,
+  ]),
+  ...["all", "draft", "active", "archived"].map((status) => `settings.languages.filters.${status}`),
+  ...["draft", "active", "archived", "test"].map((status) => `settings.languages.status.${status}`),
+  ...["ltr", "rtl"].map((direction) => `settings.languageNew.direction.${direction}`),
+  ...["activate", "default", "archive"].flatMap((action) => [
+    `settings.languageDetail.messages.${action}`,
+    `settings.languageDetail.dialog.${action}.title`,
+    `settings.languageDetail.dialog.${action}.description`,
+    `settings.languageDetail.dialog.${action}.confirm`,
+  ]),
+  ...["defaultSettings", "fallbacks", "userPreferences", "clients", "portalInvitations", "contentTranslations"]
+    .map((key) => `settings.languageDetail.usage.${key}`),
+];
 const localeRoots = {
   tr: path.join(process.cwd(), "locales", "tr"),
   en: path.join(process.cwd(), "locales", "en"),
@@ -30,6 +68,8 @@ export function runReleaseGate() {
 
   const authLanguageSelectors = scanAuthLanguageSelectors();
   const missingSettingsProviders = scanSettingsNamespaceProviders();
+  const missingDynamicKeys = scanRequiredDynamicKeys(tr, en);
+  const missingUsedLiteralKeys = scanUsedLiteralTranslationKeys(tr, en);
   const hardCodedSamples = scanHardCodedUserText();
   const failures = {
     missingInEn,
@@ -37,6 +77,8 @@ export function runReleaseGate() {
     interpolationMismatches,
     authLanguageSelectors,
     missingSettingsProviders,
+    missingDynamicKeys,
+    missingUsedLiteralKeys,
   };
   const ok = Object.values(failures).every((rows) => rows.length === 0);
   const summary = {
@@ -50,6 +92,8 @@ export function runReleaseGate() {
     },
     authLanguageSelectors,
     missingSettingsProviders,
+    missingDynamicKeys,
+    missingUsedLiteralKeys: missingUsedLiteralKeys.slice(0, 50),
     hardCodedSamples,
     notes: [
       "hardCodedSamples bilgilendirme amaçlıdır; false-positive üretmemesi için gate'i fail ettirmez.",
@@ -60,6 +104,35 @@ export function runReleaseGate() {
   console.log(JSON.stringify(summary, null, 2));
   if (!ok) process.exitCode = 1;
   return summary;
+}
+
+function scanRequiredDynamicKeys(tr, en) {
+  return requiredDynamicKeys
+    .filter((key) => !tr.has(key) || !en.has(key))
+    .map((key) => ({ key, tr: tr.has(key), en: en.has(key) }));
+}
+
+function scanUsedLiteralTranslationKeys(tr, en) {
+  const roots = ["app", "components"].map((root) => path.join(process.cwd(), root));
+  const used = new Map();
+  const pattern = /\bt\(\s*["']([a-zA-Z][\w]*\.[^"'`{}]+)["']/g;
+
+  for (const file of roots.flatMap((root) => (fs.existsSync(root) ? listFiles(root) : []))) {
+    if (!/\.(tsx?|jsx?)$/.test(file)) continue;
+    const source = fs.readFileSync(file, "utf8");
+    let match;
+    while ((match = pattern.exec(source))) {
+      const key = match[1];
+      const files = used.get(key) ?? new Set();
+      files.add(path.relative(process.cwd(), file));
+      used.set(key, files);
+    }
+  }
+
+  return [...used.entries()]
+    .filter(([key]) => !tr.has(key) || !en.has(key))
+    .map(([key, files]) => ({ key, tr: tr.has(key), en: en.has(key), files: [...files].slice(0, 5) }))
+    .sort((a, b) => a.key.localeCompare(b.key));
 }
 
 function scanSettingsNamespaceProviders() {
@@ -83,16 +156,41 @@ function scanSettingsNamespaceProviders() {
 function collectLocaleKeys(root) {
   const files = listFiles(root).filter((file) => file.endsWith(".ts"));
   const entries = new Map();
-  const keyPattern = /"([^"]+)"\s*:\s*"((?:\\"|[^"])*)"/g;
 
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
-    let match;
-    while ((match = keyPattern.exec(source))) {
-      entries.set(match[1], match[2]);
+    if (path.basename(file) === "common.ts") {
+      collectObjectKeys(source, "common", entries);
+      continue;
+    }
+    if (path.basename(file) !== "index.ts") continue;
+
+    let namespace = null;
+    for (const line of source.split("\n")) {
+      const namespaceMatch = line.match(/^  ([a-zA-Z_][\w]*): \{/);
+      if (namespaceMatch) {
+        namespace = namespaceMatch[1];
+        continue;
+      }
+      if (namespace && line.startsWith("  },")) {
+        namespace = null;
+        continue;
+      }
+      const keyMatch = line.match(/^\s+"([^"]+)"\s*:\s*"((?:\\"|[^"])*)"/);
+      if (namespace && keyMatch) {
+        entries.set(`${namespace}.${keyMatch[1]}`, keyMatch[2]);
+      }
     }
   }
   return entries;
+}
+
+function collectObjectKeys(source, namespace, entries) {
+  const keyPattern = /"([^"]+)"\s*:\s*"((?:\\"|[^"])*)"/g;
+  let match;
+  while ((match = keyPattern.exec(source))) {
+    entries.set(`${namespace}.${match[1]}`, match[2]);
+  }
 }
 
 function interpolationVariables(value) {

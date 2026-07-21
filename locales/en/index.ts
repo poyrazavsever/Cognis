@@ -975,6 +975,8 @@ export const enCatalog = {
     "languageDetail.namespaces.status": "Statuses",
     "languageDetail.namespaces.validation": "Validation",
     "languageDetail.namespaces.api": "API",
+    "languageDetail.namespaces.analytics": "Analytics",
+    "languageDetail.namespaces.business": "Business",
     "languageDetail.dialog.cancel": "Cancel",
     "languageDetail.dialog.activate.title": "Activate language",
     "languageDetail.dialog.activate.description": "{language} will be shown in active language selectors and content forms.",
