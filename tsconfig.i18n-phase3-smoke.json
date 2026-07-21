@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.i18n-phase2-smoke.json",
+  "compilerOptions": {
+    "outDir": ".next/i18n-phase3-smoke-dist"
+  },
+  "include": [
+    "scripts/i18n-phase3-smoke.ts",
+    "lib/i18n/**/*.ts",
+    "locales/**/*.ts",
+    "server/auth/types.ts",
+    "server/db/**/*.ts",
+    "server/domain/**/*.ts",
+    "server/i18n/catalog.ts",
+    "server/i18n/locale.ts",
+    "server/i18n/service.ts",
+    "server/i18n/translator.ts",
+    "server/repositories/i18n.ts"
+  ],
+  "exclude": ["node_modules"]
+}

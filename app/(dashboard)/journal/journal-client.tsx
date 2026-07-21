@@ -1,11 +1,15 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
+import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
+import { contentTranslationRegistry } from "@/lib/i18n/content";
 import {
   createDailyLogRecord,
   deleteDailyLogRecord,
   updateDailyLogRecord,
 } from "@/app/(dashboard)/journal/actions";
-import { Badge, Button, Card, CardContent, Input, Label, Textarea } from "poyraz-ui/atoms";
+import { Badge, Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import {
   Dialog,
   DialogContent,
@@ -44,22 +48,29 @@ export type DailyLogItem = {
   mood_score: number;
   energy_score: number;
   work_satisfaction_score: number | null;
+  mood_label: string | null;
   note: string | null;
+  translations?: LocalizedFieldValues;
 };
 
 type JournalClientProps = {
   logs: DailyLogItem[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 };
 
-const scoreLabels: Record<number, string> = {
-  1: "Çok düşük",
-  2: "Düşük",
-  3: "Orta",
-  4: "İyi",
-  5: "Çok iyi",
-};
+const scoreLabels = (t: ReturnType<typeof useTranslations>) => ({
+  1: t("journal.scores.veryLow"),
+  2: t("journal.scores.low"),
+  3: t("journal.scores.medium"),
+  4: t("journal.scores.high"),
+  5: t("journal.scores.veryHigh"),
+});
 
-export function JournalClient({ logs }: JournalClientProps) {
+export function JournalClient({ logs, localization }: JournalClientProps) {
+  const t = useTranslations();
   const summary = useMemo(() => calculateSummary(logs), [logs]);
   const chartData = useMemo(
     () =>
@@ -79,36 +90,36 @@ export function JournalClient({ logs }: JournalClientProps) {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Mood ve enerji
+            {t("journal.title")}
           </h1>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <DailyLogDialog mode="create" />
+          <DailyLogDialog mode="create" localization={localization} />
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
         <StatCard
-          label="Ortalama mood"
+          label={t("journal.stats.averageMood")}
           value={summary.moodAverage ? summary.moodAverage.toFixed(1) : "-"}
           icon={Smile}
           tone="primary"
         />
         <StatCard
-          label="Ortalama enerji"
+          label={t("journal.stats.averageEnergy")}
           value={summary.energyAverage ? summary.energyAverage.toFixed(1) : "-"}
           icon={Battery}
           tone="green"
         />
         <StatCard
-          label="Memnuniyet"
+          label={t("journal.stats.satisfaction")}
           value={summary.satisfactionAverage ? summary.satisfactionAverage.toFixed(1) : "-"}
           icon={LineChartIcon}
           tone="blue"
         />
         <StatCard
-          label="Kayıtlı gün"
+          label={t("journal.stats.recordedDays")}
           value={String(logs.length)}
           icon={CalendarDays}
           tone="amber"
@@ -119,9 +130,9 @@ export function JournalClient({ logs }: JournalClientProps) {
         <Card>
           <CardContent className="space-y-4 p-4">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Genel trend</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("journal.charts.trend.title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Mood, enerji ve çalışma memnuniyetinin günlük değişimi.
+                {t("journal.charts.trend.description")}
               </p>
             </div>
 
@@ -139,12 +150,12 @@ export function JournalClient({ logs }: JournalClientProps) {
                         boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
                       }}
                     />
-                    <Line type="monotone" dataKey="mood" name="Mood" stroke="#dc2626" strokeWidth={3} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="energy" name="Enerji" stroke="#059669" strokeWidth={3} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="mood" name={t("journal.fields.mood")} stroke="#dc2626" strokeWidth={3} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="energy" name={t("journal.fields.energy")} stroke="#059669" strokeWidth={3} dot={{ r: 3 }} />
                     <Line
                       type="monotone"
                       dataKey="satisfaction"
-                      name="Memnuniyet"
+                      name={t("journal.fields.satisfaction")}
                       stroke="#2563eb"
                       strokeWidth={3}
                       dot={{ r: 3 }}
@@ -162,15 +173,31 @@ export function JournalClient({ logs }: JournalClientProps) {
         <Card>
           <CardContent className="space-y-4 p-4">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Kapasite sinyali</h2>
-              <p className="text-sm text-muted-foreground">Kayıtlardan kısa okuma.</p>
+              <h2 className="text-base font-semibold text-foreground">{t("journal.charts.insights.title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("journal.charts.insights.description")}</p>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground">
-              {summary.insights.map((insight) => (
-                <div key={insight} className="rounded-sm border border-border bg-muted/20 p-3">
-                  {insight}
+              {summary.length === 0 ? (
+                <div className="rounded-sm border border-border bg-muted/20 p-3">
+                  {t("journal.insights.noTrend")}
                 </div>
-              ))}
+              ) : (
+                <>
+                  <div className="rounded-sm border border-border bg-muted/20 p-3">
+                    {t("journal.insights.totalDays", { count: summary.length })}
+                  </div>
+                  <div className="rounded-sm border border-border bg-muted/20 p-3">
+                    {summary.energyAverage && summary.energyAverage < 3
+                      ? t("journal.insights.lowEnergy")
+                      : t("journal.insights.balancedEnergy")}
+                  </div>
+                  <div className="rounded-sm border border-border bg-muted/20 p-3">
+                    {summary.moodAverage && summary.moodAverage >= 4
+                      ? t("journal.insights.strongMood")
+                      : t("journal.insights.watchMood")}
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -180,8 +207,8 @@ export function JournalClient({ logs }: JournalClientProps) {
         <CardContent className="space-y-4 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Günlük kayıtlar</h2>
-              <p className="text-sm text-muted-foreground">{logs.length} kayıt görüntüleniyor.</p>
+              <h2 className="text-base font-semibold text-foreground">{t("journal.list.title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("journal.list.description", { count: logs.length })}</p>
             </div>
           </div>
 
@@ -189,15 +216,15 @@ export function JournalClient({ logs }: JournalClientProps) {
             <div className="overflow-x-auto rounded-sm border border-border">
               <div className="min-w-[800px]">
                 <div className="grid grid-cols-[0.7fr_0.7fr_0.7fr_1.8fr_0.8fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground">
-                  <span>Tarih</span>
-                  <span>Mood</span>
-                  <span>Enerji</span>
-                  <span>Not</span>
-                  <span className="text-right">İşlem</span>
+                  <span>{t("journal.list.headers.date")}</span>
+                  <span>{t("journal.list.headers.mood")}</span>
+                  <span>{t("journal.list.headers.energy")}</span>
+                  <span>{t("journal.list.headers.note")}</span>
+                  <span className="text-right">{t("journal.list.headers.action")}</span>
                 </div>
                 <div className="divide-y divide-border">
                 {logs.map((log) => (
-                  <DailyLogRow key={log.id} log={log} />
+                  <DailyLogRow key={log.id} log={log} localization={localization} />
                 ))}
                 </div>
               </div>
@@ -211,28 +238,34 @@ export function JournalClient({ logs }: JournalClientProps) {
   );
 }
 
-function DailyLogRow({ log }: { log: DailyLogItem }) {
+function DailyLogRow({ log, localization }: { log: DailyLogItem; localization: JournalClientProps["localization"] }) {
+  const t = useTranslations();
   return (
     <div className="grid gap-4 px-4 py-4 grid-cols-[0.7fr_0.7fr_0.7fr_1.8fr_0.8fr] items-center">
       <div>
         <div className="font-medium text-foreground">{formatDate(log.log_date)}</div>
         <div className="text-xs text-muted-foreground">{formatWeekday(log.log_date)}</div>
       </div>
-      <ScoreBadge score={log.mood_score} tone="primary" />
+      <div className="min-w-0">
+        <ScoreBadge score={log.mood_score} tone="primary" />
+        {log.mood_label ? (
+          <p className="mt-1 truncate text-xs text-muted-foreground">{log.mood_label}</p>
+        ) : null}
+      </div>
       <ScoreBadge score={log.energy_score} tone="green" />
       <div className="min-w-0 text-sm text-muted-foreground">
-        <p className="line-clamp-2">{log.note || "Not eklenmedi."}</p>
+        <p className="line-clamp-2">{log.note || t("journal.empty.noNote")}</p>
         {log.work_satisfaction_score ? (
-          <p className="mt-1 text-xs">Çalışma memnuniyeti: {log.work_satisfaction_score}/5</p>
+          <p className="mt-1 text-xs">{t("journal.fields.satisfaction")}: {log.work_satisfaction_score}/5</p>
         ) : null}
       </div>
       <div className="flex justify-start gap-2 lg:justify-end">
-        <DailyLogDialog mode="edit" log={log} />
+        <DailyLogDialog mode="edit" log={log} localization={localization} />
         <form action={deleteDailyLogRecord}>
           <input type="hidden" name="id" value={log.id} />
           <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
             <Trash2 className="h-4 w-4" />
-            Sil
+            {t("journal.actions.delete")}
           </Button>
         </form>
       </div>
@@ -240,7 +273,8 @@ function DailyLogRow({ log }: { log: DailyLogItem }) {
   );
 }
 
-function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLogItem }) {
+function DailyLogDialog({ mode, log, localization }: { mode: "create" | "edit"; log?: DailyLogItem; localization: JournalClientProps["localization"] }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action = mode === "create" ? createDailyLogRecord : updateDailyLogRecord;
@@ -251,13 +285,9 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "Günlük eklendi." : "Günlük güncellendi.");
+      toast.success(mode === "create" ? t("journal.form.messages.createSuccess") : t("journal.form.messages.updateSuccess"));
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Günlük kaydedilirken beklenmeyen bir hata oluştu.",
-      );
+      toast.error(resolveTranslatedError(t, error, "journal.form.messages.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -268,26 +298,26 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
       <DialogTrigger asChild>
         <Button effect="shine" variant={mode === "create" ? "default" : "secondary"} className="gap-2">
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {mode === "create" ? "Günlük ekle" : "Düzenle"}
+          {mode === "create" ? t("journal.actions.add") : t("journal.actions.edit")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden p-0 sm:max-h-[min(680px,calc(100dvh-4rem))] sm:max-w-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
         <form action={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {log ? <input type="hidden" name="id" value={log.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
-            <DialogTitle>{mode === "create" ? "Yeni günlük kayıt" : "Günlük kaydı düzenle"}</DialogTitle>
+            <DialogTitle>{mode === "create" ? t("journal.form.createTitle") : t("journal.form.editTitle")}</DialogTitle>
             <DialogDescription>
-              Günün mood, enerji ve çalışma memnuniyeti skorlarını kaydet.
+              {t("journal.form.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="tiny-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <DailyLogFormFields log={log} />
+            <DailyLogFormFields log={log} localization={localization} />
           </div>
 
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
-              {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Kaydı ekle" : "Değişiklikleri kaydet"}
+              {isSubmitting ? t("journal.actions.saving") : mode === "create" ? t("journal.form.submitCreate") : t("journal.form.submitEdit")}
             </Button>
           </DialogFooter>
         </form>
@@ -296,7 +326,8 @@ function DailyLogDialog({ mode, log }: { mode: "create" | "edit"; log?: DailyLog
   );
 }
 
-function DailyLogFormFields({ log }: { log?: DailyLogItem }) {
+function DailyLogFormFields({ log, localization }: { log?: DailyLogItem; localization: JournalClientProps["localization"] }) {
+  const t = useTranslations();
   const [moodScore, setMoodScore] = useState(log?.mood_score || 3);
   const [energyScore, setEnergyScore] = useState(log?.energy_score || 3);
   const [satisfactionScore, setSatisfactionScore] = useState(log?.work_satisfaction_score || 3);
@@ -304,7 +335,7 @@ function DailyLogFormFields({ log }: { log?: DailyLogItem }) {
   return (
     <div className="grid gap-5">
       <div className="grid gap-2">
-        <Label>Tarih</Label>
+        <Label>{t("journal.fields.date")}</Label>
         <Input
           name="log_date"
           type="date"
@@ -314,32 +345,41 @@ function DailyLogFormFields({ log }: { log?: DailyLogItem }) {
 
       <ScorePicker
         name="mood_score"
-        label="Mood skoru"
+        label={t("journal.fields.mood")}
         value={moodScore}
         onChange={setMoodScore}
       />
       <ScorePicker
         name="energy_score"
-        label="Enerji skoru"
+        label={t("journal.fields.energy")}
         value={energyScore}
         onChange={setEnergyScore}
       />
       <ScorePicker
         name="work_satisfaction_score"
-        label="Çalışma memnuniyeti"
+        label={t("journal.fields.satisfaction")}
         value={satisfactionScore}
         onChange={setSatisfactionScore}
       />
 
-      <div className="grid gap-2">
-        <Label>Not</Label>
-        <Textarea
-          name="note"
-          defaultValue={log?.note || ""}
-          rows={4}
-          placeholder="Bugün nasıl geçti, enerjini etkileyen şeyler nelerdi?"
-        />
-      </div>
+      <LocalizedFields
+        idPrefix={`journal-${log?.id || "new"}-content`}
+        defaultLocale={localization.defaultLocale}
+        locales={localization.locales}
+        fields={contentTranslationRegistry.journal_entry
+          .map((f) => ({
+            ...f,
+            label: t(`journal.fields.${f.name}`) || f.label,
+            placeholder: "placeholder" in f && typeof f.placeholder === "string"
+              ? t(`journal.placeholders.${f.name}`) || f.placeholder
+              : undefined,
+          }))}
+        values={log?.translations}
+        fallbackValues={{
+          moodLabel: log?.mood_label,
+          note: log?.note,
+        }}
+      />
     </div>
   );
 }
@@ -355,11 +395,14 @@ function ScorePicker({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const t = useTranslations();
+  const labels = scoreLabels(t);
+
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3">
         <Label>{label}</Label>
-        <span className="text-sm text-muted-foreground">{scoreLabels[value]}</span>
+        <span className="text-sm text-muted-foreground">{labels[value as keyof typeof labels]}</span>
       </div>
       <input type="hidden" name={name} value={value} />
       <div className="grid grid-cols-5 gap-2">
@@ -380,21 +423,34 @@ function ScorePicker({
 }
 
 function ScoreBadge({ score, tone }: { score: number; tone: "primary" | "green" }) {
+  const t = useTranslations();
+  const labels = scoreLabels(t);
   const className =
     tone === "green"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : "border-primary/20 bg-primary/10 text-primary";
 
-  return <Badge className={className}>{score}/5 · {scoreLabels[score]}</Badge>;
+  return <Badge className={className}>{score}/5 · {labels[score as keyof typeof labels]}</Badge>;
+}
+
+function resolveTranslatedError(
+  t: ReturnType<typeof useTranslations>,
+  error: unknown,
+  fallbackKey: string,
+) {
+  if (!(error instanceof Error)) return t(fallbackKey);
+  if (/^(journal|api|validation)\./.test(error.message)) return t(error.message);
+  return error.message || t(fallbackKey);
 }
 
 function EmptyState() {
+  const t = useTranslations();
   return (
     <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
       <Activity className="h-10 w-10 text-muted-foreground" />
-      <h3 className="mt-4 text-lg font-semibold text-foreground">Henüz günlük kayıt yok</h3>
+      <h3 className="mt-4 text-lg font-semibold text-foreground">{t("journal.empty.noRecordTitle")}</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        Mood ve enerji trendini görmek için ilk günlük kaydını ekle.
+        {t("journal.empty.noRecordDesc")}
       </p>
     </div>
   );
@@ -409,25 +465,7 @@ function calculateSummary(logs: DailyLogItem[]) {
       .filter((score): score is number => typeof score === "number"),
   );
 
-  const insights = [];
-
-  if (logs.length === 0) {
-    insights.push("Henüz okunabilir bir trend yok.");
-  } else {
-    insights.push(`Toplam ${logs.length} günlük kayıt var.`);
-    insights.push(
-      energyAverage && energyAverage < 3
-        ? "Enerji ortalaması düşük. Dashboard raporlarında geciken işler ile birlikte okunmalı."
-        : "Enerji ortalaması dengeli görünüyor.",
-    );
-    insights.push(
-      moodAverage && moodAverage >= 4
-        ? "Mood seviyesi güçlü. Yüksek odak isteyen işler için iyi bir dönem olabilir."
-        : "Mood trendi izlenmeli. Not alanı hangi günlerin zor geçtiğini anlamak için önemli.",
-    );
-  }
-
-  return { moodAverage, energyAverage, satisfactionAverage, insights };
+  return { moodAverage, energyAverage, satisfactionAverage, length: logs.length };
 }
 
 function average(values: number[]) {
@@ -436,7 +474,7 @@ function average(values: number[]) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -444,14 +482,14 @@ function formatDate(value: string) {
 }
 
 function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
   }).format(new Date(`${value}T00:00:00`));
 }
 
 function formatWeekday(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     weekday: "long",
   }).format(new Date(`${value}T00:00:00`));
 }

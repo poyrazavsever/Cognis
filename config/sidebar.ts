@@ -12,41 +12,56 @@ import {
 } from "lucide-react";
 
 export type SidebarNavItem = {
-  title: string;
+  title?: string;
+  titleKey: string;
   href?: string;
   icon?: LucideIcon;
   items?: SidebarNavItem[];
 };
 
 export type SidebarNavGroup = {
-  title: string;
+  title?: string;
+  titleKey: string;
   items: SidebarNavItem[];
 };
 
 export const sidebarData: SidebarNavGroup[] = [
   {
-    title: "GENEL BAKIŞ",
+    titleKey: "navigation.groups.overview",
     items: [
-      { title: "Dashboard", href: "/", icon: Sparkles },
-      { title: "Takvim", href: "/calendar", icon: Calendar },
-      { title: "Analizler", href: "/analytics", icon: BarChart3 },
+      { titleKey: "navigation.items.dashboard", href: "/", icon: Sparkles },
+      { titleKey: "navigation.items.calendar", href: "/calendar", icon: Calendar },
+      { titleKey: "navigation.items.analytics", href: "/analytics", icon: BarChart3 },
     ],
   },
   {
-    title: "OPERASYON",
+    titleKey: "navigation.groups.operations",
     items: [
-      { title: "Müşteriler", href: "/clients", icon: Building2 },
-      { title: "Projeler", href: "/projects", icon: FolderKanban },
-      { title: "Görevler", href: "/tasks", icon: CheckSquare2 },
-      { title: "Finans", href: "/finance", icon: Wallet },
+      { titleKey: "navigation.items.clients", href: "/clients", icon: Building2 },
+      { titleKey: "navigation.items.projects", href: "/projects", icon: FolderKanban },
+      { titleKey: "navigation.items.tasks", href: "/tasks", icon: CheckSquare2 },
+      { titleKey: "navigation.items.finance", href: "/finance", icon: Wallet },
     ],
   },
   {
-    title: "KİŞİSEL",
-    items: [{ title: "Günlük", href: "/journal", icon: BookOpenText }],
+    titleKey: "navigation.groups.personal",
+    items: [{ titleKey: "navigation.items.journal", href: "/journal", icon: BookOpenText }],
   },
   {
-    title: "AI ASİSTAN",
-    items: [{ title: "Sohbet", href: "/chat", icon: MessageCircleHeart }],
+    titleKey: "navigation.groups.ai",
+    items: [{ titleKey: "navigation.items.chat", href: "/chat", icon: MessageCircleHeart }],
   },
 ];
+
+export function localizeSidebarData(t: (key: string) => string) {
+  return sidebarData.map((group) => ({
+    titleKey: group.titleKey,
+    title: t(group.titleKey),
+    items: group.items.map((item) => ({
+      titleKey: item.titleKey,
+      href: item.href,
+      icon: item.icon,
+      title: t(item.titleKey),
+    })),
+  }));
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PendingLink } from "@/components/ui/pending-link";
 import { StatCard } from "@/components/system/stat-card";
@@ -27,6 +29,7 @@ type DashboardClientProps = {
 };
 
 export function DashboardClient({ data }: DashboardClientProps) {
+  const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -41,20 +44,20 @@ export function DashboardClient({ data }: DashboardClientProps) {
 
   // Format dates for Recharts using local timezone
   const incomeTrendData = (financeTrend || []).map(f => ({
-    name: new Date(f.date).toLocaleDateString("tr-TR", { month: "short", day: "numeric" }),
+    name: new Date(f.date).toLocaleDateString(getDocumentIntlLocale(), { month: "short", day: "numeric" }),
     income: f.income,
     expense: f.expense
   }));
 
   const moodTrendData = (moodTrend || []).map(l => ({
-    date: new Date(l.date).toLocaleDateString("tr-TR", { month: "short", day: "numeric" }),
+    date: new Date(l.date).toLocaleDateString(getDocumentIntlLocale(), { month: "short", day: "numeric" }),
     mood: l.mood,
     energy: l.energy,
   }));
 
   // Format currency
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("tr-TR", {
+    return new Intl.NumberFormat(getDocumentIntlLocale(), {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
@@ -67,19 +70,19 @@ export function DashboardClient({ data }: DashboardClientProps) {
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Dashboard
+            {t("dashboard.title")}
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
           <Select value={data.range} onValueChange={handleRangeChange}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Tarih aralığı" />
+              <SelectValue placeholder={t("dashboard.filters.range")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Bugün</SelectItem>
-              <SelectItem value="this_week">Bu Hafta</SelectItem>
-              <SelectItem value="this_month">Bu Ay</SelectItem>
+              <SelectItem value="today">{t("dashboard.filters.today")}</SelectItem>
+              <SelectItem value="this_week">{t("dashboard.filters.thisWeek")}</SelectItem>
+              <SelectItem value="this_month">{t("dashboard.filters.thisMonth")}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -88,17 +91,17 @@ export function DashboardClient({ data }: DashboardClientProps) {
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Net Kazanç" value={formatCurrency(netProfit)} icon={Wallet} tone="green" />
-        <StatCard label="Aktif Projeler" value={activeProjectsCount.toString()} icon={FolderKanban} tone="blue" />
-        <StatCard label="Tamamlanan Görev" value={completedTasksCount.toString()} icon={CheckCircle2} tone="amber" />
-        <StatCard label="Ortalama Mood" value={avgMood} icon={Activity} tone="red" />
+        <StatCard label={t("dashboard.stats.netEarnings")} value={formatCurrency(netProfit)} icon={Wallet} tone="green" />
+        <StatCard label={t("dashboard.stats.activeProjects")} value={activeProjectsCount.toString()} icon={FolderKanban} tone="blue" />
+        <StatCard label={t("dashboard.stats.completedTasks")} value={completedTasksCount.toString()} icon={CheckCircle2} tone="amber" />
+        <StatCard label={t("dashboard.stats.averageMood")} value={avgMood} icon={Activity} tone="red" />
       </div>
 
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">
-            <h3 className="mb-6 text-sm font-semibold text-foreground">Gelir / Gider Özeti</h3>
+            <h3 className="mb-6 text-sm font-semibold text-foreground">{t("dashboard.sections.financeSummary")}</h3>
             <div className="h-[300px] w-full">
               {incomeTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -129,7 +132,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                                   <div key={index} className="flex items-center justify-between gap-6 text-xs">
                                     <div className="flex items-center gap-1.5">
                                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-muted-foreground">{entry.name === 'income' ? 'Gelir' : 'Gider'}</span>
+                                      <span className="text-muted-foreground">{entry.name === 'income' ? t('dashboard.charts.income') : t('dashboard.charts.expense')}</span>
                                     </div>
                                     <span className="font-semibold text-foreground">
                                       {formatCurrency(Number(entry.value ?? 0))}
@@ -160,7 +163,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Bu tarih aralığında finansal veri yok.</div>
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{t("dashboard.empty.finance")}</div>
               )}
             </div>
           </CardContent>
@@ -168,7 +171,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
 
         <Card>
           <CardContent className="p-6">
-            <h3 className="mb-6 text-sm font-semibold text-foreground">Mood & Enerji Trendi</h3>
+            <h3 className="mb-6 text-sm font-semibold text-foreground">{t("dashboard.sections.moodTrend")}</h3>
             <div className="h-[300px] w-full">
               {moodTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -216,7 +219,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Bu tarih aralığında günlük verisi yok.</div>
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{t("dashboard.empty.journal")}</div>
               )}
             </div>
           </CardContent>
@@ -229,7 +232,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
         <Card>
           <CardContent className="p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Son Eklenen Projeler</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("dashboard.sections.recentProjects")}</h3>
               <FolderKanban className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="space-y-4">
@@ -240,17 +243,17 @@ export function DashboardClient({ data }: DashboardClientProps) {
                     <div>
                       <p className="text-sm font-medium">{project.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(project.created_at).toLocaleDateString("tr-TR", { month: "short", day: "numeric" })}
+                        {new Date(project.created_at).toLocaleDateString(getDocumentIntlLocale(), { month: "short", day: "numeric" })}
                       </p>
                     </div>
                     <Badge variant={project.status === 'completed' ? 'secondary' : 'default'} className="capitalize text-[10px] px-1.5 py-0">
-                      {project.status === 'completed' ? 'Tamamlandı' : project.status === 'active' ? 'Aktif' : 'Beklemede'}
+                      {project.status === 'completed' ? t('dashboard.status.completed') : project.status === 'active' ? t('dashboard.status.active') : t('dashboard.status.pending')}
                     </Badge>
                   </div>
                 </PendingLink>
               ))}
               {data.projects.length === 0 && (
-                <div className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-sm border-border bg-muted/20">Henüz proje yok.</div>
+                <div className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-sm border-border bg-muted/20">{t("dashboard.empty.projects")}</div>
               )}
             </div>
           </CardContent>
@@ -260,7 +263,7 @@ export function DashboardClient({ data }: DashboardClientProps) {
         <Card>
           <CardContent className="p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Son Eklenen Müşteriler</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("dashboard.sections.recentClients")}</h3>
               <Users className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="space-y-4">
@@ -271,14 +274,14 @@ export function DashboardClient({ data }: DashboardClientProps) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">{client.company_name || "Bireysel"}</p>
+                    <p className="text-xs text-muted-foreground">{client.company_name || t("dashboard.clients.individual")}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(client.created_at).toLocaleDateString("tr-TR", { month: "short", day: "numeric" })}
+                    {new Date(client.created_at).toLocaleDateString(getDocumentIntlLocale(), { month: "short", day: "numeric" })}
                   </div>
                 </PendingLink>
               )) : (
-                <div className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-sm border-border bg-muted/20">Henüz müşteri yok.</div>
+                <div className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-sm border-border bg-muted/20">{t("dashboard.empty.clients")}</div>
               )}
             </div>
           </CardContent>

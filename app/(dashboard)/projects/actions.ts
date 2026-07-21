@@ -3,6 +3,11 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { getFileService } from "@/server/files/runtime";
+import { getSqliteConnection } from "@/server/db/client";
+import {
+  ContentTranslationService,
+  parseContentTranslationsFromFormData,
+} from "@/server/i18n/content";
 import { cleanText, decimalToMinor, requiredText } from "@/server/web/form-data";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
@@ -20,20 +25,21 @@ function numberValue(value: FormDataEntryValue | null, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function projectPayload(formData: FormData) {
+function projectPayload(formData: FormData, translations?: Record<string, Record<string, string | null>>, defaultLocale = "tr") {
   const type = enumValue(formData.get("type"), PROJECT_TYPES, "client_project");
+  const localized = translations?.[defaultLocale] ?? {};
   return {
-    name: requiredText(formData.get("name"), "Proje adı zorunludur."),
+    name: localized.name ?? requiredText(formData.get("name"), "Proje adı zorunludur."),
     type,
     clientId: type === "client_project" ? cleanText(formData.get("client_id")) : null,
-    description: cleanText(formData.get("description")),
+    description: localized.description ?? cleanText(formData.get("description")),
     status: enumValue(formData.get("status"), PROJECT_STATUSES, "planning"),
     startDate: cleanText(formData.get("start_date")),
     dueDate: cleanText(formData.get("due_date")),
     budgetAmountMinor: decimalToMinor(formData.get("budget_amount")),
     currency: cleanText(formData.get("currency")) ?? "USD",
     progress: Math.min(100, Math.max(0, Math.round(numberValue(formData.get("progress"))))),
-    coverImageAlt: cleanText(formData.get("cover_image_alt")),
+    coverImageAlt: localized.coverImageAlt ?? cleanText(formData.get("cover_image_alt")),
   };
 }
 
@@ -57,8 +63,11 @@ async function uploadCover(
 
 export async function createProjectRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "project", context);
   const id = randomUUID();
-  service.createProject(actor, { id, ...projectPayload(formData) });
+  service.createProject(actor, { id, ...projectPayload(formData, translations, context.defaultLocale), translations });
   try {
     const cover = await uploadCover(actor, id, formData);
     if (cover) service.updateProject(actor, id, { legacyCoverImagePath: cover });
@@ -71,8 +80,11 @@ export async function createProjectRecord(formData: FormData) {
 
 export async function updateProjectRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "project", context);
   const id = requiredText(formData.get("id"), "Proje kaydı bulunamadı.");
-  service.updateProject(actor, id, projectPayload(formData));
+  service.updateProject(actor, id, { ...projectPayload(formData, translations, context.defaultLocale), translations });
   const cover = await uploadCover(actor, id, formData);
   if (cover) service.updateProject(actor, id, { legacyCoverImagePath: cover });
   revalidatePath("/projects");
@@ -87,28 +99,35 @@ export async function completeProjectRecord(formData: FormData) {
   revalidatePath(`/projects/${id}`);
 }
 
-function sectionPayload(formData: FormData) {
+function sectionPayload(formData: FormData, translations?: Record<string, Record<string, string | null>>, defaultLocale = "tr") {
+  const localized = translations?.[defaultLocale] ?? {};
   return {
     projectId: requiredText(formData.get("project_id"), "Proje zorunludur."),
     category: enumValue(formData.get("category"), SECTION_CATEGORIES, "overview"),
-    title: requiredText(formData.get("title"), "Planlama başlığı zorunludur."),
-    content: cleanText(formData.get("content")),
+    title: localized.title ?? requiredText(formData.get("title"), "Planlama başlığı zorunludur."),
+    content: localized.content ?? cleanText(formData.get("content")),
     sortOrder: Math.max(0, Math.round(numberValue(formData.get("sort_order")))),
   };
 }
 
 export async function createProjectPlanningSectionRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
-  const payload = sectionPayload(formData);
-  service.addPlanningSection(actor, payload);
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "planning_section", context);
+  const payload = sectionPayload(formData, translations, context.defaultLocale);
+  service.addPlanningSection(actor, { ...payload, translations });
   revalidatePath("/projects");
   revalidatePath(`/projects/${payload.projectId}`);
 }
 
 export async function updateProjectPlanningSectionRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(actor);
+  const translations = parseContentTranslationsFromFormData(formData, "planning_section", context);
   const id = requiredText(formData.get("id"), "Planlama alanı bulunamadı.");
-  const payload = sectionPayload(formData);
+  const payload = sectionPayload(formData, translations, context.defaultLocale);
   if (!service.listPlanningSections(actor, payload.projectId).some((section) => section.id === id)) {
     throw new Error("Planlama alanı bu projeye ait değil.");
   }
@@ -117,6 +136,7 @@ export async function updateProjectPlanningSectionRecord(formData: FormData) {
     title: payload.title,
     content: payload.content,
     sortOrder: payload.sortOrder,
+    translations,
   });
   revalidatePath("/projects");
   revalidatePath(`/projects/${payload.projectId}`);

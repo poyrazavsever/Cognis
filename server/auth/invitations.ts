@@ -12,9 +12,12 @@ import {
   appProfiles,
   authAuditEvents,
   clients,
+  instanceI18nSettings,
+  instanceLocales,
   portalInvitations,
   session,
   user,
+  userPreferences,
 } from "@/server/db/schema";
 import { getDefaultDisplayName, normalizeAuthEmail } from "@/server/auth/validation";
 
@@ -23,6 +26,7 @@ const DEFAULT_INVITATION_TTL_HOURS = 72;
 const createInvitationSchema = z.object({
   clientId: z.string().trim().min(1).max(128),
   email: z.email().transform(normalizeAuthEmail),
+  locale: z.string().trim().min(2).max(12).default("tr"),
   expiresInHours: z.number().int().min(1).max(168).default(DEFAULT_INVITATION_TTL_HOURS),
 });
 
@@ -56,12 +60,13 @@ export type PortalInvitationPreview = {
   email: string;
   expiresAt: Date;
   status: "pending" | "accepted" | "revoked" | "expired";
+  locale: string;
 };
 
 export async function createPortalInvitation(
   actor: SessionContext,
   input: z.input<typeof createInvitationSchema>,
-): Promise<{ id: number; invitationUrl: string; expiresAt: Date }> {
+): Promise<{ id: number; invitationUrl: string; expiresAt: Date; locale: string }> {
   assertFreelancerActor(actor);
 
   const parsed = parseOrThrow(createInvitationSchema, input);
@@ -83,6 +88,7 @@ export async function createPortalInvitation(
     if (!client) {
       throw new PortalInvitationError("CLIENT_NOT_FOUND", "Müşteri bulunamadı.");
     }
+    const locale = assertPortalReadyLocale(tx, parsed.locale);
 
     if (client.authUserId) {
       throw new PortalInvitationError(
@@ -143,6 +149,7 @@ export async function createPortalInvitation(
         tokenHash,
         clientId: parsed.clientId,
         email: parsed.email,
+        locale,
         status: "pending",
         expiresAt,
         createdByUserId: actor.user.id,
@@ -159,6 +166,7 @@ export async function createPortalInvitation(
         metadata: {
           invitationId: inserted.id,
           clientId: parsed.clientId,
+          locale,
           expiresAt: expiresAt.toISOString(),
         },
       })
@@ -171,6 +179,7 @@ export async function createPortalInvitation(
     id: invitationId,
     invitationUrl: `${getServerConfig().appUrl}/invite/${rawToken}`,
     expiresAt,
+    locale: parsed.locale,
   };
 }
 
@@ -186,6 +195,7 @@ export function getPortalInvitationPreview(rawToken: string): PortalInvitationPr
       email: portalInvitations.email,
       status: portalInvitations.status,
       expiresAt: portalInvitations.expiresAt,
+      locale: portalInvitations.locale,
     })
     .from(portalInvitations)
     .where(eq(portalInvitations.tokenHash, hashInvitationToken(rawToken)))
@@ -214,7 +224,7 @@ export function getPortalInvitationPreview(rawToken: string): PortalInvitationPr
           .values({
             type: "invitation_expired",
             email: invitation.email,
-            metadata: { invitationId: invitation.id },
+          metadata: { invitationId: invitation.id },
           })
           .run();
       }
@@ -289,6 +299,7 @@ export async function acceptPortalInvitation(input: {
           .run();
         throw new PortalInvitationError("INVITATION_EXPIRED", "Davet bağlantısının süresi dolmuş.");
       }
+      const preferenceLocale = resolveActivePortalLocale(tx, invitation.locale);
 
       const [existingUser] = tx
         .select({ id: user.id })
@@ -356,7 +367,7 @@ export async function acceptPortalInvitation(input: {
 
       const linkedClient = tx
         .update(clients)
-        .set({ authUserId, updatedAt: now })
+        .set({ authUserId, portalLocale: preferenceLocale, updatedAt: now })
         .where(
           and(
             eq(clients.id, invitation.clientId),
@@ -371,6 +382,20 @@ export async function acceptPortalInvitation(input: {
           "Müşteri kaydı bulunamadı veya başka bir hesaba bağlandı.",
         );
       }
+
+      tx.insert(userPreferences)
+        .values({
+          ownerUserId: authUserId,
+          language: preferenceLocale,
+        })
+        .onConflictDoUpdate({
+          target: userPreferences.ownerUserId,
+          set: {
+            language: preferenceLocale,
+            updatedAt: now.toISOString(),
+          },
+        })
+        .run();
 
       const accepted = tx
         .update(portalInvitations)
@@ -395,7 +420,12 @@ export async function acceptPortalInvitation(input: {
           type: "invitation_accepted",
           authUserId,
           email: invitation.email,
-          metadata: { invitationId: invitation.id, clientId: invitation.clientId },
+          metadata: {
+            invitationId: invitation.id,
+            clientId: invitation.clientId,
+            locale: invitation.locale,
+            preferenceLocale,
+          },
         })
         .run();
 
@@ -497,6 +527,48 @@ export function setClientPortalAccess(
   });
 }
 
+export function setClientPortalLocale(
+  actor: SessionContext,
+  clientId: string,
+  localeInput: string,
+): { locale: string } {
+  assertFreelancerActor(actor);
+  const { db } = getSqliteConnection();
+
+  return db.transaction((tx) => {
+    const ownedClient = tx
+      .select({ id: clients.id, authUserId: clients.authUserId })
+      .from(clients)
+      .where(and(eq(clients.id, clientId), eq(clients.ownerUserId, actor.user.id)))
+      .get();
+
+    if (!ownedClient) {
+      throw new PortalInvitationError("CLIENT_NOT_FOUND", "Müşteri bulunamadı.");
+    }
+
+    const locale = assertPortalReadyLocale(tx, localeInput);
+    tx.update(clients)
+      .set({ portalLocale: locale, updatedAt: new Date() })
+      .where(eq(clients.id, clientId))
+      .run();
+
+    tx.insert(authAuditEvents)
+      .values({
+        type: "client_locale_updated",
+        authUserId: actor.user.id,
+        metadata: {
+          clientId,
+          locale,
+          targetAuthUserId: ownedClient.authUserId,
+          userPreferencePreserved: Boolean(ownedClient.authUserId),
+        },
+      })
+      .run();
+
+    return { locale };
+  });
+}
+
 export function hashInvitationToken(rawToken: string): string {
   return createHash("sha256").update(rawToken, "utf8").digest("hex");
 }
@@ -533,4 +605,49 @@ async function recordInvitationFailure(email: string | null, reason: string): Pr
       metadata: { reason },
     })
     .run();
+}
+
+function assertPortalReadyLocale(
+  tx: Pick<ReturnType<typeof getSqliteConnection>["db"], "select">,
+  localeInput: string,
+): string {
+  const locale = localeInput.trim();
+  const row = tx
+    .select({ code: instanceLocales.code, status: instanceLocales.status })
+    .from(instanceLocales)
+    .where(eq(instanceLocales.code, locale))
+    .get();
+
+  if (!row || row.status !== "active") {
+    throw new PortalInvitationError("INVALID_INPUT", "Portal dili aktif değil.");
+  }
+
+  return row.code;
+}
+
+function resolveActivePortalLocale(
+  tx: Pick<ReturnType<typeof getSqliteConnection>["db"], "select">,
+  localeInput: string,
+): string {
+  const defaultLocale = tx
+    .select({ defaultLocale: instanceI18nSettings.defaultLocale })
+    .from(instanceI18nSettings)
+    .where(eq(instanceI18nSettings.key, "default"))
+    .get()?.defaultLocale ?? "tr";
+  const candidates = [localeInput, defaultLocale, "tr", "en"];
+
+  for (const candidate of candidates) {
+    const locale = candidate.trim();
+    const row = tx
+      .select({ code: instanceLocales.code, status: instanceLocales.status })
+      .from(instanceLocales)
+      .where(eq(instanceLocales.code, locale))
+      .get();
+
+    if (row?.status === "active") {
+      return row.code;
+    }
+  }
+
+  return "tr";
 }

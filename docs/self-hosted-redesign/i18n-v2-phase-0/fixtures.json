@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "instance": {
+    "defaultLocale": "tr",
+    "locales": [
+      { "code": "tr", "status": "active", "fallbackLocale": null, "direction": "ltr" },
+      { "code": "en", "status": "active", "fallbackLocale": "tr", "direction": "ltr" },
+      { "code": "fr", "status": "draft", "fallbackLocale": "en", "direction": "ltr" },
+      { "code": "ar", "status": "test", "fallbackLocale": "en", "direction": "rtl" }
+    ]
+  },
+  "actors": {
+    "freelancerTr": { "role": "freelancer", "preference": "tr" },
+    "freelancerEn": { "role": "freelancer", "preference": "en" },
+    "clientAdminDefaultFr": {
+      "role": "client",
+      "preference": null,
+      "clientPortalLocale": "fr",
+      "expectedLocaleWhileFrIsDraft": "tr"
+    },
+    "clientPersonalEn": {
+      "role": "client",
+      "preference": "en",
+      "clientPortalLocale": "tr",
+      "expectedLocale": "en"
+    }
+  },
+  "content": {
+    "project": {
+      "id": "fixture-project",
+      "legacy": { "name": "Marka sitesi", "description": "Türkçe açıklama" },
+      "translations": {
+        "tr": { "name": "Marka sitesi", "description": "Türkçe açıklama" },
+        "en": { "name": "Brand website", "description": "English description" },
+        "fr": { "name": "Site de marque" }
+      }
+    },
+    "financeTransaction": {
+      "id": "fixture-finance",
+      "amountMinor": 125000,
+      "currency": "TRY",
+      "translations": {
+        "tr": { "category": "Yazılım", "description": "Proje ödemesi" },
+        "en": { "category": "Software", "description": "Project payment" }
+      }
+    }
+  },
+  "invitation": {
+    "locale": "en",
+    "expectedPublicAuthLocale": "tr",
+    "expectedInvitationLocale": "en"
+  }
+}

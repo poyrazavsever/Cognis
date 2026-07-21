@@ -1,6 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getSqliteConnection } from "@/server/db/client";
+import {
+  ContentTranslationService,
+  parseContentTranslationsFromFormData,
+} from "@/server/i18n/content";
 import { cleanText, decimalToMinor, requiredText } from "@/server/web/form-data";
 import { requireFreelancerBackend } from "@/server/web/freelancer";
 
@@ -11,19 +16,20 @@ function enumValue<T extends readonly string[]>(value: FormDataEntryValue | null
   return typeof value === "string" && values.includes(value) ? value as T[number] : fallback;
 }
 
-function payload(formData: FormData) {
+function payload(formData: FormData, translations?: Record<string, Record<string, string | null>>, defaultLocale = "tr") {
   const amountMinor = decimalToMinor(formData.get("amount"));
-  if (amountMinor == null) throw new Error("Tutar zorunludur.");
+  if (amountMinor == null) throw new Error("finance.errors.amountRequired");
+  const localized = translations?.[defaultLocale] ?? {};
   return {
     type: enumValue(formData.get("type"), TYPES, "expense"),
     amountMinor,
     currency: cleanText(formData.get("currency")) ?? "USD",
     transactionDate: cleanText(formData.get("transaction_date")) ?? new Date().toISOString().slice(0, 10),
-    category: cleanText(formData.get("category")),
+    category: localized.category ?? cleanText(formData.get("category")),
     paymentStatus: enumValue(formData.get("payment_status"), STATUSES, "planned"),
     clientId: cleanText(formData.get("client_id")),
     projectId: cleanText(formData.get("project_id")),
-    description: cleanText(formData.get("description")),
+    description: localized.description ?? cleanText(formData.get("description")),
   };
 }
 
@@ -38,9 +44,13 @@ function completeRelations(
 
 export async function createFinanceTransactionRecord(formData: FormData) {
   const backend = await requireFreelancerBackend();
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(backend.actor);
+  const translations = parseContentTranslationsFromFormData(formData, "finance_transaction", context);
+  const data = payload(formData, translations, context.defaultLocale);
   backend.service.createFinanceTransaction(
     backend.actor,
-    completeRelations(payload(formData), backend.service, backend.actor),
+    { ...completeRelations(data, backend.service, backend.actor), translations },
   );
   revalidatePath("/finance");
   revalidatePath("/clients");
@@ -49,11 +59,15 @@ export async function createFinanceTransactionRecord(formData: FormData) {
 
 export async function updateFinanceTransactionRecord(formData: FormData) {
   const backend = await requireFreelancerBackend();
-  const id = requiredText(formData.get("id"), "Finans kaydı bulunamadı.");
+  const i18n = new ContentTranslationService(getSqliteConnection().db);
+  const context = i18n.getLocalizationContext(backend.actor);
+  const translations = parseContentTranslationsFromFormData(formData, "finance_transaction", context);
+  const id = requiredText(formData.get("id"), "finance.errors.notFound");
+  const data = payload(formData, translations, context.defaultLocale);
   backend.service.updateFinanceTransaction(
     backend.actor,
     id,
-    completeRelations(payload(formData), backend.service, backend.actor),
+    { ...completeRelations(data, backend.service, backend.actor), translations },
   );
   revalidatePath("/finance");
   revalidatePath("/clients");
@@ -64,7 +78,7 @@ export async function deleteFinanceTransactionRecord(formData: FormData) {
   const { actor, service } = await requireFreelancerBackend();
   service.deleteFinanceTransaction(
     actor,
-    requiredText(formData.get("id"), "Silinecek finans kaydı bulunamadı."),
+    requiredText(formData.get("id"), "finance.errors.deleteNotFound"),
   );
   revalidatePath("/finance");
   revalidatePath("/clients");

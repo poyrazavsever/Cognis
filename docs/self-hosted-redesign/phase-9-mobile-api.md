@@ -1,8 +1,8 @@
 ---
-title: Faz 9 — Mobil API ve Instance Discovery Sözleşmesi
-description: React Native istemcileri için discovery, API v1, metadata, capability, sürümleme ve güvenlik sınırı.
+title: Faz 9 — Mobil API, Instance Discovery ve Localization Sözleşmesi
+description: React Native istemcileri için discovery, API v1, metadata, localization, capability, sürümleme ve güvenlik sınırı.
 status: completed
-last_updated: 2026-07-17
+last_updated: 2026-07-21
 ---
 
 # Faz 9 — Mobil API ve instance discovery
@@ -39,6 +39,8 @@ Redirect takibi en fazla üç hop olmalı ve HTTPS'ten HTTP'ye downgrade edilmem
 | `GET /api/v1/meta` | Public | 60 saniye public | Marka, sürüm ve capability bilgisi |
 | `GET /api/v1/health` | Public | No-store | DB/migration readiness |
 | `GET /api/v1/me` | Better Auth session | Private/no-store | Güvenli kullanıcı/session özeti |
+| `PATCH /api/v1/me/preferences` | Better Auth session | No-store | Kullanıcının dil/tema tercihini güncelleme |
+| `GET /api/v1/localization/catalog` | Public | 60 saniye public | Locale katalog mesajları ve versiyon bilgisi |
 
 Public endpoint'ler session oluşturmaz ve secret dönmez. `/me` geçersiz, süresi dolmuş veya disabled hesaba ait session için `401 UNAUTHENTICATED` döndürür.
 
@@ -56,7 +58,8 @@ Public endpoint'ler session oluşturmaz ve secret dönmez. `/me` geçersiz, sür
     "version": "1",
     "baseUrl": "https://neta.example.com/api/v1",
     "metaUrl": "https://neta.example.com/api/v1/meta",
-    "healthUrl": "https://neta.example.com/api/v1/health"
+    "healthUrl": "https://neta.example.com/api/v1/health",
+    "catalogUrl": "https://neta.example.com/api/v1/localization/catalog"
   },
   "security": {
     "httpsRequired": true,
@@ -85,17 +88,23 @@ Hata:
   "ok": false,
   "error": {
     "code": "UNAUTHENTICATED",
-    "message": "Geçerli bir oturum gerekli.",
-    "details": {}
+    "message": "Authentication required.",
+    "details": {
+      "messageKey": "api.errors.unauthenticated"
+    }
   }
 }
 ```
 
-`details` opsiyoneldir. `/api/v1` yanıtları `X-Neta-API-Version: 1` header'ı taşır. Mobil istemci kullanıcıya göstereceği metni `message` alanından alabilir; program akışını yalnızca stabil `code` üzerinden kurmalıdır.
+`details` opsiyoneldir. `/api/v1` yanıtları `X-Neta-API-Version: 1` header'ı taşır.
+Mobil istemci program akışını yalnızca stabil `code` üzerinden kurmalı, kullanıcıya
+göstereceği metni mümkünse `details.messageKey` ile kendi catalog'undan çözmelidir.
+`message` alanı debug/fallback içindir ve lokalizasyon kaynağı kabul edilmemelidir.
 
 Mevcut hata kodları:
 
 - `VALIDATION_ERROR`
+- `UNSUPPORTED_LOCALE`
 - `UNAUTHENTICATED`
 - `FORBIDDEN`
 - `NOT_FOUND`
@@ -142,10 +151,43 @@ aktif renk moduna göre doğru logoyu seçmeli ve eksik yeni alanlarda eski
 Authenticated `/api/v1/me` yanıtındaki `preferences.colorMode`, kullanıcının
 `light`, `dark` veya `system` tercihini taşır.
 
+Localization kontratı şu ayrımı korur:
+
+- `instanceDefaultLocale`: self-host adminin instance varsayılan dili.
+- `userPreferenceLocale`: giriş yapan kullanıcının kişisel arayüz tercihi.
+- `clientDefaultLocale`: portal kullanıcısı için admin tarafından atanan müşteri
+  başlangıç dili; freelancer hesabında `null` döner.
+- `resolvedLocale`: bu istekte kullanılacak nihai locale.
+- `source`: nihai locale'in `query`, `preference`, `client-default`,
+  `accept-language` veya `instance-default` kaynaklarından hangisiyle çözüldüğü.
+- `fallbackChain`: katalog ve domain içerik çözümlerinde izlenecek locale zinciri.
+
+`GET /api/v1/localization/catalog?locale=en&namespaces=common,portal` public
+katalog endpoint'idir. Yanıt `catalogVersion`, `namespaces`, `messages` ve
+`fallbackChain` alanlarını taşır. İstemci `catalogVersion` değişmediği sürece
+lokal cache kullanabilir.
+
+Kullanıcı tercihi güncelleme:
+
+```http
+PATCH /api/v1/me/preferences
+Content-Type: application/json
+
+{
+  "language": "en",
+  "colorMode": "system"
+}
+```
+
+Bu endpoint yalnız aktif locale kabul eder. Freelancer ve client kullanıcılar
+yalnız kendi preference satırlarını değiştirir; instance default veya müşteri
+portal varsayılanı bu endpoint ile değişmez.
+
 İlk capability seti:
 
 - `instance.discovery`
 - `instance.branding`
+- `instance.localization`
 - `auth.better-auth-cookie`
 - `files.local`
 - `freelancer.core`

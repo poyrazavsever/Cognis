@@ -5,7 +5,7 @@ const config = [
   ...nextCoreWebVitals,
   ...nextTypeScript,
   {
-    ignores: ['**/*.old.*'],
+    ignores: ['**/*.old.*', 'extract_keys.js', 'fix_payloads.js', 'inject_*.js', 'patch_*.js'],
   },
 ]
 

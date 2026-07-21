@@ -2,38 +2,39 @@ import { Badge } from "poyraz-ui/atoms";
 import type { ComponentProps } from "react";
 
 const statusPresentation = {
-  accepted: { label: "Kabul edildi", variant: "success" },
-  active: { label: "Aktif", variant: "success" },
-  archived: { label: "Arşivlendi", variant: "outline" },
-  cancelled: { label: "İptal edildi", variant: "outline" },
-  completed: { label: "Tamamlandı", variant: "success" },
-  done: { label: "Tamamlandı", variant: "success" },
-  draft: { label: "Taslak", variant: "secondary" },
-  expired: { label: "Süresi doldu", variant: "destructive" },
-  in_progress: { label: "Devam ediyor", variant: "info" },
-  overdue: { label: "Gecikmiş", variant: "destructive" },
-  paid: { label: "Ödendi", variant: "success" },
-  paused: { label: "Duraklatıldı", variant: "warning" },
-  pending: { label: "Bekliyor", variant: "warning" },
-  planned: { label: "Planlandı", variant: "secondary" },
-  planning: { label: "Planlanıyor", variant: "secondary" },
-  rejected: { label: "Reddedildi", variant: "destructive" },
-  revoked: { label: "İptal edildi", variant: "destructive" },
-  sent: { label: "Gönderildi", variant: "info" },
-  todo: { label: "Yapılacak", variant: "secondary" },
-} as const satisfies Record<string, { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]> }>;
+  accepted: { labelKey: "status.common.accepted", variant: "success" },
+  active: { labelKey: "status.common.active", variant: "success" },
+  archived: { labelKey: "status.common.archived", variant: "outline" },
+  cancelled: { labelKey: "status.common.cancelled", variant: "outline" },
+  completed: { labelKey: "status.common.completed", variant: "success" },
+  done: { labelKey: "status.common.done", variant: "success" },
+  draft: { labelKey: "status.common.draft", variant: "secondary" },
+  expired: { labelKey: "status.common.expired", variant: "destructive" },
+  in_progress: { labelKey: "status.common.inProgress", variant: "info" },
+  overdue: { labelKey: "status.common.overdue", variant: "destructive" },
+  paid: { labelKey: "status.common.paid", variant: "success" },
+  paused: { labelKey: "status.common.paused", variant: "warning" },
+  pending: { labelKey: "status.common.pending", variant: "warning" },
+  planned: { labelKey: "status.common.planned", variant: "secondary" },
+  planning: { labelKey: "status.common.planning", variant: "secondary" },
+  rejected: { labelKey: "status.common.rejected", variant: "destructive" },
+  revoked: { labelKey: "status.common.revoked", variant: "destructive" },
+  sent: { labelKey: "status.common.sent", variant: "info" },
+  todo: { labelKey: "status.common.todo", variant: "secondary" },
+} as const satisfies Record<string, { labelKey: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]> }>;
 
 export type NetaStatus = keyof typeof statusPresentation;
 
 type StatusBadgeProps = Omit<ComponentProps<typeof Badge>, "children" | "variant"> & {
+  label: string;
   status: NetaStatus;
 };
 
-export function StatusBadge({ status, ...props }: StatusBadgeProps) {
+export function StatusBadge({ label, status, ...props }: StatusBadgeProps) {
   const presentation = statusPresentation[status];
   return (
     <Badge variant={presentation.variant} {...props}>
-      {presentation.label}
+      {label}
     </Badge>
   );
 }

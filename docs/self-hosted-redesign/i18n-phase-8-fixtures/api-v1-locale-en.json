@@ -1,0 +1,24 @@
+{
+  "scenario": "English mobile client receives resolved user locale from /me",
+  "request": {
+    "path": "/api/v1/me?locale=en",
+    "headers": {
+      "Accept-Language": "en-US,en;q=0.9,tr;q=0.7",
+      "Cookie": "better-auth.session_token=<redacted>"
+    }
+  },
+  "expected": {
+    "ok": true,
+    "data": {
+      "localization": {
+        "language": "en",
+        "portalLocale": null,
+        "resolvedLocale": "en",
+        "requestedLocale": "en",
+        "defaultLocale": "tr",
+        "source": "query",
+        "fallbackChain": ["en", "tr"]
+      }
+    }
+  }
+}

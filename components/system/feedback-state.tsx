@@ -45,7 +45,7 @@ export function FeedbackState({ action, description, title, variant }: FeedbackS
   );
 }
 
-export function LoadingState({ label = "İçerik yükleniyor" }: { label?: string }) {
+export function LoadingState({ label }: { label: string }) {
   return (
     <div className="space-y-4" aria-busy="true" aria-label={label} role="status">
       <span className="sr-only">{label}</span>
@@ -60,10 +60,10 @@ export function LoadingState({ label = "İçerik yükleniyor" }: { label?: strin
   );
 }
 
-export function RetryAction({ onClick }: { onClick: () => void }) {
+export function RetryAction({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <Button effect="shine" type="button" variant="secondary" size="sm" onClick={onClick}>
-      Yeniden dene
+      {label}
     </Button>
   );
 }

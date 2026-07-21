@@ -1,15 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
 import { Card, CardContent, Badge, Button, Textarea, Label } from "poyraz-ui/atoms";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "poyraz-ui/molecules";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  toast,
+} from "poyraz-ui/molecules";
 import { CheckCircle2, Clock, MessageSquare, Loader2, RefreshCw } from "lucide-react";
-import { toast } from "poyraz-ui/molecules";
 import { createRevisionRequest } from "./actions";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "poyraz-ui/molecules";
+import { useTranslations } from "@/components/i18n/i18n-provider";
+import { formatDate, formatDateTime } from "@/lib/i18n/format";
 
 export type PortalProjectDetail = {
   id: string;
@@ -39,6 +48,7 @@ export type PortalTask = {
 export type PortalRevision = {
   id: string;
   description: string;
+  source_locale: string | null;
   status: "pending" | "in_progress" | "completed" | "rejected";
   created_at: string;
 };
@@ -48,150 +58,178 @@ type PortalProjectClientProps = {
   sections: PortalPlanningSection[];
   tasks: PortalTask[];
   revisions: PortalRevision[];
+  locale: string;
 };
 
-export function PortalProjectClient({ project, sections, tasks, revisions }: PortalProjectClientProps) {
+export function PortalProjectClient({
+  project,
+  sections,
+  tasks,
+  revisions,
+  locale,
+}: PortalProjectClientProps) {
+  const t = useTranslations();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openRevision, setOpenRevision] = useState(false);
 
-  const handleRevision = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  async function handleRevision(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(event.currentTarget);
+
     try {
-      const res = await createRevisionRequest(project.id, formData);
-      if (res.error) throw new Error(res.error);
-      toast.success("Revizyon talebiniz başarıyla iletildi.");
+      const response = await createRevisionRequest(project.id, formData);
+      if (response.errorKey) throw new Error(response.errorKey);
+      toast.success(t("portal.revision.success"));
       setOpenRevision(false);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Revizyon talebi oluşturulamadı.");
+      toast.error(error instanceof Error ? t(error.message) : t("portal.revision.error"));
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
-  const pendingRevisions = revisions.filter((revision) => revision.status === 'pending' || revision.status === 'in_progress').length;
+  const pendingRevisions = revisions.filter(
+    (revision) => revision.status === "pending" || revision.status === "in_progress",
+  ).length;
   const hasRevisionQuota = project.can_request_revision;
+  const number = new Intl.NumberFormat(locale);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Info */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start justify-between">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
+          {project.description ? (
+            <p className="max-w-3xl text-sm text-muted-foreground">{project.description}</p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <div className="flex gap-2">
-            <Badge variant="outline" className="px-3 py-1 capitalize text-sm">{project.status}</Badge>
+            <Badge variant="outline" className="px-3 py-1 text-sm capitalize">
+              {projectStatusLabel(project.status, t)}
+            </Badge>
             {hasRevisionQuota ? (
               <Dialog open={openRevision} onOpenChange={setOpenRevision}>
                 <DialogTrigger asChild>
-                  <Button variant="default" effect="shine" className="gap-2 shrink-0">
-                    <RefreshCw className="h-4 w-4" /> Revizyon Talep Et
+                  <Button variant="default" effect="shine" className="shrink-0 gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    {t("portal.actions.requestRevision")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <form onSubmit={handleRevision}>
                     <DialogHeader>
-                      <DialogTitle>Yeni Revizyon Talebi</DialogTitle>
+                      <DialogTitle>{t("portal.revision.title")}</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
-                      {pendingRevisions > 0 && (
-                        <div className="p-3 bg-amber-500/10 text-amber-600 rounded-md text-sm border border-amber-500/20">
-                          Şu anda sonuçlanmamış {pendingRevisions} adet revizyon talebiniz var. Yeni bir tane eklemek istediğinize emin misiniz?
+                    <div className="space-y-4 py-4">
+                      {pendingRevisions > 0 ? (
+                        <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-600">
+                          {t("portal.revision.pendingWarning", { count: pendingRevisions })}
                         </div>
-                      )}
+                      ) : null}
                       <div className="space-y-2">
-                        <Label htmlFor="revision-description">Lütfen yapılmasını istediğiniz değişiklikleri detaylıca açıklayın</Label>
-                        <Textarea id="revision-description" name="description" required rows={5} placeholder="Şu kısmın rengi mavi olabilir mi? Ayrıca metinleri güncelleyelim..." />
+                        <Label htmlFor="revision-description">{t("portal.revision.descriptionLabel")}</Label>
+                        <Textarea
+                          id="revision-description"
+                          name="description"
+                          required
+                          rows={5}
+                          placeholder={t("portal.revision.descriptionPlaceholder")}
+                        />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button effect="shine" type="button" variant="secondary" onClick={() => setOpenRevision(false)}>İptal</Button>
+                      <Button effect="shine" type="button" variant="secondary" onClick={() => setOpenRevision(false)}>
+                        {t("portal.actions.cancel")}
+                      </Button>
                       <Button variant="default" effect="shine" type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Talebi Gönder
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {t("portal.actions.sendRequest")}
                       </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
               </Dialog>
             ) : (
-              <Button variant="default" effect="shine" disabled className="gap-2 shrink-0 opacity-50">
-                <RefreshCw className="h-4 w-4" /> Revizyon Hakkı Bitti
+              <Button variant="default" effect="shine" disabled className="shrink-0 gap-2 opacity-50">
+                <RefreshCw className="h-4 w-4" />
+                {t("portal.actions.noRevisionQuota")}
               </Button>
             )}
           </div>
-          {project.due_date && (
+          {project.due_date ? (
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>Teslim: {format(new Date(project.due_date), 'd MMM yyyy', { locale: tr })}</span>
+              <span>
+                {t("portal.labels.delivery")}: {formatDate(project.due_date, locale)}
+              </span>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6 w-full justify-start rounded-none border-b border-border bg-transparent h-auto p-0">
-          <TabsTrigger value="overview" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3 data-[state=active]:shadow-none data-[state=active]:bg-transparent">
-            Genel Bakış
+        <TabsList className="mb-6 h-auto w-full justify-start rounded-none border-b border-border bg-transparent p-0">
+          <TabsTrigger value="overview" className="rounded-none px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            {t("portal.tabs.overview")}
           </TabsTrigger>
-          <TabsTrigger value="plan" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3 data-[state=active]:shadow-none data-[state=active]:bg-transparent">
-            Plan & Aşamalar
+          <TabsTrigger value="plan" className="rounded-none px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            {t("portal.tabs.plan")}
           </TabsTrigger>
-          <TabsTrigger value="revisions" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3 data-[state=active]:shadow-none data-[state=active]:bg-transparent flex items-center gap-2">
-            Revizyonlar
-            {pendingRevisions > 0 && (
-              <Badge variant="secondary" className="px-1.5 py-0 min-w-5 h-5 flex items-center justify-center">{pendingRevisions}</Badge>
-            )}
+          <TabsTrigger value="revisions" className="flex items-center gap-2 rounded-none px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            {t("portal.tabs.revisions")}
+            {pendingRevisions > 0 ? (
+              <Badge variant="secondary" className="flex h-5 min-w-5 items-center justify-center px-1.5 py-0">
+                {pendingRevisions}
+              </Badge>
+            ) : null}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="font-semibold">İlerleme Durumu</h3>
+              <CardContent className="space-y-4 p-5">
+                <h3 className="font-semibold">{t("portal.sections.progress")}</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-3xl font-bold">
-                    <span>%{project.progress}</span>
+                    <span>{t("portal.labels.percent", { value: number.format(project.progress) })}</span>
                   </div>
-                  <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary transition-all duration-500" 
-                      style={{ width: `${project.progress}%` }} 
-                    />
+                  <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${project.progress}%` }} />
                   </div>
-                  <p className="text-sm text-muted-foreground">Projenizin anlık tamamlanma oranı.</p>
+                  <p className="text-sm text-muted-foreground">{t("portal.labels.progress")}</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Yapılan İşler
+              <CardContent className="space-y-4 p-5">
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t("portal.sections.doneTasks")}
                 </h3>
                 {tasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">Listelenecek görev bulunmuyor.</p>
+                  <p className="text-sm italic text-muted-foreground">{t("portal.empty.tasks")}</p>
                 ) : (
-                  <ul className="space-y-3 max-h-60 overflow-y-auto tiny-scrollbar pr-2">
+                  <ul className="tiny-scrollbar max-h-60 space-y-3 overflow-y-auto pr-2">
                     {tasks.map((task) => (
-                      <li key={task.id} className="text-sm flex gap-3 p-2 rounded hover:bg-muted/30 transition-colors">
-                        {task.status === 'done' ? (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <li key={task.id} className="flex gap-3 rounded p-2 text-sm transition-colors hover:bg-muted/30">
+                        {task.status === "done" ? (
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                         ) : (
-                          <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0 mt-0.5" />
+                          <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
                         )}
                         <div>
-                          <span className={task.status === 'done' ? "text-muted-foreground" : "text-foreground font-medium"}>
+                          <span className={task.status === "done" ? "text-muted-foreground" : "font-medium text-foreground"}>
                             {task.title}
                           </span>
-                          {task.date && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {format(new Date(task.date), 'd MMM yyyy', { locale: tr })}
+                          {task.date ? (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {formatDate(task.date, locale)}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </li>
                     ))}
@@ -204,21 +242,21 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
 
         <TabsContent value="plan" className="mt-6">
           {sections.length === 0 ? (
-            <div className="py-10 text-center border rounded-lg border-dashed text-muted-foreground">
-              Henüz bir plan yüklenmemiş.
+            <div className="rounded-lg border border-dashed py-10 text-center text-muted-foreground">
+              {t("portal.empty.plan")}
             </div>
           ) : (
             <div className="space-y-4">
               {sections.map((section) => (
                 <Card key={section.id}>
-                  <CardContent className="p-5 space-y-3">
+                  <CardContent className="space-y-3 p-5">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-foreground">{section.title}</h4>
                       <Badge variant="secondary" className="text-xs">
-                        {section.type === 'milestone' ? 'Aşama' : section.type === 'deliverable' ? 'Teslimat' : 'Not'}
+                        {t(`portal.planTypes.${section.type}`)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{section.content}</p>
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">{section.content}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -227,40 +265,43 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
         </TabsContent>
 
         <TabsContent value="revisions" className="mt-6">
-          <div className="flex items-center justify-end mb-4">
-            <div className="text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-md">
-              Kalan Hak: <span className="text-foreground ml-1">{project.revision_quota !== null ? project.revision_quota : 'Sınırsız'}</span>
+          <div className="mb-4 flex items-center justify-end">
+            <div className="rounded-md bg-muted/50 px-3 py-1.5 text-sm font-medium text-muted-foreground">
+              {t("portal.labels.remainingQuota")}:
+              <span className="ml-1 text-foreground">
+                {project.revision_quota !== null ? number.format(project.revision_quota) : t("portal.labels.unlimited")}
+              </span>
             </div>
           </div>
-          
+
           {revisions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3 border rounded-lg border-dashed text-muted-foreground">
+            <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
               <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
-              <p>Henüz bir revizyon talebi oluşturmadınız.</p>
-              {hasRevisionQuota && (
-                <Button effect="shine" variant="secondary" size="sm" onClick={() => setOpenRevision(true)}>Yeni Talep Oluştur</Button>
-              )}
+              <p>{t("portal.empty.revisions")}</p>
+              {hasRevisionQuota ? (
+                <Button effect="shine" variant="secondary" size="sm" onClick={() => setOpenRevision(true)}>
+                  {t("portal.actions.newRequest")}
+                </Button>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-4">
-              {revisions.map((rev) => (
-                <Card key={rev.id} className="transition-colors hover:border-primary/30">
+              {revisions.map((revision) => (
+                <Card key={revision.id} className="transition-colors hover:border-primary/30">
                   <CardContent className="p-5">
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        {format(new Date(rev.created_at), "d MMM yyyy, HH:mm", { locale: tr })}
+                        {formatDateTime(revision.created_at, locale)}
                       </div>
-                      <Badge variant={
-                        rev.status === 'completed' ? 'default' : 
-                        rev.status === 'rejected' ? 'destructive' : 'secondary'
-                      } className="capitalize">
-                        {rev.status === 'pending' ? 'Bekliyor' : 
-                         rev.status === 'in_progress' ? 'İşleniyor' : 
-                         rev.status === 'completed' ? 'Tamamlandı' : 'Reddedildi'}
+                      <Badge
+                        variant={revision.status === "completed" ? "default" : revision.status === "rejected" ? "destructive" : "secondary"}
+                        className="capitalize"
+                      >
+                        {revisionStatusLabel(revision.status, t)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{rev.description}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{revision.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -270,4 +311,17 @@ export function PortalProjectClient({ project, sections, tasks, revisions }: Por
       </Tabs>
     </div>
   );
+}
+
+function projectStatusLabel(status: PortalProjectDetail["status"], t: ReturnType<typeof useTranslations>) {
+  if (status === "completed") return t("portal.status.project.completed");
+  if (status === "active") return t("portal.status.project.active");
+  return t("portal.status.project.waiting");
+}
+
+function revisionStatusLabel(status: PortalRevision["status"], t: ReturnType<typeof useTranslations>) {
+  if (status === "pending") return t("portal.status.revision.pending");
+  if (status === "in_progress") return t("portal.status.revision.inProgress");
+  if (status === "completed") return t("portal.status.revision.completed");
+  return t("portal.status.revision.rejected");
 }

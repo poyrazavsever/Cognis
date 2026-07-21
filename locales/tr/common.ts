@@ -1,0 +1,15 @@
+export const common = {
+  "actions.save": "Kaydet",
+  "actions.cancel": "İptal",
+  "actions.delete": "Sil",
+  "actions.edit": "Düzenle",
+  "actions.create": "Oluştur",
+  "actions.close": "Kapat",
+  "actions.search": "Ara",
+  "states.loading": "Yükleniyor...",
+  "states.empty": "Henüz kayıt yok.",
+  "states.error": "Bir hata oluştu.",
+  "pagination.previous": "Önceki",
+  "pagination.next": "Sonraki",
+  "plural.item": "{count, plural, one {# kayıt} other {# kayıt}}",
+};

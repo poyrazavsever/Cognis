@@ -2,8 +2,8 @@ import "server-only";
 
 import Database from "better-sqlite3";
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { ensureDataDirectories, getServerConfig } from "@/server/config";
-import * as schema from "@/server/db/schema";
+import { ensureDataDirectories, getServerConfig } from "../config";
+import * as schema from "./schema";
 
 export type SqliteConnection = {
   sqlite: Database.Database;

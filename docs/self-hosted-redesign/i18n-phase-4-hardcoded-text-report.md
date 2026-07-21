@@ -1,0 +1,265 @@
+---
+title: Faz 4 Kalan Hardcoded Metin Raporu
+phase: 4
+status: generated
+last_updated: 2026-07-18T23:56:57.608Z
+---
+
+# Faz 4 Kalan Hardcoded Metin Raporu
+
+Bu rapor Faz-4 boundary script'i tarafindan uretilir. Formatter sabitleri release blocker kabul edilir; kalan Turkce stringler Faz-4 kapsaminda raporlanir ve sonraki UI migration dalgalarinda eritilir.
+
+Toplam kalan Turkce literal satiri: 294
+
+- `app/(dashboard)/analytics/analytics-client.tsx:56` <SelectValue placeholder="Tarih aralığı" />
+- `app/(dashboard)/business/subscriptions/subscriptions-client.tsx:38` return "Aylık";
+- `app/(dashboard)/business/subscriptions/subscriptions-client.tsx:40` return "Yıllık";
+- `app/(dashboard)/business/subscriptions/subscriptions-client.tsx:42` return "Haftalık";
+- `app/(dashboard)/calendar/actions.ts:17` title: requiredText(formData.get("title"), "Etkinlik başlığı zorunludur."),
+- `app/(dashboard)/calendar/actions.ts:46` if (!value.startsAt) throw new Error("Etkinlik başlangıç zamanı zorunludur.");
+- `app/(dashboard)/calendar/actions.ts:53` const id = requiredText(formData.get("id"), "Etkinlik kaydı bulunamadı.");
+- `app/(dashboard)/calendar/actions.ts:55` if (!value.startsAt) throw new Error("Etkinlik başlangıç zamanı zorunludur.");
+- `app/(dashboard)/calendar/actions.ts:64` requiredText(formData.get("id"), "Silinecek etkinlik bulunamadı."),
+- `app/(dashboard)/calendar/calendar-client.tsx:55` meeting: "Toplantı",
+- `app/(dashboard)/calendar/calendar-client.tsx:58` personal: "Kişisel",
+- `app/(dashboard)/calendar/calendar-client.tsx:134` {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((day) => (
+- `app/(dashboard)/calendar/calendar-client.tsx:245` {event.projectName || event.clientName || event.taskTitle || event.description || "Bağlantı yok"}
+- `app/(dashboard)/calendar/calendar-client.tsx:293` toast.success(mode === "create" ? "Etkinlik eklendi." : "Etkinlik güncellendi.");
+- `app/(dashboard)/calendar/calendar-client.tsx:298` : "Etkinlik kaydedilirken beklenmeyen bir hata oluştu.",
+- `app/(dashboard)/calendar/calendar-client.tsx:310` {mode === "create" ? "Etkinlik ekle" : "Düzenle"}
+- `app/(dashboard)/calendar/calendar-client.tsx:317` <DialogTitle>{mode === "create" ? "Yeni etkinlik" : "Etkinliği düzenle"}</DialogTitle>
+- `app/(dashboard)/calendar/calendar-client.tsx:328` {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Etkinliği ekle" : "Değişiklikleri kaydet"}
+- `app/(dashboard)/calendar/calendar-client.tsx:356` <Input name="title" defaultValue={event?.title || ""} required placeholder="Örn. Müşteri toplantısı" />
+- `app/(dashboard)/calendar/calendar-client.tsx:363` <SelectField name="type" label="Tür" defaultValue={event?.type || "focus"}>
+- `app/(dashboard)/calendar/calendar-client.tsx:370` <SelectField name="client_id" label="Müşteri" defaultValue={event?.client_id || "__none"}>
+- `app/(dashboard)/calendar/calendar-client.tsx:380` <SelectField name="task_id" label="Görev" defaultValue={event?.task_id || "__none"}>
+- `app/(dashboard)/calendar/calendar-client.tsx:404` <SelectTrigger><SelectValue placeholder={`${label} seç`} /></SelectTrigger>
+- `app/(dashboard)/chat/page.tsx:58` toast.error(error.message || "Yapay zeka ile iletişim kurulurken bir hata oluştu.");
+- `app/(dashboard)/chat/page.tsx:74` toast.error(error instanceof Error ? error.message : "Sohbetler yüklenemedi.");
+- `app/(dashboard)/chat/page.tsx:97` toast.error(error instanceof Error ? error.message : "Mesajlar yüklenemedi.");
+- `app/(dashboard)/chat/page.tsx:143` toast.error(error instanceof Error ? error.message : "Sohbet oluşturulamadı.");
+- `app/(dashboard)/chat/page.tsx:189` {session.title || "İsimsiz sohbet"}
+- `app/(dashboard)/chat/page.tsx:196` aria-label={`${session.title || "İsimsiz sohbet"} sohbetini sil`}
+- `app/(dashboard)/chat/page.tsx:302` placeholder="Mesaj gönder..."
+- `app/(dashboard)/clients/[id]/actions.ts:19` title: requiredText(formData.get("title"), "Aktivite başlığı zorunludur."),
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:95` throw new Error(data.error || "Kullanıcı oluşturulamadı.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:99` toast.success("Güvenli portal daveti oluşturuldu.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:101` toast.error(error instanceof Error ? error.message : "Davet oluşturulamadı.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:116` if (!response.ok || data.error) throw new Error(data.error || "Portal dili güncellenemedi.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:117` toast.success("Portal dili güncellendi.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:120` toast.error(error instanceof Error ? error.message : "Portal dili güncellenemedi.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:165` <SelectValue placeholder="Dil seç" />
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:185` aria-label="Davet bağlantısını kopyala"
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:188` toast.success("Davet bağlantısı kopyalandı.");
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:310` <Input name="title" required placeholder="Aktivite özeti" />
+- `app/(dashboard)/clients/[id]/client-detail-client.tsx:318` <Textarea name="content" rows={4} placeholder="Görüşme detayları..." />
+- `app/(dashboard)/clients/actions.ts:25` name: requiredText(formData.get("name"), "Müşteri adı zorunludur."),
+- `app/(dashboard)/clients/actions.ts:45` const id = requiredText(formData.get("id"), "Müşteri kaydı bulunamadı.");
+- `app/(dashboard)/clients/actions.ts:53` const id = requiredText(formData.get("id"), "Arşivlenecek müşteri bulunamadı.");
+- `app/(dashboard)/clients/clients-client.tsx:76` { id: "contacted", label: "İletişime Geçildi", color: "border-blue-200 bg-blue-50 text-blue-700" },
+- `app/(dashboard)/clients/clients-client.tsx:77` { id: "proposal_sent", label: "Teklif İletildi", color: "border-amber-200 bg-amber-50 text-amber-700" },
+- `app/(dashboard)/clients/clients-client.tsx:78` { id: "won", label: "Kazanıldı (Won)", color: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+- `app/(dashboard)/clients/clients-client.tsx:126` toast.success("Müşteri aşaması güncellendi.");
+- `app/(dashboard)/clients/clients-client.tsx:135` : "Müşteri aşaması güncellenemedi.",
+- `app/(dashboard)/clients/clients-client.tsx:175` label="Aktif Müşteri"
+- `app/(dashboard)/clients/clients-client.tsx:187` label="Kayıtlı Gelir"
+- `app/(dashboard)/clients/clients-client.tsx:189` description="Ödenmiş gelir işlemleri"
+- `app/(dashboard)/clients/clients-client.tsx:205` placeholder="Müşteri, firma, e-posta veya not ara"
+- `app/(dashboard)/clients/clients-client.tsx:433` toast.success(mode === "create" ? "Müşteri eklendi." : "Müşteri güncellendi.");
+- `app/(dashboard)/clients/clients-client.tsx:438` : "Müşteri kaydedilirken beklenmeyen bir hata oluştu.",
+- `app/(dashboard)/clients/clients-client.tsx:454` {mode === "create" ? "Müşteri ekle" : "Düzenle"}
+- `app/(dashboard)/clients/clients-client.tsx:463` {mode === "create" ? "Yeni müşteri" : "Müşteriyi düzenle"}
+- `app/(dashboard)/clients/clients-client.tsx:480` ? "Müşteriyi ekle"
+- `app/(dashboard)/clients/clients-client.tsx:481` : "Değişiklikleri kaydet"}
+- `app/(dashboard)/clients/clients-client.tsx:501` placeholder="Örn. Acme Corp"
+- `app/(dashboard)/clients/clients-client.tsx:520` <SelectValue placeholder="Aşama seç" />
+- `app/(dashboard)/clients/clients-client.tsx:533` <SelectValue placeholder="Durum seç" />
+- `app/(dashboard)/clients/clients-client.tsx:583` placeholder="İletişim notları, beklentiler, özel bilgiler..."
+- `app/(dashboard)/clients/clients-client.tsx:610` {hasQuery ? "Aramana uygun müşteri yok" : "Henüz müşteri eklenmedi"}
+- `app/(dashboard)/dashboard-client.tsx:250` {project.status === 'completed' ? 'Tamamlandı' : project.status === 'active' ? 'Aktif' : 'Beklemede'}
+- `app/(dashboard)/finance/actions.ts:52` const id = requiredText(formData.get("id"), "Finans kaydı bulunamadı.");
+- `app/(dashboard)/finance/actions.ts:67` requiredText(formData.get("id"), "Silinecek finans kaydı bulunamadı."),
+- `app/(dashboard)/finance/finance-client.tsx:68` planned: "Planlandı",
+- `app/(dashboard)/finance/finance-client.tsx:70` paid: "Ödendi",
+- `app/(dashboard)/finance/finance-client.tsx:71` cancelled: "İptal edildi",
+- `app/(dashboard)/finance/finance-client.tsx:84` { value: "TRY", label: "Türk lirası (TRY)" },
+- `app/(dashboard)/finance/finance-client.tsx:86` { value: "CAD", label: "Kanada doları (CAD)" },
+- `app/(dashboard)/finance/finance-client.tsx:87` { value: "AUD", label: "Avustralya doları (AUD)" },
+- `app/(dashboard)/finance/finance-client.tsx:93` { key: "afterTax", label: "Vergi Sonrası Net", tone: "green", icon: Wallet, featured: true },
+- `app/(dashboard)/finance/finance-client.tsx:94` { key: "net", label: "Brüt kazanç", tone: "primary", icon: Wallet, featured: true },
+- `app/(dashboard)/finance/finance-client.tsx:95` { key: "income", label: "Aylık gelir", tone: "green", icon: ArrowUpRight, featured: false },
+- `app/(dashboard)/finance/finance-client.tsx:96` { key: "expense", label: "Aylık gider", tone: "rose", icon: ArrowDownRight, featured: false },
+- `app/(dashboard)/finance/finance-client.tsx:177` aria-label="Önceki finans özet kartları"
+- `app/(dashboard)/finance/finance-client.tsx:187` aria-label="Sonraki finans özet kartları"
+- `app/(dashboard)/finance/finance-client.tsx:198` aria-label="Kaydırılabilir finans özeti"
+- `app/(dashboard)/finance/finance-client.tsx:240` placeholder="Kategori, müşteri, proje veya açıklama ara"
+- `app/(dashboard)/finance/finance-client.tsx:335` {transaction.category || "Kategori yok"} · {transaction.projectName || transaction.clientName || "Bağlantı yok"}
+- `app/(dashboard)/finance/finance-client.tsx:383` toast.success(mode === "create" ? "İşlem eklendi." : "İşlem güncellendi.");
+- `app/(dashboard)/finance/finance-client.tsx:388` : "Finans işlemi kaydedilirken beklenmeyen bir hata oluştu.",
+- `app/(dashboard)/finance/finance-client.tsx:400` {mode === "create" ? "İşlem ekle" : "Düzenle"}
+- `app/(dashboard)/finance/finance-client.tsx:407` <DialogTitle>{mode === "create" ? "Yeni finans işlemi" : "Finans işlemini düzenle"}</DialogTitle>
+- `app/(dashboard)/finance/finance-client.tsx:416` {isSubmitting ? "Kaydediliyor" : mode === "create" ? "İşlemi ekle" : "Değişiklikleri kaydet"}
+- `app/(dashboard)/finance/finance-client.tsx:476` <SelectField name="payment_status" label="Ödeme durumu" defaultValue={transaction?.payment_status || "planned"}>
+- `app/(dashboard)/finance/finance-client.tsx:492` <SelectValue placeholder="Para birimi seç" />
+- `app/(dashboard)/finance/finance-client.tsx:513` <Input name="category" defaultValue={transaction?.category || ""} placeholder="Örn. Yazılım, müşteri ödemesi, vergi" />
+- `app/(dashboard)/finance/finance-client.tsx:526` <SelectValue placeholder="Müşteri seç" />
+- `app/(dashboard)/finance/finance-client.tsx:542` <SelectValue placeholder="Proje seç" />
+- `app/(dashboard)/finance/finance-client.tsx:568` <SelectTrigger><SelectValue placeholder={`${label} seç`} /></SelectTrigger>
+- `app/(dashboard)/finance/finance-client.tsx:580` {hasQuery ? "Aramana uygun işlem yok" : "Henüz finans işlemi eklenmedi"}
+- `app/(dashboard)/finance/finance-client.tsx:584` ? "Arama metnini sadeleştirerek tekrar deneyebilirsin."
+- `app/(dashboard)/finance/finance-client.tsx:585` : "İlk gelir veya gider kaydını ekleyerek aylık finans özetini oluşturmaya başlayabilirsin."}
+- `app/(dashboard)/finance/finance-client.tsx:647` throw new Error(data.error || "Bilinmeyen bir hata oluştu.");
+- `app/(dashboard)/finance/finance-client.tsx:652` `Hata: ${error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu."}`,
+- `app/(dashboard)/journal/actions.ts:15` if (!moodScore || !energyScore) throw new Error("Mood ve enerji skorları zorunludur.");
+- `app/(dashboard)/journal/actions.ts:35` requiredText(formData.get("id"), "Günlük kaydı bulunamadı."),
+- `app/(dashboard)/journal/actions.ts:45` requiredText(formData.get("id"), "Silinecek günlük kaydı bulunamadı."),
+- `app/(dashboard)/journal/journal-client.tsx:57` 1: "Çok düşük",
+- `app/(dashboard)/journal/journal-client.tsx:58` 2: "Düşük",
+- `app/(dashboard)/journal/journal-client.tsx:60` 4: "İyi",
+- `app/(dashboard)/journal/journal-client.tsx:61` 5: "Çok iyi",
+- `app/(dashboard)/journal/journal-client.tsx:114` label="Kayıtlı gün"
+- `app/(dashboard)/journal/journal-client.tsx:257` toast.success(mode === "create" ? "Günlük eklendi." : "Günlük güncellendi.");
+- `app/(dashboard)/journal/journal-client.tsx:262` : "Günlük kaydedilirken beklenmeyen bir hata oluştu.",
+- `app/(dashboard)/journal/journal-client.tsx:274` {mode === "create" ? "Günlük ekle" : "Düzenle"}
+- `app/(dashboard)/journal/journal-client.tsx:281` <DialogTitle>{mode === "create" ? "Yeni günlük kayıt" : "Günlük kaydı düzenle"}</DialogTitle>
+- `app/(dashboard)/journal/journal-client.tsx:293` {isSubmitting ? "Kaydediliyor" : mode === "create" ? "Kaydı ekle" : "Değişiklikleri kaydet"}
+- `app/(dashboard)/journal/journal-client.tsx:332` label="Çalışma memnuniyeti"
+- `app/(dashboard)/journal/journal-client.tsx:343` placeholder="Bugün nasıl geçti, enerjini etkileyen şeyler nelerdi?"
+- `app/(dashboard)/journal/journal-client.tsx:418` insights.push("Henüz okunabilir bir trend yok.");
+- `app/(dashboard)/journal/journal-client.tsx:420` insights.push(`Toplam ${logs.length} günlük kayıt var.`);
+- `app/(dashboard)/journal/journal-client.tsx:423` ? "Enerji ortalaması düşük. Dashboard raporlarında geciken işler ile birlikte okunmalı."
+- `app/(dashboard)/journal/journal-client.tsx:424` : "Enerji ortalaması dengeli görünüyor.",
+- `app/(dashboard)/journal/journal-client.tsx:428` ? "Mood seviyesi güçlü. Yüksek odak isteyen işler için iyi bir dönem olabilir."
+- `app/(dashboard)/journal/journal-client.tsx:429` : "Mood trendi izlenmeli. Not alanı hangi günlerin zor geçtiğini anlamak için önemli.",
+- `app/(dashboard)/layout.tsx:35` const displayName = profile.displayName || user.name || user.email.split("@")[0] || "Neta Kullanıcısı";
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:136` client_project: "Müşteri projesi",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:143` paused: "Duraklatıldı",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:144` completed: "Tamamlandı",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:145` cancelled: "İptal edildi",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:164` overview: "Genel bakış",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:165` problem: "Çözdüğü problem",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:166` goal: "Amaç",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:172` assets: "Görsel varlıklar",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:249` pendingChildren="Tamamlanıyor"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:278` <InfoItem label="Tür" value={typeLabels[project.type]} icon={FolderKanban} />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:280` label="Müşteri"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:281` value={project.clientName || "Bağımsız side project"}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:290` label="Bütçe"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:294` : "Bütçe yok"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:303` <StatCard label="İlerleme" value={`${project.progress}%`} icon={Target} />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:304` <StatCard label="Görev" value={`${doneTaskCount}/${tasks.length}`} icon={ClipboardList} />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:339` title="Planlama alanları"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:340` description="Problem, amaç, hedef kitle, kapsam ve proje notlarını burada tut."
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:351` description="Renk paleti, tipografi, görsel dil ve asset notlarını proje kaynağına bağla."
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:388` : "Revizyon durumu güncellenemedi.",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:517` {section.content || "İçerik eklenmedi."}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:572` {mode === "create" ? "Planlama alanı ekle" : "Planlama alanını düzenle"}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:584` <SelectValue placeholder="Kategori seç" />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:668` : "Görev durumu güncellenemedi.",
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:757` ? "Tamamlandı"
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:760` : "Yapılacak"}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:784` {pendingTaskIds.has(task.id) ? "Tamamlanıyor" : "Tamamla"}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:803` <EmptyPanel icon={ClipboardList} title="Bu projeye bağlı görev yok" />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1059` <SelectValue placeholder="Durum seç" />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1072` <SelectValue placeholder="Öncelik seç" />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1135` {isSubmitting ? "Kaydediliyor" : "Görevi ekle"}
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1181` <EmptyPanel icon={Wallet} title="Bu projeye bağlı finans kaydı yok" />
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1288` if (status === "done") return "Tamamlandı";
+- `app/(dashboard)/projects/[id]/project-detail-client.tsx:1290` return "Yapılacak";
+- `app/(dashboard)/projects/actions.ts:32` name: localized.name ?? requiredText(formData.get("name"), "Proje adı zorunludur."),
+- `app/(dashboard)/projects/actions.ts:86` const id = requiredText(formData.get("id"), "Proje kaydı bulunamadı.");
+- `app/(dashboard)/projects/actions.ts:96` const id = requiredText(formData.get("id"), "Tamamlanacak proje bulunamadı.");
+- `app/(dashboard)/projects/actions.ts:107` title: localized.title ?? requiredText(formData.get("title"), "Planlama başlığı zorunludur."),
+- `app/(dashboard)/projects/actions.ts:129` const id = requiredText(formData.get("id"), "Planlama alanı bulunamadı.");
+- `app/(dashboard)/projects/actions.ts:132` throw new Error("Planlama alanı bu projeye ait değil.");
+- `app/(dashboard)/projects/actions.ts:147` const id = requiredText(formData.get("id"), "Silinecek planlama alanı bulunamadı.");
+- `app/(dashboard)/projects/actions.ts:150` throw new Error("Planlama alanı bu projeye ait değil.");
+- `app/(dashboard)/projects/projects-client.tsx:77` client_project: "Müşteri projesi",
+- `app/(dashboard)/projects/projects-client.tsx:84` paused: "Duraklatıldı",
+- `app/(dashboard)/projects/projects-client.tsx:85` completed: "Tamamlandı",
+- `app/(dashboard)/projects/projects-client.tsx:86` cancelled: "İptal edildi",
+- `app/(dashboard)/projects/projects-client.tsx:161` placeholder="Proje, müşteri veya açıklama ara"
+- `app/(dashboard)/projects/projects-client.tsx:248` aria-label={`${project.name} detayına git`}
+- `app/(dashboard)/projects/projects-client.tsx:276` {project.description || "Açıklama eklenmedi."}
+- `app/(dashboard)/projects/projects-client.tsx:333` {project.clientName || "Bağımsız side project"}
+- `app/(dashboard)/projects/projects-client.tsx:354` <div>{project.clientName || "Müşteri bağlantısı yok"}</div>
+- `app/(dashboard)/projects/projects-client.tsx:359` <div>{project.budget_amount ? formatCurrency(project.budget_amount) : "Bütçe yok"}</div>
+- `app/(dashboard)/projects/projects-client.tsx:437` toast.success(mode === "create" ? "Proje eklendi." : "Proje güncellendi.");
+- `app/(dashboard)/projects/projects-client.tsx:442` : "Proje kaydedilirken beklenmeyen bir hata oluştu.",
+- `app/(dashboard)/projects/projects-client.tsx:456` title={mode === "create" ? "Proje ekle" : "Düzenle"}
+- `app/(dashboard)/projects/projects-client.tsx:457` aria-label={mode === "create" ? "Proje ekle" : "Düzenle"}
+- `app/(dashboard)/projects/projects-client.tsx:460` {iconOnly ? null : mode === "create" ? "Proje ekle" : "Düzenle"}
+- `app/(dashboard)/projects/projects-client.tsx:467` <DialogTitle>{mode === "create" ? "Yeni proje" : "Projeyi düzenle"}</DialogTitle>
+- `app/(dashboard)/projects/projects-client.tsx:490` : "Değişiklikleri kaydet"}
+- `app/(dashboard)/projects/projects-client.tsx:539` alt={project?.cover_image_alt || project?.name || "Proje kapak görseli önizlemesi"}
+- `app/(dashboard)/projects/projects-client.tsx:614` <SelectValue placeholder="Tür seç" />
+- `app/(dashboard)/projects/projects-client.tsx:630` <SelectValue placeholder="Müşteri seç" />
+- `app/(dashboard)/projects/projects-client.tsx:648` <SelectValue placeholder="Durum seç" />
+- `app/(dashboard)/projects/projects-client.tsx:736` {hasQuery ? "Aramana uygun proje yok" : "Henüz proje eklenmedi"}
+- `app/(dashboard)/projects/projects-client.tsx:740` ? "Arama metnini sadeleştirerek tekrar deneyebilirsin."
+- `app/(dashboard)/projects/projects-client.tsx:741` : "İlk müşteri projen veya side project kaydınla operasyon akışını kurmaya başlayabilirsin."}
+- `app/(dashboard)/projects/projects-client.tsx:779` throw new Error(data.error || "Bilinmeyen bir hata oluştu.");
+- `app/(dashboard)/projects/projects-client.tsx:785` (err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu."),
+- `app/(dashboard)/settings/actions.ts:113` return { error: error instanceof Error ? error.message : "Profil güncellenemedi." };
+- `app/(dashboard)/settings/actions.ts:122` return { error: "Mevcut şifre zorunludur; yeni şifre en az 8 karakter olmalıdır." };
+- `app/(dashboard)/settings/actions.ts:137` return { error: "Mevcut şifre doğrulanamadı veya şifre güncellenemedi." };
+- `app/(dashboard)/settings/actions.ts:216` return { error: error instanceof Error ? error.message : "Dil durumu güncellenemedi." };
+- `app/(dashboard)/settings/actions.ts:229` return { error: error instanceof Error ? error.message : "Varsayılan dil güncellenemedi." };
+- `app/(dashboard)/settings/actions.ts:247` return { error: error instanceof Error ? error.message : "Çeviri kaydedilemedi." };
+- `app/(dashboard)/settings/actions.ts:264` return { error: error instanceof Error ? error.message : "Çeviri sıfırlanamadı." };
+- `app/(dashboard)/settings/actions.ts:275` return { error: error instanceof Error ? error.message : "Çeviri paketi dışa aktarılamadı." };
+- `app/(dashboard)/settings/actions.ts:290` return { error: error instanceof Error ? error.message : "Import paketi okunamadı." };
+- `app/(dashboard)/settings/actions.ts:303` return { error: error instanceof Error ? error.message : "Çeviri paketi içe aktarılamadı." };
+- `app/(dashboard)/settings/actions.ts:321` return { error: "Workspace adı 1-120 karakter arasında olmalıdır." };
+- `app/(dashboard)/settings/actions.ts:324` return { error: "Tarayıcı başlığı 1-80 karakter arasında olmalıdır." };
+- `app/(dashboard)/settings/actions.ts:327` return { error: "Kısa uygulama adı 1-24 karakter arasında olmalıdır." };
+- `app/(dashboard)/settings/actions.ts:330` return { error: "Ana renk #RRGGBB formatında olmalıdır." };
+- `app/(dashboard)/settings/actions.ts:394` return { error: "Geçersiz marka görseli." };
+- `app/(dashboard)/settings/actions.ts:410` return { error: error instanceof Error ? error.message : "Marka görseli kaldırılamadı." };
+- `app/(dashboard)/settings/page.tsx:91` label: "Açık",
+- `app/(dashboard)/settings/page.tsx:92` description: "Her zaman aydınlık renk paletini kullanır.",
+- `app/(dashboard)/settings/page.tsx:98` description: "Her zaman koyu renk paletini kullanır.",
+- `app/(dashboard)/settings/page.tsx:104` description: "Cihazınızın görünüm tercihini otomatik takip eder.",
+- `app/(dashboard)/settings/page.tsx:162` nativeName: "Français",
+- `app/(dashboard)/settings/page.tsx:176` { name: "Diller ve çeviriler", icon: Languages },
+- `app/(dashboard)/settings/page.tsx:237` toast.success("Profil güncellendi!");
+- `app/(dashboard)/settings/page.tsx:248` toast.success("Şifre güncellendi!");
+- `app/(dashboard)/settings/page.tsx:261` toast.success("Yapay Zeka ayarları kaydedildi!");
+- `app/(dashboard)/settings/page.tsx:281` toast.success("Görünüm tercihi kaydedildi.");
+- `app/(dashboard)/settings/page.tsx:308` toast.success("Genel görünüm ve marka ayarları güncellendi.");
+- `app/(dashboard)/settings/page.tsx:324` toast.success("Marka görseli kaldırıldı.");
+- `app/(dashboard)/settings/page.tsx:349` toast.success("Arayüz dili kaydedildi.");
+- `app/(dashboard)/settings/page.tsx:370` toast.success("Dil durumu güncellendi.");
+- `app/(dashboard)/settings/page.tsx:380` toast.success("Varsayılan dil güncellendi.");
+- `app/(dashboard)/settings/page.tsx:396` toast.success("Çeviri kaydedildi.");
+- `app/(dashboard)/settings/page.tsx:410` toast.success("Override sıfırlandı.");
+- `app/(dashboard)/settings/page.tsx:418` toast.error(response.error ?? "Export oluşturulamadı.");
+- `app/(dashboard)/settings/page.tsx:422` toast.success("Çeviri paketi aşağıdaki alana yazıldı.");
+- `app/(dashboard)/settings/page.tsx:429` toast.error(response.error ?? "Import paketi okunamadı.");
+- `app/(dashboard)/settings/page.tsx:432` setImportPreview(`${response.preview.localeCount} dil, ${response.preview.translationCount} çeviri, default: ${response.preview.defaultLocale}`);
+- `app/(dashboard)/settings/page.tsx:441` toast.success("Çeviri paketi içe aktarıldı.");
+- `app/(dashboard)/settings/page.tsx:594` description="Kare PNG önerilir; en fazla 5 MB."
+- `app/(dashboard)/settings/page.tsx:620` aria-label="Ana renk seçici"
+- `app/(dashboard)/settings/page.tsx:678` aria-label="Tema görünümü"
+- `app/(dashboard)/settings/page.tsx:726` ? "Görünüm tercihi kaydediliyor…"
+- `app/(dashboard)/settings/page.tsx:727` : "Değişiklik tüm sayfalara anında uygulanır."}
+- `app/(dashboard)/settings/page.tsx:734` {activeTab === "Diller ve çeviriler" && (
+- `app/(dashboard)/settings/page.tsx:795` {defaultLocale === locale.code ? "Varsayılan" : "Default yap"}
+- `app/(dashboard)/settings/page.tsx:815` <Input value={newLocale.nativeName} onChange={(event) => setNewLocale((current) => ({ ...current, nativeName: event.target.value }))} placeholder="Français" />
+- `app/(dashboard)/settings/page.tsx:1065` placeholder={hasApiKey ? "Kayıtlı anahtarı korumak için boş bırakın" : "sk-..."}
+- `app/(dashboard)/settings/page.tsx:1171` alt={`${title} önizlemesi`}
+- `app/(dashboard)/tasks/actions.ts:28` title: localized.title ?? requiredText(formData.get("title"), "Görev başlığı zorunludur."),
+- `app/(dashboard)/tasks/actions.ts:72` const id = requiredText(formData.get("id"), "Görev kaydı bulunamadı.");
+- `app/(dashboard)/tasks/actions.ts:81` const id = requiredText(formData.get("id"), "Tamamlanacak görev bulunamadı.");
+- `app/(dashboard)/tasks/actions.ts:95` const id = requiredText(formData.get("id"), "Silinecek görev bulunamadı.");
+- `app/(dashboard)/tasks/tasks-client.tsx:64` todo: "Yapılacak",
+- `app/(dashboard)/tasks/tasks-client.tsx:66` done: "Tamamlandı",
+- `app/(dashboard)/tasks/tasks-client.tsx:70` low: "Düşük",
+- `app/(dashboard)/tasks/tasks-client.tsx:72` high: "Yüksek",
+- `app/(dashboard)/tasks/tasks-client.tsx:129` : "Görev durumu güncellenemedi.",
+- `app/(dashboard)/tasks/tasks-client.tsx:159` error instanceof Error ? error.message : "Görev silinemedi.",
+- `app/(dashboard)/tasks/tasks-client.tsx:214` <StatCard label="Toplam görev" value={localTasks.length.toString()} />
+- `app/(dashboard)/tasks/tasks-client.tsx:233` placeholder="Görev, proje veya müşteri ara"
+- `app/(dashboard)/tasks/tasks-client.tsx:379` <div>{task.clientName || "Müşteri yok"}</div>
+
+Ilk 250 satir listelendi; kalan: 44

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": ".next/i18n-phase7-smoke-dist",
+    "rootDir": ".",
+    "noEmit": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "types": ["node"]
+  },
+  "include": [
+    "lib/i18n/**/*.ts",
+    "locales/**/*.ts",
+    "server/i18n/locale.ts",
+    "scripts/i18n-phase7-smoke.ts"
+  ]
+}

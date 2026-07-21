@@ -1,5 +1,6 @@
 export type DomainErrorCode =
   | "VALIDATION_ERROR"
+  | "UNSUPPORTED_LOCALE"
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
   | "NOT_FOUND"
@@ -11,6 +12,7 @@ export type DomainErrorCode =
 
 const statusByCode: Record<DomainErrorCode, number> = {
   VALIDATION_ERROR: 400,
+  UNSUPPORTED_LOCALE: 400,
   UNAUTHENTICATED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,

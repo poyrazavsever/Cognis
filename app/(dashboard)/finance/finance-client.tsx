@@ -1,11 +1,15 @@
 "use client";
 
+import { getDocumentIntlLocale } from "@/lib/i18n/browser";
+import { useTranslations } from "@/components/i18n/i18n-provider";
+import { LocalizedFields, type LocalizedFieldLocale, type LocalizedFieldValues } from "@/components/i18n/localized-fields";
+import { contentTranslationRegistry } from "@/lib/i18n/content";
 import {
   createFinanceTransactionRecord,
   deleteFinanceTransactionRecord,
   updateFinanceTransactionRecord,
 } from "@/app/(dashboard)/finance/actions";
-import { Badge, Button, Card, CardContent, Input, Label, Textarea } from "poyraz-ui/atoms";
+import { Badge, Button, Card, CardContent, Input, Label } from "poyraz-ui/atoms";
 import {
   Dialog,
   DialogContent,
@@ -55,18 +59,7 @@ export type FinanceTransactionItem = {
   clientName: string | null;
   projectName: string | null;
   description: string | null;
-};
-
-const typeLabels = {
-  income: "Gelir",
-  expense: "Gider",
-};
-
-const paymentStatusLabels = {
-  planned: "Planlandı",
-  pending: "Bekliyor",
-  paid: "Ödendi",
-  cancelled: "İptal edildi",
+  translations?: LocalizedFieldValues;
 };
 
 const paymentStatusClasses = {
@@ -77,32 +70,35 @@ const paymentStatusClasses = {
 };
 
 const currencyOptions = [
-  { value: "USD", label: "Dolar (USD)" },
-  { value: "EUR", label: "Euro (EUR)" },
-  { value: "TRY", label: "Türk lirası (TRY)" },
-  { value: "GBP", label: "Sterlin (GBP)" },
-  { value: "CAD", label: "Kanada doları (CAD)" },
-  { value: "AUD", label: "Avustralya doları (AUD)" },
+  { value: "USD", labelKey: "finance.currency.usd" },
+  { value: "EUR", labelKey: "finance.currency.eur" },
+  { value: "TRY", labelKey: "finance.currency.try" },
+  { value: "GBP", labelKey: "finance.currency.gbp" },
+  { value: "CAD", labelKey: "finance.currency.cad" },
+  { value: "AUD", labelKey: "finance.currency.aud" },
 ];
 
-// Dizilim ve featured alanı, özet şeridinde hangi metriklerin önce
-// gösterileceğini tek bir yerden değiştirmeyi sağlar.
 const financeSummaryCardConfig = [
-  { key: "afterTax", label: "Vergi Sonrası Net", tone: "green", icon: Wallet, featured: true },
-  { key: "net", label: "Brüt kazanç", tone: "primary", icon: Wallet, featured: true },
-  { key: "income", label: "Aylık gelir", tone: "green", icon: ArrowUpRight, featured: false },
-  { key: "expense", label: "Aylık gider", tone: "rose", icon: ArrowDownRight, featured: false },
-  { key: "pending", label: "Bekleyen", tone: "amber", icon: Wallet, featured: false },
-  { key: "tax", label: "KDV Tahmini (%20)", tone: "amber", icon: Wallet, featured: false },
+  { key: "afterTax", tone: "green", icon: Wallet, featured: true },
+  { key: "net", tone: "primary", icon: Wallet, featured: true },
+  { key: "income", tone: "green", icon: ArrowUpRight, featured: false },
+  { key: "expense", tone: "rose", icon: ArrowDownRight, featured: false },
+  { key: "pending", tone: "amber", icon: Wallet, featured: false },
+  { key: "tax", tone: "amber", icon: Wallet, featured: false },
 ] as const;
 
 type FinanceClientProps = {
   transactions: FinanceTransactionItem[];
   clients: FinanceRelationOption[];
   projects: FinanceRelationOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 };
 
-export function FinanceClient({ transactions, clients, projects }: FinanceClientProps) {
+export function FinanceClient({ transactions, clients, projects, localization }: FinanceClientProps) {
+  const t = useTranslations();
   const [query, setQuery] = useState("");
   const [monthFilter, setMonthFilter] = useState(() => new Date().toISOString().slice(0, 7));
   const summaryTrackRef = useRef<HTMLDivElement>(null);
@@ -117,7 +113,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
           transaction.category,
           transaction.clientName,
           transaction.projectName,
-          typeLabels[transaction.type],
+          t(`finance.types.${transaction.type}`),
         ]
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(normalizedQuery)),
@@ -128,6 +124,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
   const categoryBreakdown = useMemo(() => calculateExpenseCategories(filteredByMonth), [filteredByMonth]);
   const summaryCards = financeSummaryCardConfig.map((card) => ({
     ...card,
+    label: t(`finance.summary.${card.key}`),
     value: formatCurrency(summary[card.key]),
   }));
 
@@ -146,12 +143,12 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground">
-            Finans işlemleri
+            {t("finance.title")}
           </h1>
         </div>
         <div className="flex gap-2">
           <AIFinanceDialog />
-          <FinanceDialog mode="create" clients={clients} projects={projects} />
+          <FinanceDialog mode="create" clients={clients} projects={projects} localization={localization} />
         </div>
       </div>
 
@@ -159,10 +156,10 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 id="finance-summary-title" className="text-base font-semibold text-foreground">
-              Finans özeti
+              {t("finance.summary.title")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Öne çıkan metrikler önce gösterilir; diğer kartlar arasında kaydırarak ilerleyebilirsin.
+              {t("finance.summary.description")}
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -171,7 +168,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
               type="button"
               variant="secondary"
               size="icon"
-              aria-label="Önceki finans özet kartları"
+              aria-label={t("finance.summary.previous")}
               onClick={() => scrollSummary(-1)}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -181,7 +178,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
               type="button"
               variant="secondary"
               size="icon"
-              aria-label="Sonraki finans özet kartları"
+              aria-label={t("finance.summary.next")}
               onClick={() => scrollSummary(1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -192,7 +189,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
         <div
           ref={summaryTrackRef}
           role="region"
-          aria-label="Kaydırılabilir finans özeti"
+          aria-label={t("finance.summary.region")}
           tabIndex={0}
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
@@ -225,16 +222,16 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
           <CardContent className="space-y-4 p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-base font-semibold text-foreground">İşlem listesi</h2>
+                <h2 className="text-base font-semibold text-foreground">{t("finance.list.title")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {filteredTransactions.length} kayıt görüntüleniyor.
+                  {t("finance.list.description", { count: filteredTransactions.length })}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Kategori, müşteri, proje veya açıklama ara"
+                  placeholder={t("finance.list.searchPlaceholder")}
                   className="sm:w-80"
                 />
                 <Input
@@ -250,11 +247,11 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
               <div className="overflow-x-auto rounded-sm border border-border">
                 <div className="min-w-[800px]">
                   <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr_1fr] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-medium uppercase text-muted-foreground">
-                    <span>İşlem</span>
-                    <span>Tarih</span>
-                    <span>Tutar</span>
-                    <span>Durum</span>
-                    <span className="text-right">İşlem</span>
+                    <span>{t("finance.list.headers.transaction")}</span>
+                    <span>{t("finance.list.headers.date")}</span>
+                    <span>{t("finance.list.headers.amount")}</span>
+                    <span>{t("finance.list.headers.status")}</span>
+                    <span className="text-right">{t("finance.list.headers.action")}</span>
                   </div>
                   <div className="divide-y divide-border">
                   {filteredTransactions.map((transaction) => (
@@ -263,6 +260,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
                       transaction={transaction}
                       clients={clients}
                       projects={projects}
+                      localization={localization}
                     />
                   ))}
                   </div>
@@ -277,15 +275,19 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
         <Card>
           <CardContent className="space-y-4 p-4">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Gider kategorileri</h2>
-              <p className="text-sm text-muted-foreground">Aylık gider dağılımı</p>
+              <h2 className="text-base font-semibold text-foreground">{t("finance.expenseCategories.title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("finance.expenseCategories.description")}</p>
             </div>
             {categoryBreakdown.length > 0 ? (
               <div className="space-y-3">
                 {categoryBreakdown.map((item) => (
                   <div key={item.category} className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{item.category}</span>
+                      <span className="text-muted-foreground">
+                        {item.category === "__uncategorized"
+                          ? t("finance.expenseCategories.noCategory")
+                          : item.category}
+                      </span>
                       <span className="font-medium text-foreground">{formatCurrency(item.amount)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-muted">
@@ -298,7 +300,7 @@ export function FinanceClient({ transactions, clients, projects }: FinanceClient
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Bu ay gider kaydı yok.</p>
+              <p className="text-sm text-muted-foreground">{t("finance.expenseCategories.noExpense")}</p>
             )}
           </CardContent>
         </Card>
@@ -311,11 +313,17 @@ function TransactionRow({
   transaction,
   clients,
   projects,
+  localization,
 }: {
   transaction: FinanceTransactionItem;
   clients: FinanceRelationOption[];
   projects: FinanceRelationOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 }) {
+  const t = useTranslations();
   const isIncome = transaction.type === "income";
 
   return (
@@ -326,10 +334,10 @@ function TransactionRow({
         </div>
         <div className="min-w-0">
           <div className="font-medium text-foreground">
-            {transaction.description || typeLabels[transaction.type]}
+            {transaction.description || t(`finance.types.${transaction.type}`)}
           </div>
           <div className="truncate text-sm text-muted-foreground">
-            {transaction.category || "Kategori yok"} · {transaction.projectName || transaction.clientName || "Bağlantı yok"}
+            {transaction.category || t("finance.expenseCategories.noCategory")} · {transaction.projectName || transaction.clientName || t("finance.form.noClient")}
           </div>
         </div>
       </div>
@@ -340,16 +348,16 @@ function TransactionRow({
       </div>
       <div>
         <Badge className={paymentStatusClasses[transaction.payment_status]}>
-          {paymentStatusLabels[transaction.payment_status]}
+          {t(`finance.paymentStatus.${transaction.payment_status}`)}
         </Badge>
       </div>
       <div className="flex justify-end gap-2">
-        <FinanceDialog mode="edit" transaction={transaction} clients={clients} projects={projects} />
+        <FinanceDialog mode="edit" transaction={transaction} clients={clients} projects={projects} localization={localization} />
         <form action={deleteFinanceTransactionRecord}>
           <input type="hidden" name="id" value={transaction.id} />
           <Button effect="shine" type="submit" variant="secondary" className="gap-2 text-rose-600">
             <Trash2 className="h-4 w-4" />
-            Sil
+            {t("finance.actions.delete")}
           </Button>
         </form>
       </div>
@@ -362,12 +370,18 @@ function FinanceDialog({
   transaction,
   clients,
   projects,
+  localization,
 }: {
   mode: "create" | "edit";
   transaction?: FinanceTransactionItem;
   clients: FinanceRelationOption[];
   projects: FinanceRelationOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const action = mode === "create" ? createFinanceTransactionRecord : updateFinanceTransactionRecord;
@@ -377,13 +391,9 @@ function FinanceDialog({
     try {
       await action(formData);
       setOpen(false);
-      toast.success(mode === "create" ? "İşlem eklendi." : "İşlem güncellendi.");
+      toast.success(mode === "create" ? t("finance.form.messages.createSuccess") : t("finance.form.messages.updateSuccess"));
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Finans işlemi kaydedilirken beklenmeyen bir hata oluştu.",
-      );
+      toast.error(resolveTranslatedError(t, error, "finance.form.messages.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -394,23 +404,23 @@ function FinanceDialog({
       <DialogTrigger asChild>
         <Button effect="shine" variant={mode === "create" ? "default" : "secondary"} className="gap-2">
           {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          {mode === "create" ? "İşlem ekle" : "Düzenle"}
+          {mode === "create" ? t("finance.actions.add") : t("finance.actions.edit")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden p-0 sm:max-h-[min(680px,calc(100dvh-4rem))] sm:max-w-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
         <form action={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {transaction ? <input type="hidden" name="id" value={transaction.id} /> : null}
           <DialogHeader className="shrink-0 px-5 pb-4 pt-5 pr-12">
-            <DialogTitle>{mode === "create" ? "Yeni finans işlemi" : "Finans işlemini düzenle"}</DialogTitle>
-            <DialogDescription>Gelir veya gider kaydını müşteri/proje bağlantısıyla kaydet.</DialogDescription>
+            <DialogTitle>{mode === "create" ? t("finance.form.createTitle") : t("finance.form.editTitle")}</DialogTitle>
+            <DialogDescription>{t("finance.form.description")}</DialogDescription>
           </DialogHeader>
           <div className="tiny-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <FinanceFormFields transaction={transaction} clients={clients} projects={projects} />
+            <FinanceFormFields transaction={transaction} clients={clients} projects={projects} localization={localization} />
           </div>
           <DialogFooter className="shrink-0 border-t border-border bg-background p-5">
             <Button variant="default" effect="shine" type="submit" disabled={isSubmitting} className="w-full gap-2 sm:w-auto">
               {mode === "create" ? <Plus className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-              {isSubmitting ? "Kaydediliyor" : mode === "create" ? "İşlemi ekle" : "Değişiklikleri kaydet"}
+              {isSubmitting ? t("finance.actions.saving") : mode === "create" ? t("finance.form.submitCreate") : t("finance.form.submitEdit")}
             </Button>
           </DialogFooter>
         </form>
@@ -423,11 +433,17 @@ function FinanceFormFields({
   transaction,
   clients,
   projects,
+  localization,
 }: {
   transaction?: FinanceTransactionItem;
   clients: FinanceRelationOption[];
   projects: FinanceRelationOption[];
+  localization: {
+    defaultLocale: string;
+    locales: LocalizedFieldLocale[];
+  };
 }) {
+  const t = useTranslations();
   const [clientId, setClientId] = useState(transaction?.client_id || "__none");
   const [projectId, setProjectId] = useState(transaction?.project_id || "__none");
   const selectedProject =
@@ -466,32 +482,32 @@ function FinanceFormFields({
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <SelectField name="type" label="Tip" defaultValue={transaction?.type || "income"}>
-          <SelectItem value="income">Gelir</SelectItem>
-          <SelectItem value="expense">Gider</SelectItem>
+        <SelectField name="type" label={t("finance.form.type")} defaultValue={transaction?.type || "income"}>
+          <SelectItem value="income">{t("finance.types.income")}</SelectItem>
+          <SelectItem value="expense">{t("finance.types.expense")}</SelectItem>
         </SelectField>
-        <SelectField name="payment_status" label="Ödeme durumu" defaultValue={transaction?.payment_status || "planned"}>
-          <SelectItem value="planned">Planlandı</SelectItem>
-          <SelectItem value="pending">Bekliyor</SelectItem>
-          <SelectItem value="paid">Ödendi</SelectItem>
-          <SelectItem value="cancelled">İptal edildi</SelectItem>
+        <SelectField name="payment_status" label={t("finance.form.paymentStatus")} defaultValue={transaction?.payment_status || "planned"}>
+          <SelectItem value="planned">{t("finance.paymentStatus.planned")}</SelectItem>
+          <SelectItem value="pending">{t("finance.paymentStatus.pending")}</SelectItem>
+          <SelectItem value="paid">{t("finance.paymentStatus.paid")}</SelectItem>
+          <SelectItem value="cancelled">{t("finance.paymentStatus.cancelled")}</SelectItem>
         </SelectField>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-2">
-          <Label>Tutar</Label>
+          <Label>{t("finance.form.amount")}</Label>
           <Input name="amount" type="number" min="0" step="0.01" required defaultValue={transaction?.amount ?? ""} />
         </div>
         <div className="grid gap-2">
-          <Label>Para birimi</Label>
+          <Label>{t("finance.form.currency")}</Label>
           <Select name="currency" defaultValue={currencyValue}>
             <SelectTrigger>
-              <SelectValue placeholder="Para birimi seç" />
+              <SelectValue placeholder={t("finance.form.currencySelect")} />
             </SelectTrigger>
             <SelectContent>
               {currencyOptions.map((currency) => (
                 <SelectItem key={currency.value} value={currency.value}>
-                  {currency.label}
+                  {t(currency.labelKey)}
                 </SelectItem>
               ))}
               {hasCustomCurrency ? (
@@ -501,17 +517,31 @@ function FinanceFormFields({
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label>Tarih</Label>
+          <Label>{t("finance.form.date")}</Label>
           <Input name="transaction_date" type="date" defaultValue={transaction?.transaction_date || new Date().toISOString().slice(0, 10)} />
         </div>
       </div>
-      <div className="grid gap-2">
-        <Label>Kategori</Label>
-        <Input name="category" defaultValue={transaction?.category || ""} placeholder="Örn. Yazılım, müşteri ödemesi, vergi" />
-      </div>
+      <LocalizedFields
+        idPrefix={`finance-${transaction?.id || "new"}-cat`}
+        defaultLocale={localization.defaultLocale}
+        locales={localization.locales}
+        fields={contentTranslationRegistry.finance_transaction
+          .filter((f) => f.name === "category")
+          .map((f) => ({
+            ...f,
+            label: t(`finance.fields.${f.name}`) || f.label,
+            placeholder: "placeholder" in f && typeof f.placeholder === "string"
+              ? t(`finance.placeholders.${f.name}`) || f.placeholder
+              : undefined,
+          }))}
+        values={transaction?.translations}
+        fallbackValues={{
+          category: transaction?.category,
+        }}
+      />
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label>Müşteri</Label>
+          <Label>{t("finance.form.client")}</Label>
           {shouldLockClient ? <input type="hidden" name="client_id" value={clientId} /> : null}
           <Select
             name="client_id"
@@ -520,10 +550,10 @@ function FinanceFormFields({
             disabled={shouldLockClient}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Müşteri seç" />
+              <SelectValue placeholder={t("finance.form.clientSelect")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">Müşteri yok</SelectItem>
+              <SelectItem value="__none">{t("finance.form.noClient")}</SelectItem>
               {clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
@@ -533,13 +563,13 @@ function FinanceFormFields({
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label>Proje</Label>
+          <Label>{t("finance.form.project")}</Label>
           <Select name="project_id" value={projectId} onValueChange={handleProjectChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Proje seç" />
+              <SelectValue placeholder={t("finance.form.projectSelect")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">Proje yok</SelectItem>
+              <SelectItem value="__none">{t("finance.form.noProject")}</SelectItem>
               {filteredProjects.map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   {project.name}
@@ -549,10 +579,24 @@ function FinanceFormFields({
           </Select>
         </div>
       </div>
-      <div className="grid gap-2">
-        <Label>Açıklama</Label>
-        <Textarea name="description" defaultValue={transaction?.description || ""} rows={3} />
-      </div>
+      <LocalizedFields
+        idPrefix={`finance-${transaction?.id || "new"}-desc`}
+        defaultLocale={localization.defaultLocale}
+        locales={localization.locales}
+        fields={contentTranslationRegistry.finance_transaction
+          .filter((f) => f.name === "description")
+          .map((f) => ({
+            ...f,
+            label: t(`finance.fields.${f.name}`) || f.label,
+            placeholder: "placeholder" in f && typeof f.placeholder === "string"
+              ? t(`finance.placeholders.${f.name}`) || f.placeholder
+              : undefined,
+          }))}
+        values={transaction?.translations}
+        fallbackValues={{
+          description: transaction?.description,
+        }}
+      />
     </div>
   );
 }
@@ -562,7 +606,7 @@ function SelectField({ name, label, defaultValue, children }: { name: string; la
     <div className="grid gap-2">
       <Label>{label}</Label>
       <Select name={name} defaultValue={defaultValue}>
-        <SelectTrigger><SelectValue placeholder={`${label} seç`} /></SelectTrigger>
+        <SelectTrigger><SelectValue placeholder={label} /></SelectTrigger>
         <SelectContent>{children}</SelectContent>
       </Select>
     </div>
@@ -570,16 +614,17 @@ function SelectField({ name, label, defaultValue, children }: { name: string; la
 }
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+  const t = useTranslations();
   return (
     <div className="flex min-h-72 flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/20 p-8 text-center">
       <Wallet className="h-10 w-10 text-muted-foreground" />
       <h3 className="mt-4 text-lg font-semibold text-foreground">
-        {hasQuery ? "Aramana uygun işlem yok" : "Henüz finans işlemi eklenmedi"}
+        {hasQuery ? t("finance.empty.noMatchTitle") : t("finance.empty.noTransactionTitle")}
       </h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         {hasQuery
-          ? "Arama metnini sadeleştirerek tekrar deneyebilirsin."
-          : "İlk gelir veya gider kaydını ekleyerek aylık finans özetini oluşturmaya başlayabilirsin."}
+          ? t("finance.empty.noMatchDesc")
+          : t("finance.empty.noTransactionDesc")}
       </p>
     </div>
   );
@@ -630,6 +675,7 @@ function formatMessageContent(text: string) {
 }
 
 function AIFinanceDialog() {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -641,12 +687,14 @@ function AIFinanceDialog() {
       const res = await fetch("/api/finance-analysis", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Bilinmeyen bir hata oluştu.");
+        throw new Error(data.error || t("finance.ai.error"));
       }
       setResult(data.text);
     } catch (error) {
       setResult(
-        `Hata: ${error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu."}`,
+        t("finance.ai.errorWithReason", {
+          reason: resolveTranslatedError(t, error, "finance.ai.error"),
+        }),
       );
     } finally {
       setLoading(false);
@@ -658,17 +706,17 @@ function AIFinanceDialog() {
       <DialogTrigger asChild>
         <Button effect="shine" variant="secondary" className="gap-2">
           <Brain className="h-4 w-4" />
-          AI Analizi
+          {t("finance.actions.aiAnalysis")}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[80vh] overflow-y-auto rounded-lg p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-indigo-600" />
-            Yapay Zeka Finansal Yorumlama
+            {t("finance.ai.title")}
           </DialogTitle>
           <DialogDescription>
-            Son 30 günlük finansal kayıtlarınızı analiz edip size önerilerde bulunuyorum.
+            {t("finance.ai.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -677,7 +725,7 @@ function AIFinanceDialog() {
             <div className="text-center py-10">
               <Button variant="default" effect="shine" onClick={handleAnalyze} className="gap-2">
                 <Brain className="h-4 w-4" />
-                Raporu Oluştur
+                {t("finance.ai.generate")}
               </Button>
             </div>
           )}
@@ -685,7 +733,7 @@ function AIFinanceDialog() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-10 space-y-4 text-indigo-600">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm font-medium">Verileriniz analiz ediliyor...</p>
+              <p className="text-sm font-medium">{t("finance.ai.analyzing")}</p>
             </div>
           )}
 
@@ -698,10 +746,10 @@ function AIFinanceDialog() {
 
         {result && (
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button effect="shine" variant="secondary" onClick={() => setOpen(false)}>Kapat</Button>
+            <Button effect="shine" variant="secondary" onClick={() => setOpen(false)}>{t("finance.ai.close")}</Button>
             <Button effect="shine" variant="default" onClick={handleAnalyze} className="gap-2">
               <Brain className="h-4 w-4" />
-              Yeniden Oluştur
+              {t("finance.ai.regenerate")}
             </Button>
           </DialogFooter>
         )}
@@ -714,7 +762,7 @@ function calculateExpenseCategories(transactions: FinanceTransactionItem[]) {
   const totals = new Map<string, number>();
   for (const transaction of transactions) {
     if (transaction.type !== "expense") continue;
-    const category = transaction.category || "Kategori yok";
+    const category = transaction.category || "__uncategorized";
     totals.set(category, (totals.get(category) || 0) + transaction.amount);
   }
 
@@ -729,8 +777,18 @@ function calculateExpenseCategories(transactions: FinanceTransactionItem[]) {
     .slice(0, 6);
 }
 
+function resolveTranslatedError(
+  t: ReturnType<typeof useTranslations>,
+  error: unknown,
+  fallbackKey: string,
+) {
+  if (!(error instanceof Error)) return t(fallbackKey);
+  if (/^(finance|api|validation)\./.test(error.message)) return t(error.message);
+  return error.message || t(fallbackKey);
+}
+
 function formatCurrency(value: number, currency = "USD") {
-  return new Intl.NumberFormat("tr-TR", {
+  return new Intl.NumberFormat(getDocumentIntlLocale(), {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -738,7 +796,7 @@ function formatCurrency(value: number, currency = "USD") {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(getDocumentIntlLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",

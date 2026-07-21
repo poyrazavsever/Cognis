@@ -1,5 +1,7 @@
 import type { PublicBranding } from "../../branding/service";
 import type { InstanceIdentity } from "../../instance/service";
+import type { getPublicLocalizationMetadata } from "../../i18n/runtime";
+import { buildLocalizationContract } from "./localization";
 
 export const NETA_PROTOCOL = "neta" as const;
 export const NETA_DISCOVERY_VERSION = 1 as const;
@@ -16,9 +18,22 @@ export type NetaCapability = {
   access: CapabilityAccess;
 };
 
+export type NetaLocalizedResponse<TResource> = {
+  resource: TResource;
+  localized: TResource;
+  locale: string;
+  fallbackChain: string[];
+};
+
+export type NetaTranslationMutationShape = Record<
+  string,
+  Record<string, string | null>
+>;
+
 export const NETA_CAPABILITIES = [
   { id: "instance.discovery", version: 1, status: "available", access: "public" },
   { id: "instance.branding", version: 1, status: "available", access: "public" },
+  { id: "instance.localization", version: 1, status: "available", access: "public" },
   { id: "auth.better-auth-cookie", version: 1, status: "available", access: "session" },
   { id: "files.local", version: 1, status: "available", access: "session" },
   { id: "freelancer.core", version: 1, status: "available", access: "freelancer" },
@@ -38,11 +53,24 @@ export type NetaDiscoveryDocument = {
     baseUrl: string;
     metaUrl: string;
     healthUrl: string;
+    catalogUrl: string;
   };
   security: {
     httpsRequired: true;
     insecureLoopbackAllowed: true;
   };
+  localization: {
+    defaultLocale: string;
+    supportedLocales: Array<{
+      code: string;
+      name: string;
+      nativeName: string;
+      status: string;
+      textDirection: string;
+    }>;
+    catalogVersion: number;
+  };
+  capabilities: readonly NetaCapability[];
 };
 
 export type NetaInstanceMetadata = {
@@ -73,6 +101,33 @@ export type NetaInstanceMetadata = {
     iconUrl: string | null;
     faviconUrl: string | null;
   };
+  localization: ReturnType<typeof buildLocalizationContract>;
+  contracts: {
+    localizedResponse: {
+      resource: "original database record";
+      localized: "locale-resolved record";
+      locale: "resolved locale code";
+      fallbackChain: "ordered locale fallback chain";
+    };
+    ownerMutationTranslations: {
+      field: "translations";
+      shape: "Record<locale, Record<field, string | null>>";
+      unsupportedLocaleCode: "UNSUPPORTED_LOCALE";
+    };
+    portalRevision: {
+      sourceLocale: "locale code of the client-authored revision message";
+      descriptionPolicy: "user-authored text is stored and returned without machine translation";
+    };
+    preferenceMutation: {
+      endpoint: "PATCH /api/v1/me/preferences";
+      body: "{ language?: activeLocale, colorMode?: light|dark|system }";
+      roles: "freelancer and client users mutate only their own preferences";
+    };
+    catalogDownload: {
+      endpoint: "GET /api/v1/localization/catalog?locale=tr&namespaces=common,portal";
+      versionField: "catalogVersion";
+    };
+  };
   client: {
     minimumSupportedVersion: string | null;
     platforms: readonly ["ios", "android"];
@@ -87,6 +142,8 @@ export type NetaInstanceMetadata = {
     apiBase: string;
     health: string;
     me: string;
+    preferences: string;
+    catalog: string;
   };
 };
 
@@ -96,6 +153,7 @@ type ContractInput = {
   minimumMobileClientVersion: string | null;
   identity: InstanceIdentity;
   branding: PublicBranding;
+  localization: ReturnType<typeof getPublicLocalizationMetadata>;
 };
 
 export function buildDiscoveryDocument(
@@ -113,11 +171,24 @@ export function buildDiscoveryDocument(
       baseUrl: apiBaseUrl,
       metaUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/meta`),
       healthUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/health`),
+      catalogUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/localization/catalog`),
     },
     security: {
       httpsRequired: true,
       insecureLoopbackAllowed: true,
     },
+    localization: {
+      defaultLocale: input.localization.defaultLocale,
+      supportedLocales: input.localization.supportedLocales.map((locale) => ({
+        code: locale.code,
+        name: locale.name,
+        nativeName: locale.nativeName,
+        status: locale.status,
+        textDirection: locale.textDirection,
+      })),
+      catalogVersion: input.localization.catalogVersion,
+    },
+    capabilities: NETA_CAPABILITIES,
   };
 }
 
@@ -152,6 +223,33 @@ export function buildInstanceMetadata(
       iconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
       faviconUrl: absoluteOptionalUrl(input.appUrl, input.branding.iconUrl),
     },
+    localization: buildLocalizationContract(input.localization),
+    contracts: {
+      localizedResponse: {
+        resource: "original database record",
+        localized: "locale-resolved record",
+        locale: "resolved locale code",
+        fallbackChain: "ordered locale fallback chain",
+      },
+      ownerMutationTranslations: {
+        field: "translations",
+        shape: "Record<locale, Record<field, string | null>>",
+        unsupportedLocaleCode: "UNSUPPORTED_LOCALE",
+      },
+      portalRevision: {
+        sourceLocale: "locale code of the client-authored revision message",
+        descriptionPolicy: "user-authored text is stored and returned without machine translation",
+      },
+      preferenceMutation: {
+        endpoint: "PATCH /api/v1/me/preferences",
+        body: "{ language?: activeLocale, colorMode?: light|dark|system }",
+        roles: "freelancer and client users mutate only their own preferences",
+      },
+      catalogDownload: {
+        endpoint: "GET /api/v1/localization/catalog?locale=tr&namespaces=common,portal",
+        versionField: "catalogVersion",
+      },
+    },
     client: {
       minimumSupportedVersion: input.minimumMobileClientVersion,
       platforms: ["ios", "android"],
@@ -166,6 +264,8 @@ export function buildInstanceMetadata(
       apiBase: absoluteUrl(input.appUrl, NETA_API_BASE_PATH),
       health: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/health`),
       me: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/me`),
+      preferences: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/me/preferences`),
+      catalog: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/localization/catalog`),
     },
   };
 }

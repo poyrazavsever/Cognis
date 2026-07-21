@@ -125,6 +125,7 @@ export const portalInvitations = sqliteTable(
     tokenHash: text("token_hash").notNull(),
     clientId: text("client_id").notNull(),
     email: text("email").notNull(),
+    locale: text("locale").default("tr").notNull(),
     status: text("status").$type<PortalInvitationStatus>()
       .default("pending")
       .notNull(),
@@ -137,6 +138,7 @@ export const portalInvitations = sqliteTable(
     uniqueIndex("portal_invitations_token_hash_unique").on(table.tokenHash),
     index("portal_invitations_client_id_idx").on(table.clientId),
     index("portal_invitations_email_idx").on(table.email),
+    index("portal_invitations_locale_idx").on(table.locale),
   ],
 );
 
