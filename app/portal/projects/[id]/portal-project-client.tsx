@@ -48,6 +48,7 @@ export type PortalTask = {
 export type PortalRevision = {
   id: string;
   description: string;
+  source_locale: string | null;
   status: "pending" | "in_progress" | "completed" | "rejected";
   created_at: string;
 };
@@ -78,11 +79,11 @@ export function PortalProjectClient({
 
     try {
       const response = await createRevisionRequest(project.id, formData);
-      if (response.error) throw new Error(response.error);
+      if (response.errorKey) throw new Error(response.errorKey);
       toast.success(t("portal.revision.success"));
       setOpenRevision(false);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t("portal.revision.error"));
+      toast.error(error instanceof Error ? t(error.message) : t("portal.revision.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -92,12 +93,16 @@ export function PortalProjectClient({
     (revision) => revision.status === "pending" || revision.status === "in_progress",
   ).length;
   const hasRevisionQuota = project.can_request_revision;
+  const number = new Intl.NumberFormat(locale);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
+          {project.description ? (
+            <p className="max-w-3xl text-sm text-muted-foreground">{project.description}</p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <div className="flex gap-2">
@@ -189,7 +194,7 @@ export function PortalProjectClient({
                 <h3 className="font-semibold">{t("portal.sections.progress")}</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-3xl font-bold">
-                    <span>%{project.progress}</span>
+                    <span>{t("portal.labels.percent", { value: number.format(project.progress) })}</span>
                   </div>
                   <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
                     <div className="h-full bg-primary transition-all duration-500" style={{ width: `${project.progress}%` }} />
@@ -248,7 +253,7 @@ export function PortalProjectClient({
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-foreground">{section.title}</h4>
                       <Badge variant="secondary" className="text-xs">
-                        {section.type}
+                        {t(`portal.planTypes.${section.type}`)}
                       </Badge>
                     </div>
                     <p className="whitespace-pre-wrap text-sm text-muted-foreground">{section.content}</p>
@@ -264,7 +269,7 @@ export function PortalProjectClient({
             <div className="rounded-md bg-muted/50 px-3 py-1.5 text-sm font-medium text-muted-foreground">
               {t("portal.labels.remainingQuota")}:
               <span className="ml-1 text-foreground">
-                {project.revision_quota !== null ? project.revision_quota : t("portal.labels.unlimited")}
+                {project.revision_quota !== null ? number.format(project.revision_quota) : t("portal.labels.unlimited")}
               </span>
             </div>
           </div>

@@ -64,11 +64,14 @@ export default async function PortalTasksPage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
                     <span className="font-medium truncate">{projectNames.get(task.projectId!)}</span>
                   </div>
+                  {task.description ? (
+                    <p className="line-clamp-3 text-sm text-muted-foreground">{task.description}</p>
+                  ) : null}
                 </div>
                 <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-border pt-4">
                   <div className="flex items-center gap-1.5">
                     <CalendarDays className="h-4 w-4" />
-                    <span>{date ? formatDate(date, locale.locale) : "-"}</span>
+                    <span>{date ? formatDate(date, locale.locale) : t("portal.labels.noDate")}</span>
                   </div>
                   {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Clock className="h-4 w-4" />}
                 </div>

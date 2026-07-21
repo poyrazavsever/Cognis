@@ -65,7 +65,7 @@ export default async function PortalRevisionsPage() {
               </div>
               <div className="flex items-center justify-end border-t border-border pt-4">
                 <Link href={`/portal/projects/${revision.projectId}`} className="text-xs text-primary font-medium hover:underline">
-                  {t("portal.labels.project")} &rarr;
+                  {t("portal.labels.openProjectCta")}
                 </Link>
               </div>
             </CardContent>

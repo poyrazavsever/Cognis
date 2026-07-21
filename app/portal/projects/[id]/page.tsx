@@ -83,6 +83,7 @@ export default async function PortalProjectPage({ params }: { params: Promise<{ 
         id: revision.id,
         description: revision.description,
         status: revision.status,
+        source_locale: revision.sourceLocale,
         created_at: revision.createdAt.toISOString(),
       })),
     };

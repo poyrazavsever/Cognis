@@ -23,6 +23,7 @@ export default async function PortalProjectsPage() {
     defaultLocale: locale.defaultLocale,
     translations: projectTranslations.get(project.id) ?? [],
   }));
+  const number = new Intl.NumberFormat(locale.locale);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -47,6 +48,9 @@ export default async function PortalProjectsPage() {
                       {project.status === "completed" ? t("portal.status.project.completed") : project.status === "active" ? t("portal.status.project.active") : t("portal.status.project.waiting")}
                     </Badge>
                   </div>
+                  {project.description ? (
+                    <p className="line-clamp-2 text-sm text-muted-foreground">{project.description}</p>
+                  ) : null}
                   {project.dueDate && (
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
@@ -57,7 +61,7 @@ export default async function PortalProjectsPage() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs font-medium">
                     <span>{t("portal.labels.progress")}</span>
-                    <span>%{project.progress}</span>
+                    <span>{t("portal.labels.percent", { value: number.format(project.progress) })}</span>
                   </div>
                   <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                     <div className="h-full bg-primary transition-all duration-500" style={{ width: `${project.progress}%` }} />

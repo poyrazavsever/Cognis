@@ -12,7 +12,7 @@ import {
 } from "poyraz-ui/molecules";
 
 type DestructiveConfirmationProps = {
-  cancelLabel?: string;
+  cancelLabel: string;
   confirmLabel: string;
   description: string;
   loading?: boolean;
@@ -23,7 +23,7 @@ type DestructiveConfirmationProps = {
 };
 
 export function DestructiveConfirmation({
-  cancelLabel = "Vazgeç",
+  cancelLabel,
   confirmLabel,
   description,
   loading = false,
