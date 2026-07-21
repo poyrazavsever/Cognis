@@ -75,7 +75,7 @@ export function LanguagesList({
           <div className="flex items-center gap-2">
             <Button asChild variant="secondary" effect="shine" className="gap-2">
               <Link href="/settings/languages/import-export">
-                İçe / Dışa Aktar
+                {t("settings.languages.actions.importExport")}
               </Link>
             </Button>
             <Button asChild variant="default" effect="shine" className="gap-2">

@@ -32,6 +32,7 @@ export function getAiRuntime(actor: DomainActor): AiRuntime {
     throw new DomainError(
       "VALIDATION_ERROR",
       "Ayarlardan bir AI sağlayıcısı ve API anahtarı seçmelisiniz.",
+      { reason: "missing_settings" },
     );
   }
 
@@ -69,6 +70,7 @@ export function normalizeAiError(error: unknown): DomainError {
     return new DomainError(
       "UPSTREAM_TIMEOUT",
       "AI sağlayıcısı zamanında yanıt vermedi. Lütfen tekrar deneyin.",
+      { reason: "timeout" },
     );
   }
 
@@ -76,6 +78,7 @@ export function normalizeAiError(error: unknown): DomainError {
     return new DomainError(
       "VALIDATION_ERROR",
       "Seçili AI modeli kullanılamıyor. Ayarlardaki model adını kontrol edin.",
+      { reason: "model_unavailable" },
     );
   }
 
@@ -84,24 +87,28 @@ export function normalizeAiError(error: unknown): DomainError {
       return new DomainError(
         "VALIDATION_ERROR",
         "AI sağlayıcısı API anahtarını reddetti. Ayarlardaki anahtarı kontrol edin.",
+        { reason: "api_key_rejected" },
       );
     }
     if (error.statusCode === 404) {
       return new DomainError(
         "VALIDATION_ERROR",
         "Seçili AI modeli sağlayıcıda bulunamadı. Model adını kontrol edin.",
+        { reason: "model_not_found" },
       );
     }
     if (error.statusCode === 429) {
       return new DomainError(
         "SERVICE_UNAVAILABLE",
         "AI sağlayıcısının kullanım limiti aşıldı. Kısa süre sonra tekrar deneyin.",
+        { reason: "rate_limited" },
       );
     }
     if (error.statusCode && error.statusCode >= 500) {
       return new DomainError(
         "UPSTREAM_ERROR",
         "AI sağlayıcısı geçici bir sunucu hatası döndürdü. Biraz sonra tekrar deneyin.",
+        { reason: "provider_error" },
       );
     }
   }
@@ -110,5 +117,6 @@ export function normalizeAiError(error: unknown): DomainError {
   return new DomainError(
     "UPSTREAM_ERROR",
     "AI sağlayıcısına ulaşılamadı. Sağlayıcı ayarlarını kontrol edip tekrar deneyin.",
+    { reason: "provider_unreachable" },
   );
 }

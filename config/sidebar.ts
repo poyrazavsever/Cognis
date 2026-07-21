@@ -53,12 +53,14 @@ export const sidebarData: SidebarNavGroup[] = [
   },
 ];
 
-export function localizeSidebarData(t: (key: string) => string): SidebarNavGroup[] {
+export function localizeSidebarData(t: (key: string) => string) {
   return sidebarData.map((group) => ({
-    ...group,
+    titleKey: group.titleKey,
     title: t(group.titleKey),
     items: group.items.map((item) => ({
-      ...item,
+      titleKey: item.titleKey,
+      href: item.href,
+      icon: item.icon,
       title: t(item.titleKey),
     })),
   }));

@@ -164,7 +164,7 @@ export function TranslationEditor({
             const currentValue = isEdited ? edits[item.key] : (overrides[item.key] || "");
             
             const trVars = item.tr.match(/\{[^}]+\}/g) || [];
-            const targetVars = currentValue.match(/\{[^}]+\}/g) || [];
+            const targetVars: string[] = currentValue.match(/\{[^}]+\}/g) || [];
             const missingVars = trVars.filter(v => !targetVars.includes(v));
 
             return (
