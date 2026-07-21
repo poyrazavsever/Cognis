@@ -12,7 +12,7 @@ export default async function PortalLayout({
 }>) {
   const { context, actor, service } = await requirePortalBackend();
   const resolvedLocale = await resolvePortalLocale(context);
-  const t = createTranslator(resolvedLocale.locale, ["navigation", "portal", "common"]).t;
+  const t = createTranslator(resolvedLocale.locale, ["navigation", "portal", "common", "settings"]).t;
   const { user, profile } = context;
   const branding = getPublicBranding();
   const preferences = getUserPreferences(actor);
@@ -47,7 +47,7 @@ export default async function PortalLayout({
         avatarUrl: user.image || null,
       }}
       progress={progress}
-      i18n={getClientI18nPayload(resolvedLocale.locale, ["navigation", "portal", "common", "status", "validation"])}
+      i18n={getClientI18nPayload(resolvedLocale.locale, ["navigation", "portal", "common", "settings", "status", "validation"])}
       labels={{
         skipToContent: t("navigation.shell.skipToContent"),
         homeAriaLabel: t("navigation.shell.homeAriaLabel", { app: branding.organizationName ?? branding.applicationName }),

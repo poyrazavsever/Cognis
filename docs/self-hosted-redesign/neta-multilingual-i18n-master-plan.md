@@ -2,8 +2,8 @@
 title: Neta Çok Dilli Sistem V2 Ana Planı
 description: Ayarlar bilgi mimarisi, owner ve müşteri dil tercihleri, yönetilebilir arayüz çevirileri ve tüm dinamik içerik formları için sayfa bazlı uygulama planı.
 status: in_progress
-current_phase: "faz-21"
-last_updated: 2026-07-20
+current_phase: "faz-36"
+last_updated: 2026-07-21
 supersedes: "neta-multilingual-i18n-v1-legacy-plan.md"
 ---
 
@@ -853,166 +853,166 @@ Route: `/clients/[id]`
 
 Route: `/projects`
 
-- [ ] Header, stats, filtre, grid/list, risk analizi ve empty state'leri çevir.
-- [ ] Project name/description/coverImageAlt dil tab'larını eksiksiz uygula.
-- [ ] Create/edit action ve validation mesajlarını çevir.
-- [ ] Liste okumalarını locale-resolved ve batch hale getir.
+- [x] Header, stats, filtre, grid/list, risk analizi ve empty state'leri çevir.
+- [x] Project name/description/coverImageAlt dil tab'larını eksiksiz uygula.
+- [x] Create/edit action ve validation mesajlarını çevir.
+- [x] Liste okumalarını locale-resolved ve batch hale getir.
 
 Çıkış kriteri:
 
-- [ ] Proje formu tüm aktif dilleri kayıpsız düzenliyor.
+- [x] Proje formu tüm aktif dilleri kayıpsız düzenliyor.
 
 ### Faz 25 — Proje detay sayfası
 
 Route: `/projects/[id]`
 
-- [ ] Header, stats, tabs, progress, revisions, files ve actions metinlerini
+- [x] Header, stats, tabs, progress, revisions, files ve actions metinlerini
   çevir.
-- [ ] Planning section title/content dil tab'larını tamamla.
-- [ ] Detail içindeki task formunun aynı translation sözleşmesini kullandığını
+- [x] Planning section title/content dil tab'larını tamamla.
+- [x] Detail içindeki task formunun aynı translation sözleşmesini kullandığını
   doğrula.
-- [ ] Portal preview/fallback bilgisini görünür kıl.
-- [ ] Loading/error state'lerini çevir.
+- [x] Portal preview/fallback bilgisini görünür kıl.
+- [x] Loading/error state'lerini çevir.
 
 Çıkış kriteri:
 
-- [ ] Proje detayındaki bütün alt yüzeyler TR/EN tamamlandı.
+- [x] Proje detayındaki bütün alt yüzeyler TR/EN tamamlandı.
 
 ### Faz 26 — Görevler sayfası ve görev formu
 
 Route: `/tasks`
 
-- [ ] Header, stats, kanban/list, filtre, priority/status ve actions'ı çevir.
-- [ ] Task title/description aktif dil tab'larını tamamla.
-- [ ] Create/edit/delete action error ve toast'larını çevir.
-- [ ] Public-to-client görevlerde hedef locale eksikliği uyarısını ekle.
+- [x] Header, stats, kanban/list, filtre, priority/status ve actions'ı çevir.
+- [x] Task title/description aktif dil tab'larını tamamla.
+- [x] Create/edit/delete action error ve toast'larını çevir.
+- [x] Public-to-client görevlerde hedef locale eksikliği uyarısını ekle.
 
 Çıkış kriteri:
 
-- [ ] Kanban ve liste görünümlerinde sabit metin kalmadı.
+- [x] Kanban ve liste görünümlerinde sabit metin kalmadı.
 
 ### Faz 27 — Finans sayfası ve işlem formu
 
 Route: `/finance`
 
-- [ ] Header, stats slider, filtre, tablo/kart, AI modal ve empty state'i çevir.
-- [ ] Finance category/description alanlarına aktif dil tab'ları ekle.
-- [ ] Tutar, currency, vergi, ödeme durumu ve tarihleri locale-aware göster.
-- [ ] Create/edit/delete ve AI action hata metinlerini çevir.
-- [ ] Finance translation registry, backfill ve batch read ekle.
+- [x] Header, stats slider, filtre, tablo/kart, AI modal ve empty state'i çevir.
+- [x] Finance category/description alanlarına aktif dil tab'ları ekle.
+- [x] Tutar, currency, vergi, ödeme durumu ve tarihleri locale-aware göster.
+- [x] Create/edit/delete ve AI action hata metinlerini çevir.
+- [x] Finance translation registry, backfill ve batch read ekle.
 
 Çıkış kriteri:
 
-- [ ] Finans formu eklenen tüm aktif diller için ayrı metin saklıyor.
+- [x] Finans formu eklenen tüm aktif diller için ayrı metin saklıyor.
 
 ### Faz 28 — Günlük sayfası ve günlük formu
 
 Route: `/journal`
 
-- [ ] Header, mood/energy alanları, list, empty state ve actions'ı çevir.
-- [ ] Mood label ve note alanlarına aktif dil tab'ları ekle.
-- [ ] Skorlar ve tarih alanlarını ortak tut.
-- [ ] AI-derived içerikte source locale davranışını belirginleştir.
+- [x] Header, mood/energy alanları, list, empty state ve actions'ı çevir.
+- [x] Mood label ve note alanlarına aktif dil tab'ları ekle.
+- [x] Skorlar ve tarih alanlarını ortak tut.
+- [x] AI-derived içerikte source locale davranışını belirginleştir.
 
 Çıkış kriteri:
 
-- [ ] Günlük formundaki çevrilebilir alanlar locale bazlı kalıcı.
+- [x] Günlük formundaki çevrilebilir alanlar locale bazlı kalıcı.
 
 ### Faz 29 — Sohbet sayfası
 
 Route: `/chat`
 
-- [ ] Sidebar, yeni sohbet, input, empty state, suggestions ve error metinlerini
+- [x] Sidebar, yeni sohbet, input, empty state, suggestions ve error metinlerini
   çevir.
-- [ ] API hata kodlarını ayrıntılı ve locale-aware sunuma bağla.
-- [ ] Kullanıcı/assistant mesajlarını çeviri tab'ına sokma; source locale
+- [x] API hata kodlarını ayrıntılı ve locale-aware sunuma bağla.
+- [x] Kullanıcı/assistant mesajlarını çeviri tab'ına sokma; source locale
   metadata'sını koru.
-- [ ] Session title düzenlenebiliyorsa locale modelini uygula.
+- [x] Session title düzenlenebiliyorsa locale modelini uygula.
 
 Çıkış kriteri:
 
-- [ ] Chat UI çevriliyor, mesajların orijinal dili bozulmuyor.
+- [x] Chat UI çevriliyor, mesajların orijinal dili bozulmuyor.
 
 ### Faz 30 — Teklifler sayfası ve formu
 
 Route: `/business/proposals`
 
-- [ ] Liste, form, status, empty state ve actions'ı çevir.
-- [ ] Proposal title/description aktif dil tab'larını ekle.
-- [ ] Tutar/currency/status alanlarını ortak tut.
-- [ ] Translation CRUD ve backfill ekle.
+- [x] Liste, form, status, empty state ve actions'ı çevir.
+- [x] Proposal title/description aktif dil tab'larını ekle.
+- [x] Tutar/currency/status alanlarını ortak tut.
+- [x] Translation CRUD ve backfill ekle.
 
 Çıkış kriteri:
 
-- [ ] Teklif içeriği tüm aktif dillerde düzenlenebiliyor.
+- [x] Teklif içeriği tüm aktif dillerde düzenlenebiliyor.
 
 ### Faz 31 — Faturalar sayfası ve formu
 
 Route: `/business/invoices`
 
-- [ ] Liste, form, status, tarih, tutar ve actions'ı çevir.
-- [ ] Mevcut şemada çevrilebilir serbest metin alanı olmadığını doğrula.
-- [ ] İleride not/açıklama eklenirse registry sözleşmesini dokümante et.
-- [ ] Tarih/para formatlarını locale-aware yap.
+- [x] Liste, form, status, tarih, tutar ve actions'ı çevir.
+- [x] Mevcut şemada çevrilebilir serbest metin alanı olmadığını doğrula.
+- [x] İleride not/açıklama eklenirse registry sözleşmesini dokümante et.
+- [x] Tarih/para formatlarını locale-aware yap.
 
 Çıkış kriteri:
 
-- [ ] Fatura sayfasının bütün sistem metinleri TR/EN tamamlandı.
+- [x] Fatura sayfasının bütün sistem metinleri TR/EN tamamlandı.
 
 ### Faz 32 — Abonelikler sayfası ve formu
 
 Route: `/business/subscriptions`
 
-- [ ] Liste, form, billing cycle, status ve actions'ı çevir.
-- [ ] Subscription name/category alanlarına aktif dil tab'ları ekle.
-- [ ] Tutar, currency ve tarih alanlarını ortak tut.
-- [ ] Translation CRUD ve backfill ekle.
+- [x] Liste, form, billing cycle, status ve actions'ı çevir.
+- [x] Subscription name/category alanlarına aktif dil tab'ları ekle.
+- [x] Tutar, currency ve tarih alanlarını ortak tut.
+- [x] Translation CRUD ve backfill ekle.
 
 Çıkış kriteri:
 
-- [ ] Abonelik metinleri locale bazlı saklanıyor.
+- [x] Abonelik metinleri locale bazlı saklanıyor.
 
 ### Faz 33 — Portal ayarlar layout'u
 
 Route: `/portal/settings`
 
-- [ ] Eksik portal settings route ve layout'unu oluştur.
-- [ ] Portal için mobil/desktop settings nav ekle.
-- [ ] Language, appearance, profile ve security alt route'larını tanımla.
-- [ ] Client'ın owner-only ayarlara erişemediğini test et.
-- [ ] Portal settings shell metinlerini tamamla.
+- [x] Eksik portal settings route ve layout'unu oluştur.
+- [x] Portal için mobil/desktop settings nav ekle.
+- [x] Language, appearance, profile ve security alt route'larını tanımla.
+- [x] Client'ın owner-only ayarlara erişemediğini test et.
+- [x] Portal settings shell metinlerini tamamla.
 
 Çıkış kriteri:
 
-- [ ] Sidebar'daki portal settings bağlantısı geçerli bir sayfaya gidiyor.
+- [x] Sidebar'daki portal settings bağlantısı geçerli bir sayfaya gidiyor.
 
 ### Faz 34 — Portal dil tercihi sayfası
 
 Route: `/portal/settings/language`
 
-- [ ] Admin tarafından atanmış başlangıç dilini bilgi olarak göster.
-- [ ] Yalnız aktif instance dillerini seçim olarak sun.
-- [ ] Client personal preference mutation'ını uygula.
-- [ ] “Kişisel seçimi kaldır / admin varsayılanını kullan” davranışını tasarla.
-- [ ] Arşivlenmiş dil fallback ve uyarısını uygula.
+- [x] Admin tarafından atanmış başlangıç dilini bilgi olarak göster.
+- [x] Yalnız aktif instance dillerini seçim olarak sun.
+- [x] Client personal preference mutation'ını uygula.
+- [x] “Kişisel seçimi kaldır / admin varsayılanını kullan” davranışını tasarla.
+- [x] Arşivlenmiş dil fallback ve uyarısını uygula.
 
 Çıkış kriteri:
 
-- [ ] Portal kullanıcısı yalnız adminin aktif ettiği diller arasında geçiş
+- [x] Portal kullanıcısı yalnız adminin aktif ettiği diller arasında geçiş
   yapabiliyor.
 
 ### Faz 35 — Portal görünüm sayfası
 
 Route: `/portal/settings/appearance`
 
-- [ ] Kişisel light/dark/system tema seçimini uygula.
-- [ ] Tema preference action'ını portal actor için yetkilendir.
-- [ ] Preview, seçenek, success/error ve accessibility metinlerini çevir.
-- [ ] Instance branding kontrollerinin client'a açılmadığını test et.
+- [x] Kişisel light/dark/system tema seçimini uygula.
+- [x] Tema preference action'ını portal actor için yetkilendir.
+- [x] Preview, seçenek, success/error ve accessibility metinlerini çevir.
+- [x] Instance branding kontrollerinin client'a açılmadığını test et.
 
 Çıkış kriteri:
 
-- [ ] Portal görünüm tercihi owner instance ayarlarından izole.
+- [x] Portal görünüm tercihi owner instance ayarlarından izole.
 
 ### Faz 36 — Portal profil sayfası
 
