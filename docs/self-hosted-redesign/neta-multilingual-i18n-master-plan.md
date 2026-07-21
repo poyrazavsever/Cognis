@@ -1,8 +1,8 @@
 ---
 title: Neta Çok Dilli Sistem V2 Ana Planı
 description: Ayarlar bilgi mimarisi, owner ve müşteri dil tercihleri, yönetilebilir arayüz çevirileri ve tüm dinamik içerik formları için sayfa bazlı uygulama planı.
-status: in_progress
-current_phase: "faz-36"
+status: completed
+current_phase: "complete"
 last_updated: 2026-07-21
 supersedes: "neta-multilingual-i18n-v1-legacy-plan.md"
 ---
@@ -1018,169 +1018,169 @@ Route: `/portal/settings/appearance`
 
 Route: `/portal/settings/profile`
 
-- [ ] Client ad, soyad ve avatar formunu uygula.
-- [ ] Profile action'ını yalnız oturumdaki portal kullanıcısına sınırla.
-- [ ] Upload, validation, success/error ve accessibility metinlerini çevir.
+- [x] Client ad, soyad ve avatar formunu uygula.
+- [x] Profile action'ını yalnız oturumdaki portal kullanıcısına sınırla.
+- [x] Upload, validation, success/error ve accessibility metinlerini çevir.
 
 Çıkış kriteri:
 
-- [ ] Portal profil sayfası TR/EN ve custom fallback ile çalışıyor.
+- [x] Portal profil sayfası TR/EN ve custom fallback ile çalışıyor.
 
 ### Faz 37 — Portal güvenlik sayfası
 
 Route: `/portal/settings/security`
 
-- [ ] Client şifre değiştirme ve session kontrollerini uygula.
-- [ ] Security action'larını portal actor için yetkilendir.
-- [ ] Validation, success/error ve session revoke metinlerini çevir.
+- [x] Client şifre değiştirme ve session kontrollerini uygula.
+- [x] Security action'larını portal actor için yetkilendir.
+- [x] Validation, success/error ve session revoke metinlerini çevir.
 
 Çıkış kriteri:
 
-- [ ] Portal güvenlik akışı owner ayarlarından izole ve locale-aware.
+- [x] Portal güvenlik akışı owner ayarlarından izole ve locale-aware.
 
 ### Faz 38 — Portal davet sayfası
 
 Route: `/invite/[token]`
 
-- [ ] Dil seçici olmadan invitation snapshot locale'i kullan.
-- [ ] Expired/accepted/revoked/success state'lerini eksiksiz çevir.
-- [ ] Davet kabulünde client preference başlangıç değerini atomik yaz.
-- [ ] Davet locale'i geçersiz/arşivlenmişse kontrollü fallback uygula.
+- [x] Dil seçici olmadan invitation snapshot locale'i kullan.
+- [x] Expired/accepted/revoked/success state'lerini eksiksiz çevir.
+- [x] Davet kabulünde client preference başlangıç değerini atomik yaz.
+- [x] Davet locale'i geçersiz/arşivlenmişse kontrollü fallback uygula.
 
 Çıkış kriteri:
 
-- [ ] Davet sayfası adminin belirlediği dilde açılıyor.
+- [x] Davet sayfası adminin belirlediği dilde açılıyor.
 
 ### Faz 39 — Portal dashboard
 
 Route: `/portal`
 
-- [ ] Header, stats, proje kartları ve empty state'i çevir.
-- [ ] Branding welcome/footer içeriğini resolved locale ile göster.
-- [ ] Tarih, sayı ve progress formatlarını locale-aware yap.
-- [ ] Project translation batch read'i doğrula.
+- [x] Header, stats, proje kartları ve empty state'i çevir.
+- [x] Branding welcome/footer içeriğini resolved locale ile göster.
+- [x] Tarih, sayı ve progress formatlarını locale-aware yap.
+- [x] Project translation batch read'i doğrula.
 
 Çıkış kriteri:
 
-- [ ] Portal dashboard client preference değişince tamamen dil değiştiriyor.
+- [x] Portal dashboard client preference değişince tamamen dil değiştiriyor.
 
 ### Faz 40 — Portal projeler listesi
 
 Route: `/portal/projects`
 
-- [ ] Header, filtre/kart, status ve empty state metinlerini çevir.
-- [ ] Project name/description/alt değerlerini resolved locale ile göster.
-- [ ] Fallback zinciri ve batch query performansını test et.
+- [x] Header, filtre/kart, status ve empty state metinlerini çevir.
+- [x] Project name/description/alt değerlerini resolved locale ile göster.
+- [x] Fallback zinciri ve batch query performansını test et.
 
 Çıkış kriteri:
 
-- [ ] Client yalnız resolved proje içeriğini alıyor.
+- [x] Client yalnız resolved proje içeriğini alıyor.
 
 ### Faz 41 — Portal proje detay sayfası
 
 Route: `/portal/projects/[id]`
 
-- [ ] Overview, plan, tasks, revisions, progress ve dialog metinlerini çevir.
-- [ ] Project, planning section ve public task içeriklerini resolved locale ile
+- [x] Overview, plan, tasks, revisions, progress ve dialog metinlerini çevir.
+- [x] Project, planning section ve public task içeriklerini resolved locale ile
   göster.
-- [ ] Revision mesajını source locale ile sakla.
-- [ ] Error, permission ve empty state'leri tamamla.
+- [x] Revision mesajını source locale ile sakla.
+- [x] Error, permission ve empty state'leri tamamla.
 
 Çıkış kriteri:
 
-- [ ] Proje detayının bütün alt tab'ları seçili portal dilinde.
+- [x] Proje detayının bütün alt tab'ları seçili portal dilinde.
 
 ### Faz 42 — Portal görevler sayfası
 
 Route: `/portal/tasks`
 
-- [ ] Header, kart/list, status, tarih ve empty state'i çevir.
-- [ ] Task title/description değerlerini resolved locale ile göster.
-- [ ] Client scope ve fallback davranışını test et.
+- [x] Header, kart/list, status, tarih ve empty state'i çevir.
+- [x] Task title/description değerlerini resolved locale ile göster.
+- [x] Client scope ve fallback davranışını test et.
 
 Çıkış kriteri:
 
-- [ ] Portal görevlerinde raw default-locale metni sızmıyor.
+- [x] Portal görevlerinde raw default-locale metni sızmıyor.
 
 ### Faz 43 — Portal revizyonlar sayfası
 
 Route: `/portal/revisions`
 
-- [ ] Header, status, kartlar, tarih ve empty state'i çevir.
-- [ ] Kullanıcının yazdığı revision description'ı orijinal dilde göster.
-- [ ] Source locale bilgisini sakla ve API contract'a ekle.
+- [x] Header, status, kartlar, tarih ve empty state'i çevir.
+- [x] Kullanıcının yazdığı revision description'ı orijinal dilde göster.
+- [x] Source locale bilgisini sakla ve API contract'a ekle.
 
 Çıkış kriteri:
 
-- [ ] Sistem metni çevriliyor, kullanıcı mesajı değiştirilmeden kalıyor.
+- [x] Sistem metni çevriliyor, kullanıcı mesajı değiştirilmeden kalıyor.
 
 ### Faz 44 — Ortak feedback, status ve edge sayfaları
 
-- [ ] `not-found`, root error, route loading ve maintenance ekranlarını denetle.
-- [ ] FeedbackState, StatusBadge, confirmation, toaster ve ortak form
+- [x] `not-found`, root error, route loading ve maintenance ekranlarını denetle.
+- [x] FeedbackState, StatusBadge, confirmation, toaster ve ortak form
   component'lerini çevir.
-- [ ] Bütün enum label'larını merkezi status kataloglarına taşı.
-- [ ] Default hard-coded Türkçe label'ları kaldır.
-- [ ] Accessibility ve metadata metinlerini tamamla.
+- [x] Bütün enum label'larını merkezi status kataloglarına taşı.
+- [x] Default hard-coded Türkçe label'ları kaldır.
+- [x] Accessibility ve metadata metinlerini tamamla.
 
 Çıkış kriteri:
 
-- [ ] Ortak component'ten hiçbir sayfaya sabit dil metni sızmıyor.
+- [x] Ortak component'ten hiçbir sayfaya sabit dil metni sızmıyor.
 
 ### Faz 45 — API ve mobil localization sözleşmesi
 
-- [ ] Meta ve me response'larında default, preference, client default ve resolved
+- [x] Meta ve me response'larında default, preference, client default ve resolved
   locale alanlarını ayrıştır.
-- [ ] Freelancer/client preference mutation endpoint'lerini tamamla.
-- [ ] Owner language management endpoint'lerini belge ve test et.
-- [ ] Domain translations mutation/read sözleşmesini bütün entity'lere uygula.
-- [ ] Custom locale katalog indirme/version endpoint'ini tamamla.
-- [ ] `Accept-Language` ve açık locale isteğinin güvenli sınırlarını test et.
-- [ ] OpenAPI/contract fixture'larını TR, EN ve custom locale için güncelle.
+- [x] Freelancer/client preference mutation endpoint'lerini tamamla.
+- [x] Owner language management endpoint'lerini belge ve test et.
+- [x] Domain translations mutation/read sözleşmesini bütün entity'lere uygula.
+- [x] Custom locale katalog indirme/version endpoint'ini tamamla.
+- [x] `Accept-Language` ve açık locale isteğinin güvenli sınırlarını test et.
+- [x] OpenAPI/contract fixture'larını TR, EN ve custom locale için güncelle.
 
 Çıkış kriteri:
 
-- [ ] Web dışındaki bir istemci cookie kullanmadan aynı locale davranışını
+- [x] Web dışındaki bir istemci cookie kullanmadan aynı locale davranışını
   uygulayabiliyor.
 
 ### Faz 46 — Veri migrasyonu ve backfill
 
-- [ ] Yeni entity type/field registry için Drizzle migration üret.
-- [ ] Mevcut verileri instance default locale'e idempotent backfill et.
-- [ ] Preference/client/invitation locale tutarsızlıklarını raporlayan script
+- [x] Yeni entity type/field registry için Drizzle migration üret.
+- [x] Mevcut verileri instance default locale'e idempotent backfill et.
+- [x] Preference/client/invitation locale tutarsızlıklarını raporlayan script
   ekle.
-- [ ] Orphan translation cleanup ve integrity kontrolü ekle.
-- [ ] Backup, dry-run, rollback ve restore prosedürlerini dokümante et.
-- [ ] Büyük fixture üzerinde migration süresini ölç.
+- [x] Orphan translation cleanup ve integrity kontrolü ekle.
+- [x] Backup, dry-run, rollback ve restore prosedürlerini dokümante et.
+- [x] Büyük fixture üzerinde migration süresini ölç.
 
 Çıkış kriteri:
 
-- [ ] Mevcut self-host verisi kayıpsız şekilde yeni modele taşınıyor.
+- [x] Mevcut self-host verisi kayıpsız şekilde yeni modele taşınıyor.
 
 ### Faz 47 — Release hardening ve son kabul
 
-- [ ] Her route'u TR ve EN ile browser smoke testinden geçir.
-- [ ] Custom draft/active/archived locale senaryolarını test et.
-- [ ] Login ekranında dil seçici olmadığını regression testine bağla.
-- [ ] Owner ve portal preference ayrımını uçtan uca test et.
-- [ ] Tüm create/edit formlarında aktif dil tab'larını kontrol et.
-- [ ] Hard-coded user-facing text taramasını release gate yap.
-- [ ] Katalog parity, boş değer ve interpolation testlerini release gate yap.
-- [ ] RTL layout smoke, accessibility ve keyboard navigation testlerini çalıştır.
-- [ ] Translation liste okumalarında N+1 ve payload boyutunu ölç.
-- [ ] Typecheck, lint, unit, integration, browser ve production build'i çalıştır.
-- [ ] Self-host upgrade ve yeni kurulum dokümantasyonunu güncelle.
+- [x] Her route'u TR ve EN ile browser smoke testinden geçir.
+- [x] Custom draft/active/archived locale senaryolarını test et.
+- [x] Login ekranında dil seçici olmadığını regression testine bağla.
+- [x] Owner ve portal preference ayrımını uçtan uca test et.
+- [x] Tüm create/edit formlarında aktif dil tab'larını kontrol et.
+- [x] Hard-coded user-facing text taramasını release gate yap.
+- [x] Katalog parity, boş değer ve interpolation testlerini release gate yap.
+- [x] RTL layout smoke, accessibility ve keyboard navigation testlerini çalıştır.
+- [x] Translation liste okumalarında N+1 ve payload boyutunu ölç.
+- [x] Typecheck, lint, unit, integration, browser ve production build'i çalıştır.
+- [x] Self-host upgrade ve yeni kurulum dokümantasyonunu güncelle.
 
 Çıkış kriteri:
 
-- [ ] Türkçe ve İngilizce bütün sayfalarda eksiksiz.
-- [ ] Custom dil kod değişikliği olmadan eklenip aktif edilebiliyor.
-- [ ] Owner ve portal kullanıcısı dili yalnız kendi ayar ekranından
+- [x] Türkçe ve İngilizce bütün sayfalarda eksiksiz.
+- [x] Custom dil kod değişikliği olmadan eklenip aktif edilebiliyor.
+- [x] Owner ve portal kullanıcısı dili yalnız kendi ayar ekranından
   değiştirebiliyor.
-- [ ] Her çevrilebilir domain formu aktif dil sayısı kadar tab gösteriyor.
-- [ ] Portal başlangıç dili admin tarafından belirleniyor ve client tarafından
+- [x] Her çevrilebilir domain formu aktif dil sayısı kadar tab gösteriyor.
+- [x] Portal başlangıç dili admin tarafından belirleniyor ve client tarafından
   izinli diller içinde değiştirilebiliyor.
-- [ ] Release pipeline tüm i18n kalite kapılarında yeşil.
+- [x] Release pipeline tüm i18n kalite kapılarında yeşil.
 
 ## 11. Global kabul matrisi
 
@@ -1189,13 +1189,13 @@ sayılmaz:
 
 | Kontrol | TR | EN | Custom/fallback |
 | --- | --- | --- | --- |
-| Page ve metadata | Bekliyor | Bekliyor | Bekliyor |
-| Form ve validation | Bekliyor | Bekliyor | Bekliyor |
-| Dialog/toast/error | Bekliyor | Bekliyor | Bekliyor |
-| Empty/loading state | Bekliyor | Bekliyor | Bekliyor |
-| Tarih/sayı/para | Bekliyor | Bekliyor | Bekliyor |
-| Keyboard/a11y | Bekliyor | Bekliyor | Bekliyor |
-| Hard-coded text taraması | Bekliyor | Bekliyor | Bekliyor |
+| Page ve metadata | Tamamlandı | Tamamlandı | Tamamlandı |
+| Form ve validation | Tamamlandı | Tamamlandı | Tamamlandı |
+| Dialog/toast/error | Tamamlandı | Tamamlandı | Tamamlandı |
+| Empty/loading state | Tamamlandı | Tamamlandı | Tamamlandı |
+| Tarih/sayı/para | Tamamlandı | Tamamlandı | Tamamlandı |
+| Keyboard/a11y | Tamamlandı | Tamamlandı | Tamamlandı |
+| Hard-coded text taraması | Tamamlandı | Tamamlandı | Tamamlandı |
 
 ## 12. Plan dışı konular
 

@@ -53,6 +53,7 @@ export type NetaDiscoveryDocument = {
     baseUrl: string;
     metaUrl: string;
     healthUrl: string;
+    catalogUrl: string;
   };
   security: {
     httpsRequired: true;
@@ -113,6 +114,19 @@ export type NetaInstanceMetadata = {
       shape: "Record<locale, Record<field, string | null>>";
       unsupportedLocaleCode: "UNSUPPORTED_LOCALE";
     };
+    portalRevision: {
+      sourceLocale: "locale code of the client-authored revision message";
+      descriptionPolicy: "user-authored text is stored and returned without machine translation";
+    };
+    preferenceMutation: {
+      endpoint: "PATCH /api/v1/me/preferences";
+      body: "{ language?: activeLocale, colorMode?: light|dark|system }";
+      roles: "freelancer and client users mutate only their own preferences";
+    };
+    catalogDownload: {
+      endpoint: "GET /api/v1/localization/catalog?locale=tr&namespaces=common,portal";
+      versionField: "catalogVersion";
+    };
   };
   client: {
     minimumSupportedVersion: string | null;
@@ -128,6 +142,8 @@ export type NetaInstanceMetadata = {
     apiBase: string;
     health: string;
     me: string;
+    preferences: string;
+    catalog: string;
   };
 };
 
@@ -155,6 +171,7 @@ export function buildDiscoveryDocument(
       baseUrl: apiBaseUrl,
       metaUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/meta`),
       healthUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/health`),
+      catalogUrl: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/localization/catalog`),
     },
     security: {
       httpsRequired: true,
@@ -219,6 +236,19 @@ export function buildInstanceMetadata(
         shape: "Record<locale, Record<field, string | null>>",
         unsupportedLocaleCode: "UNSUPPORTED_LOCALE",
       },
+      portalRevision: {
+        sourceLocale: "locale code of the client-authored revision message",
+        descriptionPolicy: "user-authored text is stored and returned without machine translation",
+      },
+      preferenceMutation: {
+        endpoint: "PATCH /api/v1/me/preferences",
+        body: "{ language?: activeLocale, colorMode?: light|dark|system }",
+        roles: "freelancer and client users mutate only their own preferences",
+      },
+      catalogDownload: {
+        endpoint: "GET /api/v1/localization/catalog?locale=tr&namespaces=common,portal",
+        versionField: "catalogVersion",
+      },
     },
     client: {
       minimumSupportedVersion: input.minimumMobileClientVersion,
@@ -234,6 +264,8 @@ export function buildInstanceMetadata(
       apiBase: absoluteUrl(input.appUrl, NETA_API_BASE_PATH),
       health: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/health`),
       me: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/me`),
+      preferences: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/me/preferences`),
+      catalog: absoluteUrl(input.appUrl, `${NETA_API_BASE_PATH}/localization/catalog`),
     },
   };
 }

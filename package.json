@@ -43,7 +43,10 @@
     "phase-i18n:boundary": "node scripts/i18n-phase9-boundary.mjs",
     "i18n:phase9-hardening": "node scripts/i18n-phase9-hardening.mjs",
     "i18n:v2-page-audit": "node scripts/i18n-v2-page-audit.mjs",
-    "i18n:v2-phase1-smoke": "node scripts/i18n-v2-phase1-smoke.mjs"
+    "i18n:v2-phase1-smoke": "node scripts/i18n-v2-phase1-smoke.mjs",
+    "i18n:backfill": "node scripts/i18n/backfill-content-translations.mjs",
+    "i18n:integrity": "node scripts/i18n/check-integrity.mjs",
+    "i18n:release-gate": "node scripts/i18n/release-gate.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
