@@ -46,6 +46,7 @@ export default async function DashboardLayout({
       i18n={getClientI18nPayload(resolvedLocale.locale, [
         "common",
         "navigation",
+        "settings",
         "status",
         "validation",
       ])}

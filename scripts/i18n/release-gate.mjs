@@ -29,12 +29,14 @@ export function runReleaseGate() {
   }
 
   const authLanguageSelectors = scanAuthLanguageSelectors();
+  const missingSettingsProviders = scanSettingsNamespaceProviders();
   const hardCodedSamples = scanHardCodedUserText();
   const failures = {
     missingInEn,
     missingInTr,
     interpolationMismatches,
     authLanguageSelectors,
+    missingSettingsProviders,
   };
   const ok = Object.values(failures).every((rows) => rows.length === 0);
   const summary = {
@@ -47,6 +49,7 @@ export function runReleaseGate() {
       interpolationMismatches: interpolationMismatches.slice(0, 25),
     },
     authLanguageSelectors,
+    missingSettingsProviders,
     hardCodedSamples,
     notes: [
       "hardCodedSamples bilgilendirme amaçlıdır; false-positive üretmemesi için gate'i fail ettirmez.",
@@ -57,6 +60,24 @@ export function runReleaseGate() {
   console.log(JSON.stringify(summary, null, 2));
   if (!ok) process.exitCode = 1;
   return summary;
+}
+
+function scanSettingsNamespaceProviders() {
+  const requiredFiles = [
+    { file: path.join(process.cwd(), "app", "(dashboard)", "layout.tsx"), label: "admin dashboard shell" },
+    { file: path.join(process.cwd(), "app", "portal", "layout.tsx"), label: "portal shell" },
+  ];
+  return requiredFiles.flatMap(({ file, label }) => {
+    if (!fs.existsSync(file)) return [{ file: path.relative(process.cwd(), file), label, reason: "missing file" }];
+    const source = fs.readFileSync(file, "utf8");
+    if (!source.includes("getClientI18nPayload")) {
+      return [{ file: path.relative(process.cwd(), file), label, reason: "missing getClientI18nPayload" }];
+    }
+    if (!source.includes('"settings"') && !source.includes("'settings'")) {
+      return [{ file: path.relative(process.cwd(), file), label, reason: "settings namespace is not included" }];
+    }
+    return [];
+  });
 }
 
 function collectLocaleKeys(root) {
