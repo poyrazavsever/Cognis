@@ -326,6 +326,7 @@ export const projectRevisions = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     description: text("description").notNull(),
+    sourceLocale: text("source_locale"),
     status: text("status").$type<RevisionStatus>().default("pending").notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(nowMs).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })

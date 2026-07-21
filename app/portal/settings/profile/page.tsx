@@ -1,23 +1,18 @@
-import { Card, CardContent } from "poyraz-ui/atoms";
-import { createTranslator } from "@/server/i18n/translator";
-import { resolvePortalLocale } from "@/server/i18n/resolver";
 import { requirePortalBackend } from "@/server/web/portal";
+import { PortalProfileForm } from "./portal-profile-form";
 
 export default async function PortalProfileSettingsPage() {
   const { context } = await requirePortalBackend();
-  const locale = await resolvePortalLocale(context);
-  const t = createTranslator(locale.locale, ["settings"]).t;
+  const [firstName = "", ...lastNameParts] = context.profile.displayName.trim().split(/\s+/);
 
   return (
-    <Card>
-      <CardContent className="space-y-2 p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-foreground">
-          {t("settings.portal.profile.title")}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {t("settings.portal.profile.description")}
-        </p>
-      </CardContent>
-    </Card>
+    <PortalProfileForm
+      initial={{
+        firstName,
+        lastName: lastNameParts.join(" "),
+        email: context.user.email,
+        avatarUrl: context.user.image ?? "",
+      }}
+    />
   );
 }

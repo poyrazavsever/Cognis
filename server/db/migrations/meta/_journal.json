@@ -85,6 +85,13 @@
       "when": 1784626279393,
       "tag": "0011_tricky_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1784627370000,
+      "tag": "0012_portal_revision_locale",
+      "breakpoints": true
     }
   ]
 }

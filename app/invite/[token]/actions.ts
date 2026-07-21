@@ -8,8 +8,12 @@ import {
 
 function inviteErrorCode(error: unknown): string {
   if (!(error instanceof PortalInvitationError)) return "auth.messages.portalInviteFailed";
+  if (error.code === "INVALID_INPUT") return "auth.invite.invalidInput";
   if (error.code === "INVITATION_EXPIRED") return "auth.invite.expired";
-  if (error.code === "INVITATION_NOT_PENDING") return "auth.invite.accepted";
+  if (error.code === "INVITATION_NOT_FOUND") return "auth.invite.notFound";
+  if (error.code === "INVITATION_NOT_PENDING") return "auth.invite.unavailable";
+  if (error.code === "EMAIL_ALREADY_REGISTERED") return "auth.invite.emailRegistered";
+  if (error.code === "CLIENT_ALREADY_LINKED") return "auth.invite.clientLinked";
   return "auth.messages.portalInviteFailed";
 }
 

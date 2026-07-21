@@ -1,23 +1,7 @@
-import { Card, CardContent } from "poyraz-ui/atoms";
-import { createTranslator } from "@/server/i18n/translator";
-import { resolvePortalLocale } from "@/server/i18n/resolver";
 import { requirePortalBackend } from "@/server/web/portal";
+import { PortalSecurityForm } from "./portal-security-form";
 
 export default async function PortalSecuritySettingsPage() {
-  const { context } = await requirePortalBackend();
-  const locale = await resolvePortalLocale(context);
-  const t = createTranslator(locale.locale, ["settings"]).t;
-
-  return (
-    <Card>
-      <CardContent className="space-y-2 p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-foreground">
-          {t("settings.portal.security.title")}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {t("settings.portal.security.description")}
-        </p>
-      </CardContent>
-    </Card>
-  );
+  await requirePortalBackend();
+  return <PortalSecurityForm />;
 }

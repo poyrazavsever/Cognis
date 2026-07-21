@@ -12,6 +12,7 @@ import {
   appProfiles,
   authAuditEvents,
   clients,
+  instanceI18nSettings,
   instanceLocales,
   portalInvitations,
   session,
@@ -298,6 +299,7 @@ export async function acceptPortalInvitation(input: {
           .run();
         throw new PortalInvitationError("INVITATION_EXPIRED", "Davet bağlantısının süresi dolmuş.");
       }
+      const preferenceLocale = resolveActivePortalLocale(tx, invitation.locale);
 
       const [existingUser] = tx
         .select({ id: user.id })
@@ -365,7 +367,7 @@ export async function acceptPortalInvitation(input: {
 
       const linkedClient = tx
         .update(clients)
-        .set({ authUserId, portalLocale: invitation.locale, updatedAt: now })
+        .set({ authUserId, portalLocale: preferenceLocale, updatedAt: now })
         .where(
           and(
             eq(clients.id, invitation.clientId),
@@ -384,12 +386,12 @@ export async function acceptPortalInvitation(input: {
       tx.insert(userPreferences)
         .values({
           ownerUserId: authUserId,
-          language: invitation.locale,
+          language: preferenceLocale,
         })
         .onConflictDoUpdate({
           target: userPreferences.ownerUserId,
           set: {
-            language: invitation.locale,
+            language: preferenceLocale,
             updatedAt: now.toISOString(),
           },
         })
@@ -418,7 +420,12 @@ export async function acceptPortalInvitation(input: {
           type: "invitation_accepted",
           authUserId,
           email: invitation.email,
-          metadata: { invitationId: invitation.id, clientId: invitation.clientId, locale: invitation.locale },
+          metadata: {
+            invitationId: invitation.id,
+            clientId: invitation.clientId,
+            locale: invitation.locale,
+            preferenceLocale,
+          },
         })
         .run();
 
@@ -616,4 +623,31 @@ function assertPortalReadyLocale(
   }
 
   return row.code;
+}
+
+function resolveActivePortalLocale(
+  tx: Pick<ReturnType<typeof getSqliteConnection>["db"], "select">,
+  localeInput: string,
+): string {
+  const defaultLocale = tx
+    .select({ defaultLocale: instanceI18nSettings.defaultLocale })
+    .from(instanceI18nSettings)
+    .where(eq(instanceI18nSettings.key, "default"))
+    .get()?.defaultLocale ?? "tr";
+  const candidates = [localeInput, defaultLocale, "tr", "en"];
+
+  for (const candidate of candidates) {
+    const locale = candidate.trim();
+    const row = tx
+      .select({ code: instanceLocales.code, status: instanceLocales.status })
+      .from(instanceLocales)
+      .where(eq(instanceLocales.code, locale))
+      .get();
+
+    if (row?.status === "active") {
+      return row.code;
+    }
+  }
+
+  return "tr";
 }
