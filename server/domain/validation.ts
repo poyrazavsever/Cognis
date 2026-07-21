@@ -232,6 +232,7 @@ export const chatMessageCreateSchema = z.object({
   role: z.enum(chatMessageRoles),
   content: z.string().trim().min(1).max(100_000),
   contextJournalEntryIds: z.array(resourceIdSchema).max(100).default([]),
+  sourceLocale: z.string().trim().min(2).max(12).nullable().optional(),
 });
 
 export const proposalCreateSchema = z.object({

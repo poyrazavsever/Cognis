@@ -373,6 +373,7 @@ export const chatMessages = sqliteTable(
       .$type<string[]>()
       .default([])
       .notNull(),
+    sourceLocale: text("source_locale"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(nowMs).notNull(),
   },
   (table) => [

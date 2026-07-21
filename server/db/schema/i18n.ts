@@ -13,10 +13,15 @@ export type TextDirection = "ltr" | "rtl";
 export type TranslationEntityType =
   | "branding"
   | "calendar_event"
+  | "chat_session"
   | "client"
   | "client_activity"
+  | "finance_transaction"
+  | "journal_entry"
   | "planning_section"
+  | "proposal"
   | "project"
+  | "subscription"
   | "task";
 
 const nowMs = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
@@ -115,7 +120,7 @@ export const contentTranslations = sqliteTable(
     index("content_translations_entity_locale_idx").on(table.entityType, table.entityId, table.locale),
     check(
       "content_translations_entity_type_check",
-      sql`${table.entityType} in ('branding', 'calendar_event', 'client', 'client_activity', 'planning_section', 'project', 'task')`,
+      sql`${table.entityType} in ('branding', 'calendar_event', 'chat_session', 'client', 'client_activity', 'finance_transaction', 'journal_entry', 'planning_section', 'proposal', 'project', 'subscription', 'task')`,
     ),
     check("content_translations_field_check", sql`length(${table.field}) between 1 and 64`),
     check("content_translations_locale_check", sql`length(${table.locale}) between 2 and 12`),

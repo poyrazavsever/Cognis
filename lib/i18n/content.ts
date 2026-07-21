@@ -2,10 +2,15 @@ export type ContentTranslationFieldKind = "text" | "textarea";
 export type ContentTranslationEntityType =
   | "branding"
   | "calendar_event"
+  | "chat_session"
   | "client"
   | "client_activity"
+  | "finance_transaction"
+  | "journal_entry"
   | "planning_section"
+  | "proposal"
   | "project"
+  | "subscription"
   | "task";
 
 export type ContentTranslationField = {
@@ -47,6 +52,25 @@ export const contentTranslationRegistry = {
   client_activity: [
     { name: "title", label: "Başlık", required: true, maxLength: 500 },
     { name: "content", label: "İçerik", kind: "textarea", maxLength: 20_000 },
+  ],
+  finance_transaction: [
+    { name: "category", label: "Kategori", maxLength: 100 },
+    { name: "description", label: "Açıklama", kind: "textarea", maxLength: 1_000 },
+  ],
+  journal_entry: [
+    { name: "moodLabel", label: "Mod Etiketi", maxLength: 100 },
+    { name: "note", label: "Not", kind: "textarea", maxLength: 5_000 },
+  ],
+  chat_session: [
+    { name: "title", label: "Başlık", required: true, maxLength: 200 },
+  ],
+  proposal: [
+    { name: "title", label: "Başlık", required: true, maxLength: 300, placeholder: "Örn. Kurumsal web sitesi teklifi" },
+    { name: "description", label: "Açıklama", kind: "textarea", maxLength: 30_000, placeholder: "Kapsam, teslimatlar ve teklif notları..." },
+  ],
+  subscription: [
+    { name: "name", label: "Abonelik adı", required: true, maxLength: 300, placeholder: "Örn. Tasarım aracı" },
+    { name: "category", label: "Kategori", maxLength: 160, placeholder: "Örn. Yazılım, altyapı, pazarlama" },
   ],
 } satisfies Record<ContentTranslationEntityType, ContentTranslationField[]>;
 

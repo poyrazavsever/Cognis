@@ -15,6 +15,8 @@ export const I18N_NAMESPACES = [
   "status",
   "validation",
   "api",
+  "analytics",
+  "business",
 ] as const;
 
 export type I18nNamespace = (typeof I18N_NAMESPACES)[number];
