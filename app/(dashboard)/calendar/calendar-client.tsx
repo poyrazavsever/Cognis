@@ -56,14 +56,6 @@ export type CalendarEventItem = {
   translations?: Record<string, Record<string, string>>;
 };
 
-const typeLabels = {
-  meeting: "Toplantı",
-  focus: "Odak",
-  deadline: "Deadline",
-  personal: "Kişisel",
-  finance: "Finans",
-};
-
 const typeClasses = {
   meeting: "border-blue-200 bg-blue-50 text-blue-700",
   focus: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -251,7 +243,7 @@ function EventList({
                 </div>
               ) : null}
             </div>
-            <Badge className={typeClasses[event.type]}>{t(`calendar.types.${event.type}` as any)}</Badge>
+            <Badge className={typeClasses[event.type]}>{t(`calendar.types.${event.type}`)}</Badge>
           </div>
           {!compact ? (
             <div className="mt-3 flex gap-2">

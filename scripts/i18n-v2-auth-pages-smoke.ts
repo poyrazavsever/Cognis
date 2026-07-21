@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { compareCatalogKeys, I18N_NAMESPACES } from "../lib/i18n";
+import { compareCatalogKeys } from "../lib/i18n";
 import { trCatalog } from "../locales/tr";
 import { enCatalog } from "../locales/en";
 
@@ -24,7 +24,7 @@ for (const page of authPages) {
   assert.equal(content.includes("resolvePublicLocale"), true, `${page} missing resolvePublicLocale`);
 }
 
-const result = compareCatalogKeys(trCatalog as any, enCatalog as any, ["auth"]);
+const result = compareCatalogKeys(trCatalog, enCatalog, ["auth"]);
 
 const authMissingInEn = result.missingInRight.filter((k: string) => k.startsWith("auth."));
 const authMissingInTr = result.missingInLeft.filter((k: string) => k.startsWith("auth."));

@@ -73,12 +73,14 @@ export type ProjectListItem = {
   translations?: LocalizedFieldValues;
 };
 
-const typeLabels = (t: any) => ({
+type Translate = ReturnType<typeof useTranslations>;
+
+const typeLabels = (t: Translate) => ({
   client_project: t("projects.types.client"),
   side_project: t("projects.types.side"),
 });
 
-const statusLabels = (t: any) => ({
+const statusLabels = (t: Translate) => ({
   planning: t("projects.status.planning"),
   active: t("projects.status.active"),
   paused: t("projects.status.paused"),
@@ -605,7 +607,11 @@ function ProjectFormFields({
         idPrefix={`project-${project?.id || "new"}`}
         defaultLocale={localization.defaultLocale}
         locales={localization.locales}
-        fields={contentTranslationRegistry.project.map((f: any) => ({ ...f, label: (t as any)(`projects.fields.${f.name}`) || f.label, placeholder: f.placeholder ? (t as any)(`projects.placeholders.${f.name}`) || f.placeholder : undefined }))}
+        fields={contentTranslationRegistry.project.map((f) => ({
+          ...f,
+          label: t(`projects.fields.${f.name}`) || f.label,
+          placeholder: f.placeholder ? t(`projects.placeholders.${f.name}`) || f.placeholder : undefined,
+        }))}
         values={project?.translations}
         fallbackValues={{
           name: project?.name,

@@ -433,6 +433,7 @@ export class DomainService {
         clientId: scope.clientId,
         requestedByUserId: scope.authUserId,
         description: value.description,
+        sourceLocale: value.sourceLocale,
       }).returning().get();
     }, { behavior: "immediate" });
   }

@@ -21,8 +21,8 @@ export async function importTranslationsAction(content: string) {
     service.importPackage(actor, data);
     revalidatePath("/settings/languages");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Import error:", error);
-    return { errorKey: "common.error.description", details: error.message };
+    return { errorKey: "common.error.description", details: error instanceof Error ? error.message : String(error) };
   }
 }

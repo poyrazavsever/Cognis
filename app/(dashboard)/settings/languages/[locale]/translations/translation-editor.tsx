@@ -120,7 +120,7 @@ export function TranslationEditor({
           </div>
           
           <div className="flex items-center gap-3">
-            <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+            <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>

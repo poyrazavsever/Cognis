@@ -60,19 +60,6 @@ export type TaskListItem = {
   translations?: LocalizedFieldValues;
 };
 
-const statusLabels = {
-  todo: "Yapılacak",
-  in_progress: "Devam ediyor",
-  done: "Tamamlandı",
-};
-
-const priorityLabels = {
-  low: "Düşük",
-  medium: "Orta",
-  high: "Yüksek",
-  urgent: "Acil",
-};
-
 const priorityClasses = {
   low: "border-zinc-200 bg-zinc-50 text-zinc-700",
   medium: "border-blue-200 bg-blue-50 text-blue-700",
@@ -687,7 +674,11 @@ function TaskFormFields({
         idPrefix={`task-${task?.id || "new"}`}
         defaultLocale={localization.defaultLocale}
         locales={localization.locales}
-        fields={contentTranslationRegistry.task.map((f: any) => ({ ...f, label: (t as any)(`tasks.fields.${f.name}`) || f.label, placeholder: f.placeholder ? (t as any)(`tasks.placeholders.${f.name}`) || f.placeholder : undefined }))}
+        fields={contentTranslationRegistry.task.map((f) => ({
+          ...f,
+          label: t(`tasks.fields.${f.name}`) || f.label,
+          placeholder: f.placeholder ? t(`tasks.placeholders.${f.name}`) || f.placeholder : undefined,
+        }))}
         values={task?.translations}
         fallbackValues={{
           title: task?.title,

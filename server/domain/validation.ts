@@ -219,6 +219,7 @@ export const revisionCreateSchema = z.object({
   id: resourceIdSchema.optional(),
   projectId: resourceIdSchema,
   description: z.string().trim().min(1).max(20_000),
+  sourceLocale: z.string().trim().min(2).max(12).nullable().optional(),
 });
 export const revisionStatusSchema = z.enum(revisionStatuses);
 

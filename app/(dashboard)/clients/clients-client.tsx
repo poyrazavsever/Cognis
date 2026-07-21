@@ -217,7 +217,7 @@ export function ClientsClient({
               return (
                 <DroppableColumn 
                   key={stage.id} 
-                  title={t(`clients.pipeline.${stage.id}` as any)} 
+                  title={t(`clients.pipeline.${stage.id}`)} 
                   count={stageClients.length} 
                   color={stage.color.split(' ')[1]}
                   onDrop={() => handleDrop(stage.id)}
@@ -383,7 +383,7 @@ function ClientRow({ client, activeLocales }: { client: ClientListItem, activeLo
 
       <div>
         <Badge className={stage.color}>
-          {t(`clients.pipeline.${stage.id}` as any)}
+          {t(`clients.pipeline.${stage.id}`)}
         </Badge>
       </div>
 
@@ -528,7 +528,7 @@ function ClientFormFields({ client, activeLocales }: { client?: ClientListItem, 
             </SelectTrigger>
             <SelectContent>
               {pipelineStages.map(stage => (
-                <SelectItem key={stage.id} value={stage.id}>{t(`clients.pipeline.${stage.id}` as any)}</SelectItem>
+                <SelectItem key={stage.id} value={stage.id}>{t(`clients.pipeline.${stage.id}`)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
