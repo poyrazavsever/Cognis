@@ -7,7 +7,7 @@ import {
   type ApiLocalizationMetadata,
 } from "../server/api/v1/localization";
 import {
-  NETA_CAPABILITIES,
+  NETA_CAPABILITY_DETAILS,
   type NetaLocalizedResponse,
   type NetaTranslationMutationShape,
 } from "../server/api/v1/contracts";
@@ -89,7 +89,7 @@ assert.equal(contract.responseContract.localizedResourceField, "localized");
 assert.equal(contract.responseContract.translationsField, "translations");
 
 assert.equal(
-  NETA_CAPABILITIES.some((capability) => capability.id === "instance.localization" && capability.status === "available"),
+  NETA_CAPABILITY_DETAILS.some((capability) => capability.id === "instance.localization" && capability.status === "available"),
   true,
 );
 

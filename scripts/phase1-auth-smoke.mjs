@@ -102,8 +102,18 @@ try {
   assert.equal(publicMeta.payload.data.client.minimumSupportedVersion, "1.2.3-smoke.1");
   assert.equal(publicMeta.payload.data.links.me, `${baseUrl}/api/v1/me`);
   assert.deepEqual(publicMeta.payload.data.client.platforms, ["ios", "android"]);
+  assert.equal(
+    publicMeta.payload.data.capabilities.includes("mobile-v1"),
+    true,
+    "Public metadata must advertise the base mobile client contract",
+  );
+  assert.equal(
+    discovery.capabilities.includes("mobile-v1"),
+    true,
+    "Discovery must advertise the base mobile client contract",
+  );
   assert.deepEqual(
-    publicMeta.payload.data.capabilities.find(
+    publicMeta.payload.data.capabilityDetails.find(
       (capability) => capability.id === "auth.device-pairing",
     ),
     {
@@ -337,7 +347,7 @@ try {
     assert.equal(invalidChatRequest.headers.get("x-neta-error-code"), "VALIDATION_ERROR");
     assert.match(
       await invalidChatRequest.text(),
-      /"messages" alanı boş olamaz/,
+      /^chat\.errors\.invalidDetailed\|messages: too_small$/,
       "Chat validation errors must identify the invalid request field",
     );
 
@@ -353,7 +363,7 @@ try {
     assert.equal(missingChatSettings.status, 400, "Missing AI key must fail: /api/chat");
     assert.match(
       await missingChatSettings.text(),
-      /AI sağlayıcısı ve API anahtarı/,
+      /^chat\.errors\.invalidDetailed\|missing_settings$/,
       "The AI SDK v6 transport envelope must pass request validation and reach provider settings",
     );
     assert.equal(

@@ -18,6 +18,8 @@ for (const value of [
   'NETA_PROTOCOL = "neta"',
   "NETA_DISCOVERY_VERSION = 1",
   'NETA_API_VERSION = "1"',
+  'id: "mobile-v1"',
+  "NETA_CAPABILITY_DETAILS",
   '"instance.localization"',
   '"auth.device-pairing"',
   'status: "planned"',

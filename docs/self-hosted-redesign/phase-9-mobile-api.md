@@ -2,7 +2,7 @@
 title: Faz 9 — Mobil API, Instance Discovery ve Localization Sözleşmesi
 description: React Native istemcileri için discovery, API v1, metadata, localization, capability, sürümleme ve güvenlik sınırı.
 status: completed
-last_updated: 2026-07-21
+last_updated: 2026-07-29
 ---
 
 # Faz 9 — Mobil API ve instance discovery
@@ -130,7 +130,26 @@ Mevcut hata kodları:
 - Capability listesi
 - Discovery, API, health ve me linkleri
 
-Capability kaydı:
+Mobil istemcilerin basit ve kararlı feature kontrolü yapabilmesi için
+`capabilities`, yalnız kullanılabilir yetenek ID'lerini string listesi olarak
+döndürür:
+
+```json
+{
+  "capabilities": [
+    "mobile-v1",
+    "instance.discovery",
+    "instance.branding"
+  ]
+}
+```
+
+`mobile-v1`, instance'ın temel Neta mobil discovery, metadata, health,
+localization ve session sözleşmesini sunduğunu belirtir. Planlanmış fakat henüz
+kullanılamayan yetenekler bu string listesine girmez.
+
+Sürüm, durum ve erişim bilgisine ihtiyaç duyan istemciler aynı yanıttaki
+`capabilityDetails` alanını kullanır. Ayrıntılı capability kaydı:
 
 ```json
 {
@@ -141,7 +160,7 @@ Capability kaydı:
 }
 ```
 
-İstemci bilinmeyen capability ID ve alanlarını yok saymalıdır. `status=planned`, endpoint'in kullanılabilir olduğu anlamına gelmez.
+İstemci bilinmeyen capability ID ve alanlarını yok saymalıdır. `status=planned`, endpoint'in kullanılabilir olduğu anlamına gelmez. Feature gating için string `capabilities` listesi; yönetim, debug ve ileri seviye sürüm kontrolü için `capabilityDetails` kullanılır.
 
 `instance.workspaceName` kullanıcıya gösterilecek firma/freelance çalışma alanı adıdır.
 `instance.metaTitle` web metadata başlığıdır. `branding.lightLogoUrl`,
@@ -185,6 +204,7 @@ portal varsayılanı bu endpoint ile değişmez.
 
 İlk capability seti:
 
+- `mobile-v1`
 - `instance.discovery`
 - `instance.branding`
 - `instance.localization`

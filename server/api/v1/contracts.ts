@@ -30,7 +30,8 @@ export type NetaTranslationMutationShape = Record<
   Record<string, string | null>
 >;
 
-export const NETA_CAPABILITIES = [
+export const NETA_CAPABILITY_DETAILS = [
+  { id: "mobile-v1", version: 1, status: "available", access: "public" },
   { id: "instance.discovery", version: 1, status: "available", access: "public" },
   { id: "instance.branding", version: 1, status: "available", access: "public" },
   { id: "instance.localization", version: 1, status: "available", access: "public" },
@@ -41,6 +42,10 @@ export const NETA_CAPABILITIES = [
   { id: "ai.assistant", version: 1, status: "available", access: "freelancer" },
   { id: "auth.device-pairing", version: 1, status: "planned", access: "freelancer" },
 ] as const satisfies readonly NetaCapability[];
+
+export const NETA_CAPABILITIES = NETA_CAPABILITY_DETAILS
+  .filter((capability) => capability.status === "available")
+  .map((capability) => capability.id);
 
 export type NetaDiscoveryDocument = {
   protocol: typeof NETA_PROTOCOL;
@@ -70,7 +75,8 @@ export type NetaDiscoveryDocument = {
     }>;
     catalogVersion: number;
   };
-  capabilities: readonly NetaCapability[];
+  capabilities: readonly string[];
+  capabilityDetails: readonly NetaCapability[];
 };
 
 export type NetaInstanceMetadata = {
@@ -136,7 +142,8 @@ export type NetaInstanceMetadata = {
     sessionMethod: "better-auth-cookie";
     devicePairing: "planned";
   };
-  capabilities: readonly NetaCapability[];
+  capabilities: readonly string[];
+  capabilityDetails: readonly NetaCapability[];
   links: {
     discovery: string;
     apiBase: string;
@@ -189,6 +196,7 @@ export function buildDiscoveryDocument(
       catalogVersion: input.localization.catalogVersion,
     },
     capabilities: NETA_CAPABILITIES,
+    capabilityDetails: NETA_CAPABILITY_DETAILS,
   };
 }
 
@@ -259,6 +267,7 @@ export function buildInstanceMetadata(
       devicePairing: "planned",
     },
     capabilities: NETA_CAPABILITIES,
+    capabilityDetails: NETA_CAPABILITY_DETAILS,
     links: {
       discovery: absoluteUrl(input.appUrl, "/.well-known/neta"),
       apiBase: absoluteUrl(input.appUrl, NETA_API_BASE_PATH),
