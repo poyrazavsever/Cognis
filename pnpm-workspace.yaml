@@ -1,7 +1,19 @@
+packages:
+  - apps/*
+  - packages/*
+
 allowBuilds:
   better-sqlite3: true
   esbuild: true
   sharp: true
   unrs-resolver: true
+
+overrides:
+  uuid: 11.1.1
+
+peerDependencyRules:
+  ignoreMissing:
+    - react-dom
+
 minimumReleaseAgeExclude:
   - poyraz-ui@3.0.2
