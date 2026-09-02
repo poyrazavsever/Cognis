@@ -3,6 +3,7 @@ import path from "node:path";
 
 const rootDir = process.cwd();
 const standaloneDir = path.join(rootDir, ".next", "standalone");
+const standaloneAppDir = path.join(standaloneDir, "apps", "neta-app");
 
 async function requireDirectory(directory, label) {
   const info = await stat(directory).catch(() => null);
@@ -13,15 +14,16 @@ async function requireDirectory(directory, label) {
 }
 
 await requireDirectory(standaloneDir, "Next.js standalone çıktısı");
+await requireDirectory(standaloneAppDir, "Neta App standalone çıktısı");
 await requireDirectory(path.join(rootDir, ".next", "static"), "Next.js static çıktısı");
 await requireDirectory(path.join(rootDir, "public"), "Public dizini");
 
-await mkdir(path.join(standaloneDir, ".next"), { recursive: true });
-await cp(path.join(rootDir, ".next", "static"), path.join(standaloneDir, ".next", "static"), {
+await mkdir(path.join(standaloneAppDir, ".next"), { recursive: true });
+await cp(path.join(rootDir, ".next", "static"), path.join(standaloneAppDir, ".next", "static"), {
   recursive: true,
   force: true,
 });
-await cp(path.join(rootDir, "public"), path.join(standaloneDir, "public"), {
+await cp(path.join(rootDir, "public"), path.join(standaloneAppDir, "public"), {
   recursive: true,
   force: true,
 });

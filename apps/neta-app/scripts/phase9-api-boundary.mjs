@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const repoRoot = process.cwd();
+const appRoot = process.cwd();
+const repoRoot = path.resolve(appRoot, "../..");
 const requiredRoutes = [
   "app/.well-known/neta/route.ts",
   "app/api/v1/meta/route.ts",
@@ -10,7 +11,7 @@ const requiredRoutes = [
   "app/api/v1/me/route.ts",
 ];
 for (const route of requiredRoutes) {
-  assert.ok(fs.existsSync(path.join(repoRoot, route)), `Missing Phase 9 route: ${route}`);
+  assert.ok(fs.existsSync(path.join(appRoot, route)), `Missing Phase 9 route: ${route}`);
 }
 
 const contracts = read("server/api/v1/contracts.ts");
@@ -93,7 +94,7 @@ for (const fixture of [
   "docs/self-hosted-redesign/i18n-phase-8-fixtures/api-v1-locale-en.json",
   "docs/self-hosted-redesign/i18n-phase-8-fixtures/api-v1-locale-fr.json",
 ]) {
-  const parsed = JSON.parse(read(fixture));
+  const parsed = JSON.parse(readRepository(fixture));
   assert.ok(parsed.request, `Missing request fixture in ${fixture}`);
   assert.ok(parsed.expected, `Missing expected fixture in ${fixture}`);
 }
@@ -108,7 +109,7 @@ for (const futureRoute of [
   "app/api/v1/device-sessions",
 ]) {
   assert.equal(
-    fs.existsSync(path.join(repoRoot, futureRoute)),
+    fs.existsSync(path.join(appRoot, futureRoute)),
     false,
     `${futureRoute} must not ship before the pairing security design is implemented`,
   );
@@ -131,5 +132,9 @@ for (const file of runtimeFiles) {
 console.log("Phase 9 API boundary passed: discovery, v1 contracts and pairing scope verified.");
 
 function read(relativePath) {
+  return fs.readFileSync(path.join(appRoot, relativePath), "utf8");
+}
+
+function readRepository(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 }

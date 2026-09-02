@@ -2,15 +2,17 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const repoRoot = process.cwd();
+const appRoot = process.cwd();
+const repoRoot = path.resolve(appRoot, "../..");
 const packageJson = readJson("package.json");
+const rootPackageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 const installed = {
   ...packageJson.dependencies,
   ...packageJson.devDependencies,
   ...packageJson.optionalDependencies,
 };
 
-assert.equal(packageJson.packageManager, "pnpm@11.5.1", "The canonical package manager must be pinned");
+assert.equal(rootPackageJson.packageManager, "pnpm@11.5.1", "The canonical package manager must be pinned");
 assert.equal(
   fs.existsSync(path.join(repoRoot, "package-lock.json")),
   false,
@@ -36,7 +38,7 @@ for (const dependency of removedPackages) {
 
 assert.equal(
   packageJson.scripts?.start,
-  "node .next/standalone/server.js",
+  "node .next/standalone/apps/neta-app/server.js",
   "Production start command must use the generated standalone server",
 );
 assert.equal(
@@ -46,8 +48,8 @@ assert.equal(
 );
 const dockerfile = fs.readFileSync(path.join(repoRoot, "Dockerfile"), "utf8");
 assert.match(dockerfile, /COPY package\.json pnpm-lock\.yaml pnpm-workspace\.yaml \.\//);
-assert.match(dockerfile, /pnpm install --frozen-lockfile --config\.node-linker=hoisted/);
-assert.match(dockerfile, /pnpm --config\.node-linker=hoisted build/);
+assert.match(dockerfile, /pnpm install --frozen-lockfile --config\.node-linker=hoisted --filter @neta\/app\.\.\./);
+assert.match(dockerfile, /pnpm --filter @neta\/app build/);
 assert.doesNotMatch(dockerfile, /\bnpm (?:ci|install|run)\b/);
 
 const runtimeTargets = [
@@ -74,7 +76,7 @@ for (const filePath of runtimeTargets.flatMap(walk)) {
   const content = fs.readFileSync(filePath, "utf8");
   for (const [pattern, label] of runtimePatterns) {
     if (pattern.test(content)) {
-      violations.push(`${path.relative(repoRoot, filePath)}: ${label}`);
+      violations.push(`${path.relative(appRoot, filePath)}: ${label}`);
     }
   }
 }
@@ -113,7 +115,7 @@ if (process.argv.includes("--build-output")) {
         content,
       )
     ) {
-      buildViolations.push(path.relative(repoRoot, filePath));
+      buildViolations.push(path.relative(appRoot, filePath));
     }
   }
   assert.deepEqual(
@@ -128,11 +130,11 @@ console.log(
 );
 
 function readJson(relativePath) {
-  return JSON.parse(fs.readFileSync(path.join(repoRoot, relativePath), "utf8"));
+  return JSON.parse(fs.readFileSync(path.join(appRoot, relativePath), "utf8"));
 }
 
 function walk(targetPath) {
-  const absolutePath = path.join(repoRoot, targetPath);
+  const absolutePath = path.join(appRoot, targetPath);
   if (!fs.existsSync(absolutePath)) return [];
   const stat = fs.lstatSync(absolutePath);
   if (stat.isSymbolicLink()) return [];
@@ -140,7 +142,7 @@ function walk(targetPath) {
 
   return fs.readdirSync(absolutePath, { withFileTypes: true }).flatMap((entry) => {
     if (entry.isSymbolicLink()) return [];
-    return walk(path.relative(repoRoot, path.join(absolutePath, entry.name)));
+    return walk(path.relative(appRoot, path.join(absolutePath, entry.name)));
   });
 }
 
