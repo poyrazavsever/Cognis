@@ -1,0 +1,21 @@
+import { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import type { AiSettingsMutationPayload } from '@neta/api-contracts';
+import { ChoiceChips, FormSheet, useKeyboardForm } from '@/components/forms';
+import { InfoBox, TextField, useToast } from '@/components/ui';
+import { getAiSettings, updateAiSettings } from '@/features/settings/api';
+import { buildAiSettingsPayload } from '@/features/settings/form';
+import { toClientError } from '@/lib/api/errors';
+import { useSession } from '@/providers/session-provider';
+
+type Provider = AiSettingsMutationPayload['provider']; type Field = 'model' | 'apiKey' | 'currentPassword';
+const providers: readonly { label: string; value: Provider }[] = [{ label: 'OpenAI', value: 'openai' }, { label: 'Gemini', value: 'gemini' }, { label: 'Groq', value: 'groq' }, { label: 'Ollama', value: 'ollama' }];
+
+export default function AiSettingsFormRoute() {
+  const session = useSession(); const { showToast } = useToast(); const keyboard = useKeyboardForm<Field>(); const initial = useMemo(() => ({ apiKey: '', currentPassword: '', model: '', provider: 'openai' as Provider }), []);
+  const [form, setForm] = useState(initial); const [baseline, setBaseline] = useState(JSON.stringify(initial)); const [configured, setConfigured] = useState(false); const [maskedKey, setMaskedKey] = useState<string | null>(null); const [error, setError] = useState<string | null>(null); const [loading, setLoading] = useState(true); const [saved, setSaved] = useState(false);
+  useEffect(() => { if (saved) router.back(); }, [saved]);
+  useEffect(() => { if (session.status !== 'authenticated' || session.role !== 'freelancer') return; let active = true; void getAiSettings(session.instance, session.user).then((result) => { if (!active) return; const next = { ...initial, model: result.data.model ?? '', provider: result.data.provider ?? 'openai' as Provider }; setForm(next); setBaseline(JSON.stringify(next)); setConfigured(result.data.configured); setMaskedKey(result.data.maskedKey); }).catch((value) => active && setError(toClientError(value, 'AI ayarları alınamadı.').message)).finally(() => active && setLoading(false)); return () => { active = false; }; }, [initial, session]);
+  const submit = async () => { if (session.status !== 'authenticated' || session.role !== 'freelancer') return; if (!form.model.trim()) { keyboard.focusFirstError({ model: true }, ['model']); return; } setLoading(true); setError(null); try { await updateAiSettings(session.instance, session.user, buildAiSettingsPayload(form.provider, form.model, form.apiKey, form.currentPassword)); setSaved(true); showToast({ message: 'AI ayarları güncellendi.', tone: 'success' }); } catch (value) { setError(toClientError(value, 'AI ayarları güncellenemedi.').message); } finally { setLoading(false); } };
+  return <FormSheet dirty={!saved && JSON.stringify(form) !== baseline} onSubmit={() => void submit()} scrollRef={keyboard.scrollRef} submitting={loading} title="AI ayarları">{error ? <InfoBox description={error} title="Kaydedilemedi" tone="danger" /> : null}<InfoBox description={configured ? `Mevcut anahtar: ${maskedKey ?? 'yapılandırılmış'}. Boş bırakırsan değiştirilmez.` : 'AI sağlayıcısı henüz yapılandırılmamış.'} title="Gizli anahtar" /><ChoiceChips label="Sağlayıcı" onSelect={(provider) => setForm((value) => ({ ...value, provider }))} options={providers} selected={form.provider} /><TextField autoCapitalize="none" label="Model" onChangeText={(model) => setForm((value) => ({ ...value, model }))} onFocus={() => keyboard.onFocus('model')} ref={keyboard.register('model')} value={form.model} /><TextField autoCapitalize="none" autoComplete="off" label="Yeni API anahtarı" onChangeText={(apiKey) => setForm((value) => ({ ...value, apiKey }))} onFocus={() => keyboard.onFocus('apiKey')} ref={keyboard.register('apiKey')} secureTextEntry value={form.apiKey} /><TextField autoComplete="current-password" label="Değişiklik için mevcut şifre" onChangeText={(currentPassword) => setForm((value) => ({ ...value, currentPassword }))} onFocus={() => keyboard.onFocus('currentPassword')} ref={keyboard.register('currentPassword')} secureTextEntry value={form.currentPassword} /></FormSheet>;
+}

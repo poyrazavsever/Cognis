@@ -1,0 +1,36 @@
+{
+  "snapshotDate": "2026-07-29",
+  "webRepositoryMode": "read-only",
+  "webApiAvailable": [
+    "/.well-known/neta",
+    "/api/auth/*",
+    "/api/v1/health",
+    "/api/v1/meta",
+    "/api/v1/me",
+    "/api/v1/me/preferences",
+    "/api/v1/localization/catalog"
+  ],
+  "mobileApiBlockedUntilBackendDelivery": [
+    "dashboard/analytics",
+    "clients/activities/invitations",
+    "projects/planning/revisions/assets",
+    "tasks",
+    "calendar",
+    "finance",
+    "journal",
+    "chat/risk-analysis",
+    "owner-settings/locales/files",
+    "portal-dashboard/projects/tasks/revisions/profile"
+  ],
+  "mobilePublicRoutes": ["/onboarding", "/login"],
+  "ownerPrimaryRoutes": ["/", "/clients", "/projects", "/tasks"],
+  "ownerOtherRoutes": ["/calendar", "/finance", "/analytics", "/journal", "/chat", "/settings"],
+  "portalPrimaryRoutes": ["/", "/projects", "/tasks", "/revisions"],
+  "removedMobileScope": [
+    "business-records",
+    "domain-entry",
+    "instance-switching",
+    "device-pairing",
+    "pairing-token-family"
+  ]
+}
