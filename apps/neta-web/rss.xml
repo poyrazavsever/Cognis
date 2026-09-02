@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Poyraz Avsever Blog</title>
+    <link>https://poyrazavsever.com/</link>
+    <description>Poyraz Avsever&apos;in blog yazilari, yazilim notlari ve teknik icerikleri.</description>
+    <language>tr-TR</language>
+    <atom:link href="https://poyrazavsever.com/rss.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 24 Apr 2026 00:00:00 GMT</lastBuildDate>
+    <generator>Next.js RSS Route</generator>
+    <item>
+      <title>Javascript&apos;te Scope, Hoisting ve Closure&apos;ı Gerçekten Anlamak</title>
+      <link>https://poyrazavsever.com/blog/javascript-scope-hoisting-closure</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/javascript-scope-hoisting-closure</guid>
+      <description>Scope, hoisting, closure, IIFE ve module pattern gibi Javascript&apos;in temel kavramlarını öğrenme sürecimden notlar.</description>
+      <category>Javascript</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 24 Apr 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Vue.js Dokümantasyonunu Birlikte Türkçeye Çeviriyoruz!</title>
+      <link>https://poyrazavsever.com/blog/vuejs-dokumantasyon-ceviri-projesi</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/vuejs-dokumantasyon-ceviri-projesi</guid>
+      <description>Vue.js öğrenme sürecimde hissettiğim Türkçe kaynak eksikliğini gidermek için başlattığım topluluk çeviri projesine davetlisiniz.</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Wed, 22 Apr 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Javascript Neden Single-Threaded? Asenkron Mimarisini Anlamak</title>
+      <link>https://poyrazavsever.com/blog/javascript-neden-single-threaded</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/javascript-neden-single-threaded</guid>
+      <description>Javascript neden tek bir iş parçacığıyla (single-threaded) çalışacak şekilde tasarlandı? Asenkron mimari, Event Loop, Promise ve Async/Await kavramlarını analojilerle basitçe açıklıyoruz.</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 17 Apr 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Frontend Mimarisinde En Zor Kısım: Karar Vermek</title>
+      <link>https://poyrazavsever.com/blog/frontend-mimarisinde-en-zor-k-s-m-karar-vermek</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/frontend-mimarisinde-en-zor-k-s-m-karar-vermek</guid>
+      <description>Frontend Mimarisinde En Zor Kısım: Karar Vermek TL;DR Frontend mimarisinde asıl zor kısım “en iyi pattern”i bulmak değil; hangi kararı, ne zaman ve ne kadar kesinlikle vereceğine karar …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Tue, 23 Dec 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Clean Architecture Frontend’e Nasıl Uyarlanır?</title>
+      <link>https://poyrazavsever.com/blog/clean-architecture-frontende-nas-l-uyarlan-r</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/clean-architecture-frontende-nas-l-uyarlan-r</guid>
+      <description>Clean Architecture Frontend’e Nasıl Uyarlanır? İçerik Giriş Frontend’de neden mimariye ihtiyaç duyuyoruz? Clean Architecture’ın temel fikri Clean Architecture frontend’e uygulanabilir …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Tue, 02 Dec 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Frontend Developer 2025 Yol Haritası (Kişisel Bakış Açısıyla)</title>
+      <link>https://poyrazavsever.com/blog/frontend-developer-2025-yol-haritas-ki-isel-bak-a-s-yla</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/frontend-developer-2025-yol-haritas-ki-isel-bak-a-s-yla</guid>
+      <description>Frontend Developer 2025 Yol Haritası (Kişisel Bakış Açısıyla) Giriş: Neden Bu Yazıyı Yazdım? Ben junior fullstack developer olarak çalışan, her gün yeni şeyler öğrenmeye çalışan …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Mon, 06 Oct 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Next.js ile Edge Functions: Hızlı Web Uygulamaları Nasıl Geliştirilir?</title>
+      <link>https://poyrazavsever.com/blog/next-js-ile-edge-functions-h-zl-web-uygulamalar-nas-l-geli-tirilir</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/next-js-ile-edge-functions-h-zl-web-uygulamalar-nas-l-geli-tirilir</guid>
+      <description>Next.js ile Edge Functions: Hızlı Web Uygulamaları Nasıl Geliştirilir? TL;DR (Too Long; Didn’t Read): Edge Functions, kullanıcıya en yakın konumda çalışan, hızlı serverless …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Wed, 17 Sep 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>RSS ile Bilgi Akışını Algoritmadan Uzaklaştır.</title>
+      <link>https://poyrazavsever.com/blog/rss-ile-bilgi-ak-n-algoritmadan-uzakla-t-r</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/rss-ile-bilgi-ak-n-algoritmadan-uzakla-t-r</guid>
+      <description>RSS ile Bilgi Akışını Algoritmadan Uzaklaştır. Algoritmalar değil, tercihlerin yön verdiği bir içerik akışını nasıl kuracağını anlatacağım bugün sana. 15 dakikada RSS’e …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sun, 24 Aug 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>GPT‑5 Geldi: OpenAI’nin Yeni Modeli Neler Sunuyor?</title>
+      <link>https://poyrazavsever.com/blog/gpt-5-geldi-openainin-yeni-modeli-neler-sunuyor</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/gpt-5-geldi-openainin-yeni-modeli-neler-sunuyor</guid>
+      <description>GPT‑5 Geldi: OpenAI’nin Yeni Modeli Neler Sunuyor? Her şeyin hızla değiştiği bir çağdayız. Teknoloji, özellikle yapay zeka tarafında neredeyse her gün “devrimsel” bir gelişme …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 08 Aug 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Deneyimlemeden Öğrenmeniz Gereken Güvenlik Açıkları</title>
+      <link>https://poyrazavsever.com/blog/deneyimlemeden-renmeniz-gereken-g-venlik-a-klar</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/deneyimlemeden-renmeniz-gereken-g-venlik-a-klar</guid>
+      <description>Deneyimlemeden Öğrenmeniz Gereken Güvenlik Açıkları Yazılım geliştirme sürecinde ben dahil bir çoğumuz, kodun çalışmasına ve kullanıcı deneyiminin sorunsuz ilerlemesine …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Thu, 31 Jul 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Next.js 15 Gelmiş, Neler Değişti Peki?</title>
+      <link>https://poyrazavsever.com/blog/next-js-15-gelmi-neler-de-i-ti-peki</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/next-js-15-gelmi-neler-de-i-ti-peki</guid>
+      <description>Next.js 15 Gelmiş, Neler Değişti Peki? Selam! Yeni bir Next.js sürümü daha geldi ve beraberinde yine pek çok yenilik ve bazı dikkat edilmesi gereken değişiklikler getirdi. Eğer aktif …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 18 Jul 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Docker Nedir? — Kahveni Al, Docker’ı Konuşuyoruz.</title>
+      <link>https://poyrazavsever.com/blog/docker-nedir-kahveni-al-docker-konu-uyoruz</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/docker-nedir-kahveni-al-docker-konu-uyoruz</guid>
+      <description>Docker Nedir? — Kahveni Al, Docker’ı Konuşuyoruz. Gelin biraz sohbbet edelim: Yazılım geliştirme dünyasında işler bazen biraz… dağınık. Bir yerde çalışan bir uygulama başka bir …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Thu, 03 Jul 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSS Frameworkleri Tanıyoruz | 5. Bölüm: Materialize</title>
+      <link>https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-5-b-l-m-materialize</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-5-b-l-m-materialize</guid>
+      <description>CSS Frameworkleri Tanıyoruz | 5. Bölüm: Materialize Merhaba arkadaşlar, bugün 5.bölümde sizlerle “Materialize” ile tanışıyoruz. Dilerseniz başlayalım. Google’ın Material Design …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sun, 18 May 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSS Frameworkleri Tanıyoruz | 4. Bölüm: Chakra UI</title>
+      <link>https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-4-b-l-m-chakra-ui</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-4-b-l-m-chakra-ui</guid>
+      <description>CSS Frameworkleri Tanıyoruz | 4. Bölüm: Chakra UI Modern React uygulamaları için sade, güçlü ve erişilebilir bir çözüm mü arıyorsunuz? O zaman Chakra UI sizin için biçilmiş kaftan …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sun, 04 May 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSS Frameworkleri Tanıyoruz | 3. Bölüm: Bulma</title>
+      <link>https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-3-b-l-m-bulma</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-3-b-l-m-bulma</guid>
+      <description>CSS Frameworkleri Tanıyoruz | 3. Bölüm: Bulma Bu seride amacımız, popüler CSS framework’lerini sade bir dille tanıtmak, nasıl kullanılacaklarını göstermek ve küçük projelerle …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 02 May 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSS Frameworkleri Tanıyoruz | 1. Bölüm: Bootstrap</title>
+      <link>https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-1-b-l-m-bootstrap</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-1-b-l-m-bootstrap</guid>
+      <description>CSS Frameworkleri Tanıyoruz | 1. Bölüm: Bootstrap CSS Frameworkleri, artık modern web geliştirme süreçlerinde hayat kurtarıcı oluyor. Kendi css dosyalarımızı sıfırdan yazmak yerine …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sun, 27 Apr 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSS Frameworkleri Tanıyoruz | 2. Bölüm: Foundation</title>
+      <link>https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-2-b-l-m-foundation</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/css-frameworkleri-tan-yoruz-2-b-l-m-foundation</guid>
+      <description>CSS Frameworkleri Tanıyoruz | 2. Bölüm: Foundation Merhaba arkadaşlar, bugün yeni konuğumuz “Foundation”. Gelin hep beraber tanışalım. Foundation Nedir? Foundation, ZURB tarafından …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sun, 27 Apr 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>React Native Nedir? Avantajları ve Dezavantajları</title>
+      <link>https://poyrazavsever.com/blog/react-native-nedir-avantajlar-ve-dezavantajlar</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/react-native-nedir-avantajlar-ve-dezavantajlar</guid>
+      <description>React Native Nedir? Avantajları ve Dezavantajları Mobil uygulama geliştirme dünyasında, birden fazla platform için tek bir kod tabanı ile çalışma imkânı sunan teknolojiler giderek …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sat, 18 Jan 2025 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Three.js: 3 Boyutlu Dünyaya Merhaba</title>
+      <link>https://poyrazavsever.com/blog/three-js-3-boyutlu-d-nyaya-merhaba</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/three-js-3-boyutlu-d-nyaya-merhaba</guid>
+      <description>Three.js: 3 Boyutlu Dünyaya Merhaba Dostlar, bugün size bir yazılımcının 3D dünyaya giriş hikayesini anlatacağım. Hani şu hayal gücünüzde dönen küreler, ışıklar, gölgeler var …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>React ile Dinamik Bir Kullanıcı Profil Sayfası Nasıl Tasarlanır?</title>
+      <link>https://poyrazavsever.com/blog/react-ile-dinamik-bir-kullan-c-profil-sayfas-nas-l-tasarlan-r</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/react-ile-dinamik-bir-kullan-c-profil-sayfas-nas-l-tasarlan-r</guid>
+      <description>React ile Dinamik Bir Kullanıcı Profil Sayfası Nasıl Tasarlanır? Giriş Kullanıcı profil sayfalarının modern web uygulamalarındaki önemini göstermeye çalışıyorum. Dinamik ve …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Tue, 19 Nov 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Yazılım Geliştirme Süreçlerinde Agile ve Scrum</title>
+      <link>https://poyrazavsever.com/blog/yaz-l-m-geli-tirme-s-re-lerinde-agile-ve-scrum</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/yaz-l-m-geli-tirme-s-re-lerinde-agile-ve-scrum</guid>
+      <description>Yazılım Geliştirme Süreçlerinde Agile ve Scrum Yazılım projeleri yürütürken işler her zaman planlandığı gibi gitmez, değil mi? Bazen günlerce uğraşırsın, tam her şey yolunda …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Thu, 24 Oct 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Yazılım Dünyasında Hitabet Sanatının Gücü: İletişimin Yazılım Dünyasına e-Etkisi</title>
+      <link>https://poyrazavsever.com/blog/yaz-l-m-d-nyas-nda-hitabet-sanat-n-n-g-c-i-leti-imin-yaz-l-m-d-nyas-na-e-etkisi</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/yaz-l-m-d-nyas-nda-hitabet-sanat-n-n-g-c-i-leti-imin-yaz-l-m-d-nyas-na-e-etkisi</guid>
+      <description>Yazılım Dünyasında Hitabet Sanatının Gücü: İletişimin Yazılım Dünyasına e-Etkisi Yazılım geliştiricileri genellikle teknik becerileriyle tanınır, ancak etkili iletişim ve …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Tue, 15 Oct 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Mikro Etkileşimlerde İkon Kullanımı</title>
+      <link>https://poyrazavsever.com/blog/mikro-etkile-imlerde-i-kon-kullan-m</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/mikro-etkile-imlerde-i-kon-kullan-m</guid>
+      <description>Mikro Etkileşimlerde İkon Kullanımı Düşün bir, bir uygulamada ya da web sitesinde gezinirken en çok neler dikkatini çeker? Butonların rengi mi, metinlerin düzeni mi yoksa kullanıcı …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Mon, 07 Oct 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Webpack vs Vite: Frontend Projelerinde Build Araçları Karşılaştırması</title>
+      <link>https://poyrazavsever.com/blog/webpack-vs-vite-frontend-projelerinde-build-ara-lar-kar-la-t-rmas</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/webpack-vs-vite-frontend-projelerinde-build-ara-lar-kar-la-t-rmas</guid>
+      <description>Webpack vs Vite: Frontend Projelerinde Build Araçları Karşılaştırması Frontend geliştirme dünyası oldukça dinamik ve her gün yeni araçlar ortaya çıkıyor. Projeler büyüdükçe …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 04 Oct 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>UX Tasarımı ve İnsan Psikolojisi</title>
+      <link>https://poyrazavsever.com/blog/ux-tasar-m-ve-i-nsan-psikolojisi</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/ux-tasar-m-ve-i-nsan-psikolojisi</guid>
+      <description>UX Tasarımı ve İnsan Psikolojisi UX (Kullanıcı Deneyimi) tasarımı, teknolojiyle etkileşime geçen herkesin deneyimini iyileştirmeye yönelik bir disiplin. Web siteleri, mobil uygulamalar ve …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Mon, 23 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Frontend Testing Araçları: Jest ve Cypress ile Başlamak</title>
+      <link>https://poyrazavsever.com/blog/frontend-testing-ara-lar-jest-ve-cypress-ile-ba-lamak</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/frontend-testing-ara-lar-jest-ve-cypress-ile-ba-lamak</guid>
+      <description>Frontend Testing Araçları: Jest ve Cypress ile Başlamak Merhaba arkadaşlar! Yazılım geliştirmek, heyecan verici bir yolculuk ama aynı zamanda dikkatli olunması gereken bir süreç değil mi? …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 20 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>JSX’den TSX’e Geçiş: Kişisel Bir Deneyim</title>
+      <link>https://poyrazavsever.com/blog/typescript-ile-javascriptten-tsx-e-ge-i-ki-isel-bir-deneyim</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/typescript-ile-javascriptten-tsx-e-ge-i-ki-isel-bir-deneyim</guid>
+      <description>JSX’den TSX’e Geçiş: Kişisel Bir Deneyim Merhaba arkadaşlar! Son zamanlarda JavaScript’ten TypeScript’e geçiş yapmak üzerine yoğun bir şekilde çalışıyorum ve bu süreçte …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Tue, 17 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Svelte ile İlk Adımlar: React ve Vue’ya Karşı Hızlı mı?</title>
+      <link>https://poyrazavsever.com/blog/svelte-ile-i-lk-ad-mlar-react-ve-vueya-kar-h-zl-m</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/svelte-ile-i-lk-ad-mlar-react-ve-vueya-kar-h-zl-m</guid>
+      <description>Svelte ile İlk Adımlar: React ve Vue’ya Karşı Hızlı mı? Öncellikle herkese merhaba. Bildiğiniz gibi frontend dünyasında çeşitli frameworkler ve kütüphanelerle tanışmak her …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sat, 14 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Tailwind CSS ile Tasarım Sürecini Nasıl Hızlandırabilirsiniz?</title>
+      <link>https://poyrazavsever.com/blog/tailwind-css-ile-tasar-m-s-recini-nas-l-h-zland-rabilirsiniz</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/tailwind-css-ile-tasar-m-s-recini-nas-l-h-zland-rabilirsiniz</guid>
+      <description>Tailwind CSS ile Tasarım Sürecini Nasıl Hızlandırabilirsiniz? Tailwind CSS, son dönemde front-end geliştiricilerin gözdesi haline geldi. Klasik CSS yazımına göre daha oldukça hızlı ve …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Sat, 14 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Kullanıcı Araştırması ve Personas Oluşturma: Tasarımın Gizli Kahramanları</title>
+      <link>https://poyrazavsever.com/blog/kullan-c-ara-t-rmas-ve-personas-olu-turma-tasar-m-n-gizli-kahramanlar</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/kullan-c-ara-t-rmas-ve-personas-olu-turma-tasar-m-n-gizli-kahramanlar</guid>
+      <description>Kullanıcı Araştırması ve Personas Oluşturma: Tasarımın Gizli Kahramanları Tasarım dünyasında, ürünlerimizin kullanıcılarımızın ihtiyaçlarını en iyi şekilde karşılamasını …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Mon, 02 Sep 2024 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Yazılım Projelerinde Düzen ve Verimlilik İçin: Conventional Commits Nedir?</title>
+      <link>https://poyrazavsever.com/blog/yaz-l-m-projelerinde-d-zen-ve-verimlilik-i-in-conventional-commits-nedir</link>
+      <guid isPermaLink="true">https://poyrazavsever.com/blog/yaz-l-m-projelerinde-d-zen-ve-verimlilik-i-in-conventional-commits-nedir</guid>
+      <description>Yazılım Projelerinde Düzen ve Verimlilik İçin: Conventional Commits Nedir? Yazılım geliştirme sürecinde, kod yazmanın ötesinde pek çok detayla uğraşıyoruz. Commit mesajları da bu …</description>
+      <category>General</category>
+      <author>hello@poyrazavsever.com (Poyraz Avsever)</author>
+      <pubDate>Fri, 23 Aug 2024 00:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

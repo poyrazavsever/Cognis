@@ -1,0 +1,116 @@
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BadgeDollarSign,
+  Bird,
+  Bot,
+  Brain,
+  Calendar,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleCheck,
+  Cloud,
+  Container,
+  Copy,
+  Database,
+  ExternalLink,
+  FileText,
+  Folder,
+  Github,
+  GitBranch,
+  KeyRound,
+  LifeBuoy,
+  Menu,
+  Monitor,
+  Network,
+  NotebookText,
+  Package,
+  Paperclip,
+  ReceiptText,
+  Rocket,
+  Rss,
+  Server,
+  Settings,
+  Settings2,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  Users,
+  Variable,
+  Workflow,
+  X,
+  type LucideIcon,
+  type LucideProps,
+} from "lucide-react";
+
+const ICONS: Record<string, LucideIcon> = {
+  "arcticons:openai-chatgpt": Bot,
+  "mdi:account-group-outline": Users,
+  "mdi:account-key-outline": KeyRound,
+  "mdi:account-multiple-outline": Users,
+  "mdi:application-cog-outline": Settings,
+  "mdi:arrow-left": ArrowLeft,
+  "mdi:arrow-right": ArrowRight,
+  "mdi:arrow-top-right": ArrowUpRight,
+  "mdi:bird": Bird,
+  "mdi:brain": Brain,
+  "mdi:calendar-blank-outline": Calendar,
+  "mdi:calendar-month-outline": CalendarDays,
+  "mdi:chart-line": BadgeDollarSign,
+  "mdi:check": Check,
+  "mdi:checkbox-marked-circle-outline": CircleCheck,
+  "mdi:checkbox-marked-outline": CircleCheck,
+  "mdi:chevron-down": ChevronDown,
+  "mdi:chevron-right": ChevronRight,
+  "mdi:clipboard-pulse-outline": Workflow,
+  "mdi:close": X,
+  "mdi:cloud-outline": Cloud,
+  "mdi:content-copy": Copy,
+  "mdi:creation-outline": Sparkles,
+  "mdi:currency-usd-circle-outline": BadgeDollarSign,
+  "mdi:database-search-outline": Database,
+  "mdi:docker": Container,
+  "mdi:file-document-outline": FileText,
+  "mdi:folder-outline": Folder,
+  "mdi:folder-star-outline": Folder,
+  "mdi:github": Github,
+  "mdi:lifebuoy": LifeBuoy,
+  "mdi:menu": Menu,
+  "mdi:monitor-dashboard": Monitor,
+  "mdi:open-in-new": ExternalLink,
+  "mdi:package-variant-closed": Package,
+  "mdi:paperclip": Paperclip,
+  "mdi:receipt-text-outline": ReceiptText,
+  "mdi:rocket-launch-outline": Rocket,
+  "mdi:rss": Rss,
+  "mdi:server-network": Network,
+  "mdi:server-outline": Server,
+  "mdi:shield-check-outline": ShieldCheck,
+  "mdi:source-branch": GitBranch,
+  "mdi:sparkles": Sparkles,
+  "mdi:star-four-points-outline": Sparkles,
+  "mdi:tune-variant": Settings2,
+  "mdi:variable": Variable,
+  "simple-icons:ollama": Terminal,
+  "vscode-icons:file-type-gemini": Sparkles,
+};
+
+type IconProps = Omit<LucideProps, "ref"> & {
+  icon: string;
+};
+
+export function Icon({ icon, strokeWidth = 2, ...props }: IconProps) {
+  const Lucide = ICONS[icon] ?? NotebookText;
+
+  return (
+    <Lucide
+      aria-hidden="true"
+      focusable="false"
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+}

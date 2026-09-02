@@ -1,0 +1,224 @@
+.neta-journey {
+  --journey-progress: 0;
+  position: relative;
+  isolation: isolate;
+  color: #15181b;
+  background: #f3f5f7;
+}
+
+.neta-journey__stage {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #f3f5f7;
+}
+
+.neta-journey__media,
+.neta-journey__picture,
+.neta-journey__poster,
+.neta-journey__video,
+.neta-journey__scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.neta-journey__media {
+  z-index: 0;
+}
+
+.neta-journey__poster,
+.neta-journey__video {
+  display: block;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.neta-journey__poster {
+  z-index: 0;
+}
+
+.neta-journey__video {
+  z-index: 1;
+}
+
+.neta-journey[data-video-painted="true"] .neta-journey__poster {
+  visibility: hidden;
+}
+
+.neta-journey__scrim {
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(243, 245, 247, 0.96) 0%, rgba(243, 245, 247, 0.46) 34%, rgba(243, 245, 247, 0.08) 48%, rgba(243, 245, 247, 0.08) 52%, rgba(243, 245, 247, 0.44) 68%, rgba(243, 245, 247, 0.94) 100%),
+    linear-gradient(180deg, rgba(243, 245, 247, 0.84) 0%, transparent 24%, transparent 74%, rgba(243, 245, 247, 0.88) 100%);
+  pointer-events: none;
+}
+
+.neta-journey__progress {
+  position: absolute;
+  z-index: 7;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: rgba(21, 24, 27, 0.12);
+  pointer-events: none;
+}
+
+.neta-journey__progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #e5222a;
+  transform: scaleY(var(--journey-progress));
+  transform-origin: center top;
+}
+
+.neta-journey__story {
+  position: relative;
+  z-index: 4;
+  margin-top: -100dvh;
+  pointer-events: none;
+}
+
+.neta-journey__chapter {
+  position: relative;
+  min-height: 95dvh;
+}
+
+.neta-journey__chapter-pin {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 6.5rem max(5vw, 1.5rem) 3rem;
+}
+
+.neta-journey__chapter[data-align="right"] .neta-journey__chapter-pin {
+  justify-content: flex-end;
+}
+
+.neta-journey__copy {
+  width: min(38rem, 45vw);
+  pointer-events: auto;
+}
+
+.neta-journey__kicker {
+  max-width: 34ch;
+  margin: 0 0 1rem;
+  color: #ca1921;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.neta-journey__title {
+  max-width: 11ch;
+  margin: 0;
+  color: #15181b;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 4.4rem;
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.neta-journey__body {
+  max-width: 43ch;
+  margin: 1.35rem 0 0;
+  color: #434a52;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.neta-journey__actions {
+  display: grid;
+  gap: 0.9rem;
+  width: min(100%, 37rem);
+  margin-top: 2rem;
+}
+
+.neta-journey__demo {
+  width: max-content;
+  min-width: 10.5rem;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 1100px) {
+  .neta-journey__copy {
+    width: min(34rem, 54vw);
+  }
+
+  .neta-journey__title {
+    font-size: 3.6rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .neta-journey__poster,
+  .neta-journey__video {
+    object-position: 50% 50%;
+  }
+
+  .neta-journey__scrim {
+    background: linear-gradient(180deg, rgba(243, 245, 247, 0.5) 0%, rgba(243, 245, 247, 0.08) 42%, rgba(243, 245, 247, 0.9) 78%, #f3f5f7 100%);
+  }
+
+  .neta-journey__chapter {
+    min-height: 92dvh;
+  }
+
+  .neta-journey__chapter-pin,
+  .neta-journey__chapter[data-align="right"] .neta-journey__chapter-pin {
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 6rem 1.25rem 5.2rem;
+  }
+
+  .neta-journey__copy {
+    width: min(100%, 34rem);
+  }
+
+  .neta-journey__title {
+    max-width: 13ch;
+    font-size: 2.75rem;
+  }
+
+  .neta-journey__body {
+    max-width: 37ch;
+    margin-top: 1rem;
+    font-size: 1rem;
+  }
+
+  .neta-journey__actions {
+    margin-top: 1.25rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .neta-journey__title {
+    font-size: 2.35rem;
+  }
+
+  .neta-journey__body {
+    line-height: 1.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neta-journey__progress span {
+    transition: none;
+  }
+
+  .neta-journey__chapter {
+    min-height: 100dvh;
+  }
+}
