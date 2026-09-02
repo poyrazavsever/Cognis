@@ -1,4 +1,4 @@
-<img src="public/logo/lightLogoLong.png" height="160" alt="Neta" />
+<img src="apps/neta-app/public/logo/lightLogoLong.png" height="160" alt="Neta" />
 
 # Neta
 
@@ -14,6 +14,32 @@ Self-hosted v3 runtime'ı harici bir BaaS istemez:
 - İsteğe bağlı Google, OpenAI, Groq veya Ollama AI sağlayıcısı
 
 Supabase yalnızca eski bir Neta kurulumundan veri aktarmak için opsiyonel kaynak olabilir. Uygulamanın build veya runtime aşamasında Supabase projesi, paketi ya da environment değişkeni gerekmez.
+
+## Monorepo yapısı
+
+Tüm ürün yüzeyleri tek pnpm workspace ve tek `pnpm-lock.yaml` ile yönetilir:
+
+```text
+apps/neta-app/                  @neta/app — self-hosted Next.js uygulaması ve API
+apps/neta-web/                  @neta/web — public landing sitesi
+apps/neta-mobile/               @neta/mobile — Expo iOS/Android uygulaması
+packages/api-contracts/         web ve mobilin ortak API sözleşmeleri
+packages/design-tokens/         ortak tasarım tokenları
+docs/                           mimari kararlar, runbook'lar ve yol haritaları
+tools/desktop-assistant/        ürün dışı yardımcı masaüstü aracı
+```
+
+Bağımlılık kurulumunu yalnız repository kökünde yapın. Temel geliştirme komutları:
+
+```bash
+pnpm app:dev                    # web app, http://localhost:3000
+pnpm web:dev                    # landing, http://localhost:3001
+pnpm mobile:start               # Expo/Metro
+pnpm dev:all                    # üçünü birlikte çalıştırır
+```
+
+Uygulama bazlı komutlar pnpm filtreleriyle de çalıştırılabilir; örneğin
+`pnpm --filter @neta/web build` veya `pnpm --filter @neta/mobile check`.
 
 ## Çalışma modeli
 
@@ -31,7 +57,7 @@ Kalıcı veri ağacı:
 
 ## Gereksinimler
 
-- Node.js 22
+- Node.js 24 (`.nvmrc`)
 - pnpm 11.5.1 (lokal geliştirme ve Docker build için; sürüm `packageManager` alanında sabittir)
 - Production'da kalıcı disk/volume
 - Localhost dışındaki production kurulumunda HTTPS reverse proxy
@@ -40,13 +66,13 @@ Kalıcı veri ağacı:
 
 ```bash
 pnpm install --frozen-lockfile
-cp .env.example .env.local
+cp apps/neta-app/.env.example apps/neta-app/.env.local
 openssl rand -base64 32
 ```
 
-`pnpm-lock.yaml` repository'nin tek canonical dependency lockfile'ıdır. Lokal kurulum ve Docker image aynı çözümü kullanır.
+Kökteki `pnpm-lock.yaml` bütün workspace'in tek canonical dependency lockfile'ıdır. Alt uygulamalarda ayrı lockfile veya workspace tanımı tutulmaz. Lokal kurulum, CI ve Docker image aynı çözümü kullanır.
 
-Üretilen secret'ı `.env.local` içindeki `BETTER_AUTH_SECRET` alanına koyun, ardından:
+Üretilen secret'ı `apps/neta-app/.env.local` içindeki `BETTER_AUTH_SECRET` alanına koyun, ardından:
 
 ```bash
 pnpm dev
@@ -178,7 +204,20 @@ GET /api/v1/me
 
 Device pairing henüz runtime'a açılmamıştır; capability `planned` durumundadır. Mobil bağlantı algoritması ve API version kuralları [Faz 9 rehberinde](docs/self-hosted-redesign/phase-9-mobile-api.md), gelecek pairing/token güvenliği [ADR-0018](docs/self-hosted-redesign/adr-0018-device-pairing.md) belgesinde tanımlıdır.
 
+Landing, self-hosted app, ortak backend API ve tek evrensel mobil uygulamanın hedef mimarisi ile uygulama sırası [platform master planında](docs/roadmaps/platform-master-plan.md) tanımlıdır.
+
 ## Kalite kontrolleri
+
+Workspace genelindeki temel kontroller:
+
+```bash
+pnpm lint:all
+pnpm typecheck:all
+pnpm build:all
+pnpm mobile:check
+```
+
+Web app'e özel release kontrolleri:
 
 ```bash
 pnpm typecheck
